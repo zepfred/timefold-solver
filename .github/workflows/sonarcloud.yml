@@ -8,11 +8,6 @@ on:
       - opened
       - reopened
       - synchronize
-#    branches:
-#      - main
-  # PRs from forks are unsupported, therefore this is pointless.
-  # pull_request:
-  #  types: [opened, synchronize, reopened]
 jobs:
   build:
     name: Build and analyze
