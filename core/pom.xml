@@ -41,6 +41,18 @@
     </dependency>
 
     <!-- External dependencies -->
+    <!-- Google auto-service for annotation processor-->
+    <dependency>
+      <groupId>com.google.auto.service</groupId>
+      <artifactId>auto-service</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>com.google.auto.service</groupId>
+      <artifactId>auto-service-annotations</artifactId>
+      <optional>true</optional>
+    </dependency>
+
     <!-- Common utils -->
     <dependency>
       <groupId>org.apache.commons</groupId>
