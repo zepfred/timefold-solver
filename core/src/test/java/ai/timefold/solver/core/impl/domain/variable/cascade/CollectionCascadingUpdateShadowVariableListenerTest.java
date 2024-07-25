@@ -70,19 +70,17 @@ class CollectionCascadingUpdateShadowVariableListenerTest {
         scoreDirector.afterListVariableChanged(entity, "valueList", 0, 3);
         scoreDirector.triggerVariableListeners();
 
-        assertThat(entity.getValueList().get(0).getCascadeValue()).isEqualTo(1);
+        assertThat(entity.getValueList().get(0).getCascadeValue()).isOne();
         assertThat(entity.getValueList().get(0).getSecondCascadeValue()).isEqualTo(2);
-        assertThat(entity.getValueList().get(0).getNumberOfCalls()).isEqualTo(1);
+        assertThat(entity.getValueList().get(0).getNumberOfCalls()).isOne();
 
         assertThat(entity.getValueList().get(1).getCascadeValue()).isEqualTo(2);
         assertThat(entity.getValueList().get(1).getSecondCascadeValue()).isEqualTo(3);
-        // Called from update next val1, inverse and previous element changes
-        assertThat(entity.getValueList().get(1).getNumberOfCalls()).isEqualTo(3);
+        assertThat(entity.getValueList().get(1).getNumberOfCalls()).isOne();
 
         assertThat(entity.getValueList().get(2).getCascadeValue()).isEqualTo(3);
         assertThat(entity.getValueList().get(2).getSecondCascadeValue()).isEqualTo(4);
-        // Called from update next val2, inverse and previous element changes
-        assertThat(entity.getValueList().get(2).getNumberOfCalls()).isEqualTo(3);
+        assertThat(entity.getValueList().get(2).getNumberOfCalls()).isOne();
     }
 
     @ParameterizedTest
@@ -109,6 +107,7 @@ class CollectionCascadingUpdateShadowVariableListenerTest {
             scoreDirector.beforeListVariableChanged(entity, "valueList", 1, 1);
             entity.setValueList(
                     List.of(solution.getValueList().get(0), solution.getValueList().get(2), solution.getValueList().get(1)));
+            entity.getValueList().forEach(v -> v.setEntity(entity));
             scoreDirector.afterListVariableChanged(entity, "valueList", 1, 2);
             scoreDirector.triggerVariableListeners();
 
@@ -117,12 +116,12 @@ class CollectionCascadingUpdateShadowVariableListenerTest {
             assertThat(entity.getValueList().get(1).getCascadeValue()).isEqualTo(3);
             assertThat(entity.getValueList().get(1).getSecondCascadeValue()).isEqualTo(4);
             // Called from previous and inverse element change
-            assertThat(entity.getValueList().get(1).getNumberOfCalls()).isEqualTo(2);
+            assertThat(entity.getValueList().get(1).getNumberOfCalls()).isOne();
 
             assertThat(entity.getValueList().get(2).getCascadeValue()).isEqualTo(2);
             assertThat(entity.getValueList().get(2).getSecondCascadeValue()).isEqualTo(3);
             // Called from update next val
-            assertThat(entity.getValueList().get(2).getNumberOfCalls()).isEqualTo(2);
+            assertThat(entity.getValueList().get(2).getNumberOfCalls()).isOne();
         }
 
         { // Changing the second shadow var
@@ -149,12 +148,12 @@ class CollectionCascadingUpdateShadowVariableListenerTest {
             assertThat(entity.getValueList().get(1).getCascadeValue()).isEqualTo(3);
             assertThat(entity.getValueList().get(1).getSecondCascadeValue()).isEqualTo(4);
             // Called from previous and inverse element change
-            assertThat(entity.getValueList().get(1).getNumberOfCalls()).isEqualTo(2);
+            assertThat(entity.getValueList().get(1).getNumberOfCalls()).isOne();
 
             assertThat(entity.getValueList().get(2).getCascadeValue()).isEqualTo(2);
             assertThat(entity.getValueList().get(2).getSecondCascadeValue()).isEqualTo(3);
             // Called from update next val
-            assertThat(entity.getValueList().get(2).getNumberOfCalls()).isEqualTo(2);
+            assertThat(entity.getValueList().get(2).getNumberOfCalls()).isOne();
         }
     }
 
@@ -189,12 +188,11 @@ class CollectionCascadingUpdateShadowVariableListenerTest {
 
         assertThat(entity.getValueList().get(0).getCascadeValue()).isEqualTo(3);
         assertThat(entity.getValueList().get(0).getSecondCascadeValue()).isEqualTo(4);
-        assertThat(entity.getValueList().get(0).getNumberOfCalls()).isEqualTo(1);
+        assertThat(entity.getValueList().get(0).getNumberOfCalls()).isOne();
 
-        assertThat(entity.getValueList().get(1).getCascadeValue()).isEqualTo(1);
+        assertThat(entity.getValueList().get(1).getCascadeValue()).isOne();
         assertThat(entity.getValueList().get(1).getSecondCascadeValue()).isEqualTo(2);
-        // Called from update next val1 and previous element change
-        assertThat(entity.getValueList().get(1).getNumberOfCalls()).isEqualTo(1);
+        assertThat(entity.getValueList().get(1).getNumberOfCalls()).isOne();
 
         assertThat(entity.getValueList().get(2).getCascadeValue()).isEqualTo(2);
         assertThat(entity.getValueList().get(2).getSecondCascadeValue()).isEqualTo(3);

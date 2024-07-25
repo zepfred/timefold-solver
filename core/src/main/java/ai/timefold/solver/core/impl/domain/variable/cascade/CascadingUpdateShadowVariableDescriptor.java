@@ -18,9 +18,17 @@ import ai.timefold.solver.core.impl.domain.common.accessor.MemberAccessor;
 import ai.timefold.solver.core.impl.domain.common.accessor.MemberAccessorFactory;
 import ai.timefold.solver.core.impl.domain.entity.descriptor.EntityDescriptor;
 import ai.timefold.solver.core.impl.domain.policy.DescriptorPolicy;
+import ai.timefold.solver.core.impl.domain.variable.cascade.operation.CascadingUpdateOperation;
+import ai.timefold.solver.core.impl.domain.variable.cascade.operation.InverseElementSupplyOperation;
+import ai.timefold.solver.core.impl.domain.variable.cascade.operation.ListVariableSupplyOperation;
+import ai.timefold.solver.core.impl.domain.variable.cascade.operation.NextElementSupplyOperation;
+import ai.timefold.solver.core.impl.domain.variable.cascade.operation.ShadowVariableDescriptorOperation;
 import ai.timefold.solver.core.impl.domain.variable.descriptor.ListVariableDescriptor;
 import ai.timefold.solver.core.impl.domain.variable.descriptor.ShadowVariableDescriptor;
 import ai.timefold.solver.core.impl.domain.variable.descriptor.VariableDescriptor;
+import ai.timefold.solver.core.impl.domain.variable.index.IndexShadowVariableDescriptor;
+import ai.timefold.solver.core.impl.domain.variable.inverserelation.InverseRelationShadowVariableDescriptor;
+import ai.timefold.solver.core.impl.domain.variable.inverserelation.SingletonInverseVariableDemand;
 import ai.timefold.solver.core.impl.domain.variable.listener.VariableListenerWithSources;
 import ai.timefold.solver.core.impl.domain.variable.nextprev.NextElementShadowVariableDescriptor;
 import ai.timefold.solver.core.impl.domain.variable.nextprev.NextElementVariableDemand;
@@ -34,6 +42,8 @@ public final class CascadingUpdateShadowVariableDescriptor<Solution_> extends Sh
     private final List<VariableDescriptor<Solution_>> targetVariableDescriptorList = new ArrayList<>();
     private final Set<ShadowVariableDescriptor<Solution_>> sourceShadowVariableDescriptorSet = new HashSet<>();
     private ShadowVariableDescriptor<Solution_> nextElementShadowVariableDescriptor;
+    private ShadowVariableDescriptor<Solution_> inverseElementShadowVariableDescriptor;
+    private ShadowVariableDescriptor<Solution_> indexShadowVariableDescriptor;
     private MemberAccessor targetMethod;
     // This flag defines if the planning variable generates a listener, which will be notified later by the event system
     private boolean notifiable = true;
@@ -118,6 +128,18 @@ public final class CascadingUpdateShadowVariableDescriptor<Solution_> extends Sh
                 .findFirst()
                 .orElse(null);
 
+        inverseElementShadowVariableDescriptor = entityDescriptor.getShadowVariableDescriptors().stream()
+                .filter(variableDescriptor -> InverseRelationShadowVariableDescriptor.class
+                        .isAssignableFrom(variableDescriptor.getClass()))
+                .findFirst()
+                .orElse(null);
+
+        indexShadowVariableDescriptor = entityDescriptor.getShadowVariableDescriptors().stream()
+                .filter(variableDescriptor -> IndexShadowVariableDescriptor.class
+                        .isAssignableFrom(variableDescriptor.getClass()))
+                .findFirst()
+                .orElse(null);
+
         var targetMethodName = getTargetMethodName();
         var allSourceMethodMembers = ConfigUtils.getDeclaredMembers(entityDescriptor.getEntityClass())
                 .stream()
@@ -193,7 +215,7 @@ public final class CascadingUpdateShadowVariableDescriptor<Solution_> extends Sh
 
     @Override
     public Collection<Class<? extends AbstractVariableListener>> getVariableListenerClasses() {
-        return Collections.singleton(CollectionCascadingUpdateShadowVariableListener.class);
+        return Collections.singleton(AbstractCascadingUpdateShadowVariableListener.class);
     }
 
     @Override
@@ -212,23 +234,38 @@ public final class CascadingUpdateShadowVariableDescriptor<Solution_> extends Sh
 
     @Override
     public Iterable<VariableListenerWithSources<Solution_>> buildVariableListeners(SupplyManager supplyManager) {
-        AbstractCascadingUpdateShadowVariableListener<Solution_> listener;
+
+        CascadingUpdateOperation<Object> nextElementOperation;
         if (nextElementShadowVariableDescriptor != null) {
-            if (targetVariableDescriptorList.size() == 1) {
-                listener = new SingleCascadingUpdateShadowVariableListener<>(targetVariableDescriptorList,
-                        nextElementShadowVariableDescriptor, targetMethod);
-            } else {
-                listener = new CollectionCascadingUpdateShadowVariableListener<>(targetVariableDescriptorList,
-                        nextElementShadowVariableDescriptor, targetMethod);
-            }
+            nextElementOperation = new ShadowVariableDescriptorOperation<>(nextElementShadowVariableDescriptor);
         } else {
-            if (targetVariableDescriptorList.size() == 1) {
-                listener = new SingleCascadingUpdateShadowVariableWithSupplyListener<>(targetVariableDescriptorList,
-                        supplyManager.demand(new NextElementVariableDemand<>(sourceListVariable)), targetMethod);
-            } else {
-                listener = new CollectionCascadingUpdateShadowVariableWithSupplyListener<>(targetVariableDescriptorList,
-                        supplyManager.demand(new NextElementVariableDemand<>(sourceListVariable)), targetMethod);
-            }
+            nextElementOperation =
+                    new NextElementSupplyOperation(supplyManager.demand(new NextElementVariableDemand<>(sourceListVariable)));
+        }
+        CascadingUpdateOperation<Object> inverseElementOperation;
+        if (inverseElementShadowVariableDescriptor != null) {
+            inverseElementOperation = new ShadowVariableDescriptorOperation<>(inverseElementShadowVariableDescriptor);
+        } else {
+            inverseElementOperation = new InverseElementSupplyOperation(
+                    supplyManager.demand(new SingletonInverseVariableDemand<>(sourceListVariable)));
+        }
+        CascadingUpdateOperation<Integer> indexElementOperation;
+        if (indexShadowVariableDescriptor != null) {
+            indexElementOperation = new ShadowVariableDescriptorOperation<>(indexShadowVariableDescriptor);
+        } else {
+            indexElementOperation =
+                    new ListVariableSupplyOperation<>(supplyManager.demand(sourceListVariable.getStateDemand()));
+        }
+        AbstractCascadingUpdateShadowVariableListener<Solution_> listener;
+        if (targetVariableDescriptorList.size() == 1) {
+            listener =
+                    new SingleAbstractCascadingUpdateShadowVariableListener<>(sourceListVariable, targetVariableDescriptorList,
+                            nextElementOperation, inverseElementOperation, indexElementOperation, targetMethod);
+        } else {
+            listener =
+                    new CollectionAbstractCascadingUpdateShadowVariableListener<>(sourceListVariable,
+                            targetVariableDescriptorList,
+                            nextElementOperation, inverseElementOperation, indexElementOperation, targetMethod);
         }
         return Collections.singleton(new VariableListenerWithSources<>(listener, getSourceVariableDescriptorList()));
     }

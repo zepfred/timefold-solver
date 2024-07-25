@@ -6,20 +6,24 @@ import java.util.Objects;
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
 import ai.timefold.solver.core.api.score.director.ScoreDirector;
 import ai.timefold.solver.core.impl.domain.common.accessor.MemberAccessor;
+import ai.timefold.solver.core.impl.domain.variable.cascade.operation.CascadingUpdateOperation;
+import ai.timefold.solver.core.impl.domain.variable.descriptor.ListVariableDescriptor;
 import ai.timefold.solver.core.impl.domain.variable.descriptor.VariableDescriptor;
 
 /**
  * @param <Solution_> the solution type, the class with the {@link PlanningSolution} annotation
  */
-public abstract class AbstractSingleAbstractCascadingUpdateShadowVariableListener<Solution_>
+public class SingleAbstractCascadingUpdateShadowVariableListener<Solution_>
         extends AbstractCascadingUpdateShadowVariableListener<Solution_> {
 
     private final VariableDescriptor<Solution_> targetVariableDescriptor;
 
-    AbstractSingleAbstractCascadingUpdateShadowVariableListener(
+    SingleAbstractCascadingUpdateShadowVariableListener(ListVariableDescriptor<Solution_> sourceListVariable,
             List<VariableDescriptor<Solution_>> targetVariableDescriptorList,
-            MemberAccessor targetMethod) {
-        super(targetVariableDescriptorList, targetMethod);
+            CascadingUpdateOperation<Object> nextElementOperation, CascadingUpdateOperation<Object> inverseElementOperation,
+            CascadingUpdateOperation<Integer> indexElementOperation, MemberAccessor targetMethod) {
+        super(sourceListVariable, targetVariableDescriptorList, nextElementOperation, inverseElementOperation,
+                indexElementOperation, targetMethod);
         this.targetVariableDescriptor = targetVariableDescriptorList.get(0);
     }
 
