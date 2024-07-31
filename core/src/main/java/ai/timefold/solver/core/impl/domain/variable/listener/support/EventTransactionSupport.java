@@ -13,4 +13,8 @@ public interface EventTransactionSupport {
     boolean _internal_Timefold_Event_Support_isVisited();
 
     void _internal_Timefold_Event_Support_visit();
+
+    void _internal_Timefold_Event_Support_executeTargetMethod(String targetMethod);
+
+    Object _internal_Timefold_Event_Support_getFieldValue(String fieldName);
 }

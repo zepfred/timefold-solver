@@ -32,7 +32,7 @@ public abstract class AbstractCascadingUpdateShadowVariableListener<Solution_> i
         targetMethod.executeGetter(entity);
     }
 
-    protected List<Object> getValues(Object entity) {
+    protected List<Object> getPlanningListValues(Object entity) {
         return sourceListVariableDescriptor.getValue(entity);
     }
 
@@ -60,7 +60,7 @@ public abstract class AbstractCascadingUpdateShadowVariableListener<Solution_> i
             var indexElement = listVariableStateSupply.getLocationInList(entity);
             if (indexElement instanceof LocationInList location) {
                 var fromIndex = location.index();
-                var values = getValues(location.entity());
+                var values = getPlanningListValues(location.entity());
                 for (var i = fromIndex + 1; i < values.size(); i++) {
                     shouldContinue = execute(scoreDirector, values.get(i));
                     markAsVisited(values.get(i));

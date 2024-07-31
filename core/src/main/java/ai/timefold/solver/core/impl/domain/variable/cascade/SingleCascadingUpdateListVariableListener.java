@@ -42,7 +42,7 @@ public class SingleCascadingUpdateListVariableListener<Solution_>
 
     @Override
     public void afterListVariableChanged(ScoreDirector<Solution_> scoreDirector, Object entity, int fromIndex, int toIndex) {
-        var values = getValues(entity);
+        var values = getPlanningListValues(entity);
         // Update all the elements inside the range
         for (var i = fromIndex; i < toIndex; i++) {
             if (!isVisited(values.get(i))) {

@@ -34,5 +34,4 @@ public abstract class AbstractEventTransactionSupport implements EventTransactio
         eventId = eventTransactionStore.getEventId();
         visited = true;
     }
-
 }

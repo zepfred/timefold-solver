@@ -30,6 +30,10 @@ public class CollectionCascadingUpdateShadowVariableListener<Solution_>
         this.targetDescriptorList = targetVariableDescriptorList;
     }
 
+    protected List<String> getTargetVariableNames() {
+        return targetDescriptorList.stream().map(VariableDescriptor::getVariableName).toList();
+    }
+
     @Override
     protected boolean execute(ScoreDirector<Solution_> scoreDirector, Object entity) {
         var oldValueList = new ArrayList<>(targetDescriptorList.size());
