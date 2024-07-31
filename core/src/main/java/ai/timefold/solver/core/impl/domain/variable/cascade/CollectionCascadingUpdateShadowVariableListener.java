@@ -34,7 +34,6 @@ public class CollectionCascadingUpdateShadowVariableListener<Solution_>
     protected boolean execute(ScoreDirector<Solution_> scoreDirector, Object entity) {
         var oldValueList = new ArrayList<>(targetDescriptorList.size());
         for (var targetVariableDescriptor : targetDescriptorList) {
-            scoreDirector.beforeVariableChanged(entity, targetVariableDescriptor.getVariableName());
             oldValueList.add(targetVariableDescriptor.getValue(entity));
         }
         runTargetMethod(entity);
@@ -42,8 +41,11 @@ public class CollectionCascadingUpdateShadowVariableListener<Solution_>
         for (var i = 0; i < targetDescriptorList.size(); i++) {
             var targetVariableDescriptor = targetDescriptorList.get(i);
             var newValue = targetVariableDescriptor.getValue(entity);
-            scoreDirector.afterVariableChanged(entity, targetVariableDescriptor.getVariableName());
-            if (!hasChange && !Objects.equals(oldValueList.get(i), newValue)) {
+            if (!Objects.equals(oldValueList.get(i), newValue)) {
+                targetVariableDescriptor.setValue(entity, oldValueList.get(i));
+                scoreDirector.beforeVariableChanged(entity, targetVariableDescriptor.getVariableName());
+                targetVariableDescriptor.setValue(entity, newValue);
+                scoreDirector.afterVariableChanged(entity, targetVariableDescriptor.getVariableName());
                 hasChange = true;
             }
         }

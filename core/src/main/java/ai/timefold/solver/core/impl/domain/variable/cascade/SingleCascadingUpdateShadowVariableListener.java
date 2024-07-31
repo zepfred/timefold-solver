@@ -30,10 +30,15 @@ public class SingleCascadingUpdateShadowVariableListener<Solution_>
     @Override
     protected boolean execute(ScoreDirector<Solution_> scoreDirector, Object entity) {
         var oldValue = targetVariableDescriptor.getValue(entity);
-        scoreDirector.beforeVariableChanged(entity, targetVariableDescriptor.getVariableName());
         runTargetMethod(entity);
         var newValue = targetVariableDescriptor.getValue(entity);
-        scoreDirector.afterVariableChanged(entity, targetVariableDescriptor.getVariableName());
-        return !Objects.equals(oldValue, newValue);
+        if (!Objects.equals(oldValue, newValue)) {
+            targetVariableDescriptor.setValue(entity, oldValue);
+            scoreDirector.beforeVariableChanged(entity, targetVariableDescriptor.getVariableName());
+            targetVariableDescriptor.setValue(entity, newValue);
+            scoreDirector.afterVariableChanged(entity, targetVariableDescriptor.getVariableName());
+            return true;
+        }
+        return false;
     }
 }
