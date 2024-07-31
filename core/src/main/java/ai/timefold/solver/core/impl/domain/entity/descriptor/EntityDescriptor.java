@@ -58,6 +58,7 @@ import ai.timefold.solver.core.impl.domain.variable.descriptor.ShadowVariableDes
 import ai.timefold.solver.core.impl.domain.variable.descriptor.VariableDescriptor;
 import ai.timefold.solver.core.impl.domain.variable.index.IndexShadowVariableDescriptor;
 import ai.timefold.solver.core.impl.domain.variable.inverserelation.InverseRelationShadowVariableDescriptor;
+import ai.timefold.solver.core.impl.domain.variable.listener.support.EventTransactionSupport;
 import ai.timefold.solver.core.impl.domain.variable.nextprev.NextElementShadowVariableDescriptor;
 import ai.timefold.solver.core.impl.domain.variable.nextprev.PreviousElementShadowVariableDescriptor;
 import ai.timefold.solver.core.impl.heuristic.selector.common.decorator.ComparatorSelectionSorter;
@@ -861,6 +862,10 @@ public class EntityDescriptor<Solution_> {
         return isGenuine() &&
                 (effectiveMovableEntitySelectionFilter == null
                         || effectiveMovableEntitySelectionFilter.accept(scoreDirector, entity));
+    }
+
+    public boolean hasSupportToEventTransaction() {
+        return EventTransactionSupport.class.isAssignableFrom(getEntityClass());
     }
 
     @Override

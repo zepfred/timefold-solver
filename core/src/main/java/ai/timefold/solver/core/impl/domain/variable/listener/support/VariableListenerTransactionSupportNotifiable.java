@@ -7,24 +7,28 @@ import ai.timefold.solver.core.api.domain.variable.VariableListener;
 import ai.timefold.solver.core.api.score.director.ScoreDirector;
 
 /**
- * A notifiable specialized to receive {@link BasicVariableNotification}s and trigger them on a given {@link VariableListener}.
+ * Differs from {@link VariableListenerNotifiable} because it uses {@link EventTransactionStore} and improve
+ * the event system lifecycle.
  *
  * @param <Solution_> the solution type, the class with the {@link PlanningSolution} annotation
  */
-sealed class VariableListenerNotifiable<Solution_> extends AbstractNotifiable<Solution_, VariableListener<Solution_, Object>>
-        permits VariableListenerTransactionSupportNotifiable {
+final class VariableListenerTransactionSupportNotifiable<Solution_> extends VariableListenerNotifiable<Solution_> {
 
-    VariableListenerNotifiable(
+    private final EventTransactionStore eventTransactionStore;
+
+    VariableListenerTransactionSupportNotifiable(
             ScoreDirector<Solution_> scoreDirector,
             VariableListener<Solution_, Object> variableListener,
             Collection<Notification<Solution_, ? super VariableListener<Solution_, Object>>> notificationQueue,
+            EventTransactionStore eventTransactionStore,
             int globalOrder) {
         super(scoreDirector, variableListener, notificationQueue, globalOrder);
+        this.eventTransactionStore = eventTransactionStore;
     }
 
-    public void notifyBefore(BasicVariableNotification<Solution_> notification) {
-        if (storeForLater(notification)) {
-            triggerBefore(notification);
-        }
+    @Override
+    public void triggerAllNotifications() {
+        eventTransactionStore.increment();
+        super.triggerAllNotifications();
     }
 }

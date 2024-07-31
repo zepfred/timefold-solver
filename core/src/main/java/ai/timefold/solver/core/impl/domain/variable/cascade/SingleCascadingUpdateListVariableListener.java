@@ -19,7 +19,8 @@ import ai.timefold.solver.core.impl.domain.variable.descriptor.VariableDescripto
  *
  * @param <Solution_> the solution type, the class with the {@link PlanningSolution} annotation
  */
-public class SingleCascadingUpdateListVariableListener<Solution_> extends SingleCascadingUpdateShadowVariableListener<Solution_>
+public class SingleCascadingUpdateListVariableListener<Solution_>
+        extends SingleCascadingUpdateShadowVariableListener<Solution_>
         implements ListVariableListener<Solution_, Object, Object> {
 
     SingleCascadingUpdateListVariableListener(ListVariableDescriptor<Solution_> sourceListVariableDescriptor,
@@ -44,12 +45,17 @@ public class SingleCascadingUpdateListVariableListener<Solution_> extends Single
         var values = getValues(entity);
         // Update all the elements inside the range
         for (var i = fromIndex; i < toIndex; i++) {
-            execute(scoreDirector, values.get(i));
+            if (!isVisited(values.get(i))) {
+                execute(scoreDirector, values.get(i));
+                markAsVisited(values.get(i));
+            }
         }
         // Double-check if anything beyond the last element in the range needs to be updated
         if (toIndex < values.size()) {
             for (var i = toIndex; i < values.size(); i++) {
-                if (!execute(scoreDirector, values.get(i))) {
+                var shouldContinue = execute(scoreDirector, values.get(i));
+                markAsVisited(values.get(i));
+                if (!shouldContinue) {
                     break;
                 }
             }

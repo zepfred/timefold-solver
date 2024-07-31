@@ -224,7 +224,9 @@ public abstract class AbstractScoreDirector<Solution_, Score_ extends Score<Scor
         }
         // This visits all the entities, applying the visitor if non-null.
         Consumer<Object> entityValidator = entity -> scoreDirectorFactory.validateEntity(this, entity);
-        visitor = visitor == null ? entityValidator : visitor.andThen(entityValidator);
+        Consumer<Object> updateTransactionStore = variableListenerSupport::initTransactionStore;
+        visitor = visitor == null ? entityValidator.andThen(updateTransactionStore)
+                : visitor.andThen(entityValidator).andThen(updateTransactionStore);
         var initializationStatistics = solutionDescriptor.computeInitializationStatistics(workingSolution, visitor);
         setWorkingEntityListDirty();
 

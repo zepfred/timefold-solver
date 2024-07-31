@@ -41,16 +41,30 @@ public abstract class AbstractCascadingUpdateShadowVariableListener<Solution_> i
         // Do nothing
     }
 
+    boolean isVisited(Object entity) {
+        return false;
+    }
+
+    void markAsVisited(Object entity) {
+        // Do nothing
+    }
+
     @Override
     public void afterVariableChanged(ScoreDirector<Solution_> scoreDirector, Object entity) {
-        var isChanged = execute(scoreDirector, entity);
-        if (isChanged) {
+        if (isVisited(entity)) {
+            return;
+        }
+        var shouldContinue = execute(scoreDirector, entity);
+        markAsVisited(entity);
+        if (shouldContinue) {
             var indexElement = listVariableStateSupply.getLocationInList(entity);
             if (indexElement instanceof LocationInList location) {
                 var fromIndex = location.index();
-                List<Object> values = getValues(location.entity());
+                var values = getValues(location.entity());
                 for (var i = fromIndex + 1; i < values.size(); i++) {
-                    if (!execute(scoreDirector, values.get(i))) {
+                    shouldContinue = execute(scoreDirector, values.get(i));
+                    markAsVisited(values.get(i));
+                    if (!shouldContinue) {
                         break;
                     }
                 }

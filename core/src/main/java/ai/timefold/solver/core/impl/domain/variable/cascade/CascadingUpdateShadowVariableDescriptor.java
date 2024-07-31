@@ -241,12 +241,24 @@ public final class CascadingUpdateShadowVariableDescriptor<Solution_> extends Sh
     public Collection<Class<? extends AbstractVariableListener>> getVariableListenerClasses() {
         if (targetVariableDescriptorList.size() == 1) {
             if (hasShadowVariable()) {
-                return Collections.singleton(SingleCascadingUpdateShadowVariableListener.class);
+                if (hasSupportToEventTransaction()) {
+                    return Collections.singleton(SingleCascadingUpdateShadowVariableTransactionSupportListener.class);
+                } else {
+                    return Collections.singleton(SingleCascadingUpdateShadowVariableListener.class);
+                }
             } else {
-                return Collections.singleton(SingleCascadingUpdateListVariableListener.class);
+                if (hasSupportToEventTransaction()) {
+                    return Collections.singleton(SingleCascadingUpdateListVariableTransactionSupportListener.class);
+                } else {
+                    return Collections.singleton(SingleCascadingUpdateListVariableListener.class);
+                }
             }
         } else {
-            return Collections.singleton(CollectionCascadingUpdateShadowVariableListener.class);
+            if (hasSupportToEventTransaction()) {
+                return Collections.singleton(CollectionCascadingUpdateShadowEventSupportVariableListener.class);
+            } else {
+                return Collections.singleton(CollectionCascadingUpdateShadowVariableListener.class);
+            }
         }
     }
 
@@ -264,23 +276,47 @@ public final class CascadingUpdateShadowVariableDescriptor<Solution_> extends Sh
         return notifiable;
     }
 
+    private boolean hasSupportToEventTransaction() {
+        // We check if the generic type of the planning list has support to event transaction
+        EntityDescriptor<Solution_> planningValueTypeDescriptor = sourceListVariableDescriptor.getEntityDescriptor()
+                .getSolutionDescriptor().findEntityDescriptor(sourceListVariableDescriptor.getElementType());
+        return planningValueTypeDescriptor != null && planningValueTypeDescriptor.hasSupportToEventTransaction();
+    }
+
     @Override
     public Iterable<VariableListenerWithSources<Solution_>> buildVariableListeners(SupplyManager supplyManager) {
-        AbstractCascadingUpdateShadowVariableListener<Solution_> listener;
         var listVariableStateSupply = supplyManager.demand(new ListVariableStateDemand<>(sourceListVariableDescriptor));
+        AbstractCascadingUpdateShadowVariableListener<Solution_> listener;
         if (targetVariableDescriptorList.size() == 1) {
             if (hasShadowVariable()) {
-                listener = new SingleCascadingUpdateShadowVariableListener<>(sourceListVariableDescriptor,
-                        targetVariableDescriptorList, targetMethod, listVariableStateSupply);
+                if (hasSupportToEventTransaction()) {
+                    listener = new SingleCascadingUpdateShadowVariableTransactionSupportListener<>(sourceListVariableDescriptor,
+                            targetVariableDescriptorList, targetMethod, listVariableStateSupply);
+                } else {
+                    listener = new SingleCascadingUpdateShadowVariableListener<>(sourceListVariableDescriptor,
+                            targetVariableDescriptorList, targetMethod, listVariableStateSupply);
+                }
             } else {
-                listener = new SingleCascadingUpdateListVariableListener<>(sourceListVariableDescriptor,
-                        targetVariableDescriptorList, targetMethod, listVariableStateSupply);
+                if (hasSupportToEventTransaction()) {
+                    listener = new SingleCascadingUpdateListVariableTransactionSupportListener<>(sourceListVariableDescriptor,
+                            targetVariableDescriptorList, targetMethod, listVariableStateSupply);
+                } else {
+                    listener = new SingleCascadingUpdateListVariableListener<>(sourceListVariableDescriptor,
+                            targetVariableDescriptorList, targetMethod, listVariableStateSupply);
+                }
             }
         } else {
-            listener = new CollectionCascadingUpdateShadowVariableListener<>(sourceListVariableDescriptor,
-                    targetVariableDescriptorList, targetMethod, listVariableStateSupply);
+            if (hasSupportToEventTransaction()) {
+                listener = new CollectionCascadingUpdateShadowEventSupportVariableListener<>(sourceListVariableDescriptor,
+                        targetVariableDescriptorList, targetMethod, listVariableStateSupply);
+            } else {
+                listener = new CollectionCascadingUpdateShadowVariableListener<>(sourceListVariableDescriptor,
+                        targetVariableDescriptorList, targetMethod, listVariableStateSupply);
+            }
         }
-        return Collections.singleton(new VariableListenerWithSources<>(listener, getSourceVariableDescriptorList()));
+        return Collections
+                .singleton(new VariableListenerWithSources<>(listener, getSourceVariableDescriptorList(),
+                        hasSupportToEventTransaction()));
     }
 
     private record ShadowVariableTarget<Solution_>(EntityDescriptor<Solution_> entityDescriptor,

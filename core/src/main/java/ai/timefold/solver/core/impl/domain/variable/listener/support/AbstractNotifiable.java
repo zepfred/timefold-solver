@@ -27,21 +27,42 @@ abstract class AbstractNotifiable<Solution_, T extends AbstractVariableListener<
     static <Solution_> EntityNotifiable<Solution_> buildNotifiable(
             ScoreDirector<Solution_> scoreDirector,
             AbstractVariableListener<Solution_, Object> variableListener,
+            boolean useEventTransactionStore,
+            EventTransactionStore eventTransactionStore,
             int globalOrder) {
         if (variableListener instanceof ListVariableListener) {
-            return new ListVariableListenerNotifiable<>(
-                    scoreDirector,
-                    ((ListVariableListener<Solution_, Object, Object>) variableListener),
-                    new ArrayDeque<>(), globalOrder);
+            if (useEventTransactionStore) {
+                return new ListVariableListenerTransactionSupportNotifiable<>(scoreDirector,
+                        ((ListVariableListener<Solution_, Object, Object>) variableListener), new ArrayDeque<>(),
+                        eventTransactionStore, globalOrder);
+            } else {
+                return new ListVariableListenerNotifiable<>(scoreDirector,
+                        ((ListVariableListener<Solution_, Object, Object>) variableListener), new ArrayDeque<>(), globalOrder);
+            }
         } else {
-            VariableListener<Solution_, Object> basicVariableListener = (VariableListener<Solution_, Object>) variableListener;
-            return new VariableListenerNotifiable<>(
-                    scoreDirector,
-                    basicVariableListener,
-                    basicVariableListener.requiresUniqueEntityEvents()
-                            ? new ListBasedScalingOrderedSet<>()
-                            : new ArrayDeque<>(),
-                    globalOrder);
+            if (useEventTransactionStore) {
+                VariableListener<Solution_, Object> basicVariableListener =
+                        (VariableListener<Solution_, Object>) variableListener;
+                return new VariableListenerTransactionSupportNotifiable<>(
+                        scoreDirector,
+                        basicVariableListener,
+                        basicVariableListener.requiresUniqueEntityEvents()
+                                ? new ListBasedScalingOrderedSet<>()
+                                : new ArrayDeque<>(),
+                        eventTransactionStore,
+                        globalOrder);
+            } else {
+                VariableListener<Solution_, Object> basicVariableListener =
+                        (VariableListener<Solution_, Object>) variableListener;
+                return new VariableListenerNotifiable<>(
+                        scoreDirector,
+                        basicVariableListener,
+                        basicVariableListener.requiresUniqueEntityEvents()
+                                ? new ListBasedScalingOrderedSet<>()
+                                : new ArrayDeque<>(),
+                        globalOrder);
+            }
+
         }
     }
 

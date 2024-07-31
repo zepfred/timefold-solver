@@ -61,7 +61,9 @@ public final class VariableListenerSupport<Solution_> implements SupplyManager {
             var globalOrder = shadowVariableDescriptor.getGlobalShadowOrder();
             notifiableRegistry.registerNotifiable(
                     listenerWithSources.getSourceVariableDescriptors(),
-                    AbstractNotifiable.buildNotifiable(scoreDirector, variableListener, globalOrder));
+                    AbstractNotifiable.buildNotifiable(scoreDirector, variableListener,
+                            listenerWithSources.hasEventTransactionSupport(),
+                            notifiableRegistry, globalOrder));
             nextGlobalOrder = globalOrder + 1;
         }
     }
@@ -91,7 +93,7 @@ public final class VariableListenerSupport<Solution_> implements SupplyManager {
             }
             notifiableRegistry.registerNotifiable(
                     variableListener.getSourceVariableDescriptor(),
-                    AbstractNotifiable.buildNotifiable(scoreDirector, variableListener, nextGlobalOrder++));
+                    AbstractNotifiable.buildNotifiable(scoreDirector, variableListener, false, null, nextGlobalOrder++));
         }
         return supply;
     }
@@ -125,7 +127,14 @@ public final class VariableListenerSupport<Solution_> implements SupplyManager {
     // Lifecycle methods
     // ************************************************************************
 
+    public void initTransactionStore(Object entity) {
+        if (EventTransactionSupport.class.isAssignableFrom(entity.getClass())) {
+            ((AbstractEventTransactionSupport) entity)._internal_Timefold_Event_Support_init(notifiableRegistry);
+        }
+    }
+
     public void resetWorkingSolution() {
+        notifiableRegistry.reset();
         for (Notifiable notifiable : notifiableRegistry.getAll()) {
             notifiable.resetWorkingSolution();
         }

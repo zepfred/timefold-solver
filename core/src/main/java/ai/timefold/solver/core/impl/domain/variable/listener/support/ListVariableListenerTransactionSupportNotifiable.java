@@ -7,28 +7,30 @@ import ai.timefold.solver.core.api.domain.variable.ListVariableListener;
 import ai.timefold.solver.core.api.score.director.ScoreDirector;
 
 /**
- * A notifiable specialized to receive {@link ListVariableNotification}s and trigger them on a given
- * {@link ListVariableListener}.
+ * Differs from {@link ListVariableListenerNotifiable} because it uses {@link EventTransactionStore} and improve
+ * the event system lifecycle.
  *
  * @param <Solution_> the solution type, the class with the {@link PlanningSolution} annotation
  */
-sealed class ListVariableListenerNotifiable<Solution_>
-        extends AbstractNotifiable<Solution_, ListVariableListener<Solution_, Object, Object>>
-        permits ListVariableListenerTransactionSupportNotifiable {
+final class ListVariableListenerTransactionSupportNotifiable<Solution_>
+        extends ListVariableListenerNotifiable<Solution_> {
 
-    ListVariableListenerNotifiable(
+    private final EventTransactionStore eventTransactionStore;
+
+    ListVariableListenerTransactionSupportNotifiable(
             ScoreDirector<Solution_> scoreDirector,
             ListVariableListener<Solution_, Object, Object> variableListener,
             Collection<Notification<Solution_, ? super ListVariableListener<Solution_, Object, Object>>> notificationQueue,
+            EventTransactionStore eventTransactionStore,
             int globalOrder) {
         super(scoreDirector, variableListener, notificationQueue, globalOrder);
+        this.eventTransactionStore = eventTransactionStore;
     }
 
-    public void notifyBefore(ListVariableNotification<Solution_> notification) {
-        triggerBefore(notification);
+    @Override
+    public void triggerAllNotifications() {
+        eventTransactionStore.increment();
+        super.triggerAllNotifications();
     }
 
-    public void notifyAfter(ListVariableNotification<Solution_> notification) {
-        storeForLater(notification);
-    }
 }

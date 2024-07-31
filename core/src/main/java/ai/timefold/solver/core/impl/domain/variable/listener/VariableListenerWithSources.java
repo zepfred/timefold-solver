@@ -15,11 +15,18 @@ public final class VariableListenerWithSources<Solution_> {
 
     private final AbstractVariableListener<Solution_, Object> variableListener;
     private final Collection<VariableDescriptor<Solution_>> sourceVariableDescriptors;
+    private final boolean eventTransactionSupport;
 
     public VariableListenerWithSources(AbstractVariableListener<Solution_, Object> variableListener,
             Collection<VariableDescriptor<Solution_>> sourceVariableDescriptors) {
+        this(variableListener, sourceVariableDescriptors, false);
+    }
+
+    public VariableListenerWithSources(AbstractVariableListener<Solution_, Object> variableListener,
+            Collection<VariableDescriptor<Solution_>> sourceVariableDescriptors, boolean eventTransactionSupport) {
         this.variableListener = variableListener;
         this.sourceVariableDescriptors = sourceVariableDescriptors;
+        this.eventTransactionSupport = eventTransactionSupport;
     }
 
     public VariableListenerWithSources(AbstractVariableListener<Solution_, Object> variableListener,
@@ -37,5 +44,9 @@ public final class VariableListenerWithSources<Solution_> {
 
     public Collection<VariableListenerWithSources<Solution_>> toCollection() {
         return Collections.singleton(this);
+    }
+
+    public boolean hasEventTransactionSupport() {
+        return eventTransactionSupport;
     }
 }

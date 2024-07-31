@@ -12,8 +12,9 @@ import ai.timefold.solver.core.impl.domain.solution.descriptor.SolutionDescripto
 import ai.timefold.solver.core.impl.domain.variable.descriptor.ListVariableDescriptor;
 import ai.timefold.solver.core.impl.domain.variable.descriptor.VariableDescriptor;
 
-final class NotifiableRegistry<Solution_> {
+final class NotifiableRegistry<Solution_> implements EventTransactionStore {
 
+    private long eventId;
     private final List<Notifiable> notifiableList = new ArrayList<>();
     private final Set<EntityNotifiable<Solution_>>[] sourceEntityToNotifiableSetArray;
     private final List<Notifiable>[][] sourceVariableToNotifiableListArray;
@@ -74,5 +75,26 @@ final class NotifiableRegistry<Solution_> {
             return Collections.emptyList();
         }
         return (Collection) notifiables;
+    }
+
+    @Override
+    public void reset() {
+        eventId = 0;
+    }
+
+    @Override
+    public long getEventId() {
+        return eventId;
+    }
+
+    @Override
+    public void increment() {
+        if (eventId == Long.MAX_VALUE) {
+            // The state should not be possible,
+            // as the transaction store is reset every time the working solution is set
+            throw new IllegalStateException("The eventId reached the maximum value and cannot be incremented.");
+        } else {
+            eventId++;
+        }
     }
 }
