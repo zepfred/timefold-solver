@@ -51,31 +51,34 @@ public final class CascadingUpdateShadowVariableDescriptor<Solution_> extends Sh
                         .formatted(entityDescriptor.getEntityClass(), CascadingUpdateShadowVariable.class.getSimpleName())));
     }
 
-    public boolean update(ScoreDirector<Solution_> scoreDirector, Object entity) {
+    public boolean update(ScoreDirector<Solution_> scoreDirector, Object entity,
+            CascadingUpdateVariableInformation<?, ?> parameter) {
         if (targetVariableDescriptorList.size() == 1) {
-            return updateSingle(scoreDirector, entity);
+            return updateSingle(scoreDirector, entity, parameter);
         } else {
-            return updateMultiple(scoreDirector, entity);
+            return updateMultiple(scoreDirector, entity, parameter);
         }
     }
 
-    private boolean updateSingle(ScoreDirector<Solution_> scoreDirector, Object entity) {
+    private boolean updateSingle(ScoreDirector<Solution_> scoreDirector, Object entity,
+            CascadingUpdateVariableInformation<?, ?> parameter) {
         var targetVariableDescriptor = targetVariableDescriptorList.get(0);
         var oldValue = targetVariableDescriptor.getValue(entity);
         scoreDirector.beforeVariableChanged(entity, targetVariableDescriptor.getVariableName());
-        targetMethod.executeGetter(entity);
-        var newValue = targetVariableDescriptor.getValue(entity);
+        targetMethod.executeSetter(entity, parameter);
         scoreDirector.afterVariableChanged(entity, targetVariableDescriptor.getVariableName());
+        var newValue = targetVariableDescriptor.getValue(entity);
         return !Objects.equals(oldValue, newValue);
     }
 
-    private boolean updateMultiple(ScoreDirector<Solution_> scoreDirector, Object entity) {
+    private boolean updateMultiple(ScoreDirector<Solution_> scoreDirector, Object entity,
+            CascadingUpdateVariableInformation<?, ?> parameter) {
         var oldValueList = new ArrayList<>(targetVariableDescriptorList.size());
         for (var targetVariableDescriptor : targetVariableDescriptorList) {
             scoreDirector.beforeVariableChanged(entity, targetVariableDescriptor.getVariableName());
             oldValueList.add(targetVariableDescriptor.getValue(entity));
         }
-        targetMethod.executeGetter(entity);
+        targetMethod.executeSetter(entity, parameter);
         var hasChange = false;
         for (var i = 0; i < targetVariableDescriptorList.size(); i++) {
             var targetVariableDescriptor = targetVariableDescriptorList.get(i);
@@ -88,18 +91,20 @@ public final class CascadingUpdateShadowVariableDescriptor<Solution_> extends Sh
         return hasChange;
     }
 
-    public boolean testAndUpdate(ScoreDirector<Solution_> scoreDirector, Object entity) {
+    public boolean testAndUpdate(ScoreDirector<Solution_> scoreDirector, Object entity,
+            CascadingUpdateVariableInformation<?, ?> parameter) {
         if (targetVariableDescriptorList.size() == 1) {
-            return testAndUpdateSingle(scoreDirector, entity);
+            return testAndUpdateSingle(scoreDirector, entity, parameter);
         } else {
-            return testAndUpdateMultiple(scoreDirector, entity);
+            return testAndUpdateMultiple(scoreDirector, entity, parameter);
         }
     }
 
-    private boolean testAndUpdateSingle(ScoreDirector<Solution_> scoreDirector, Object entity) {
+    private boolean testAndUpdateSingle(ScoreDirector<Solution_> scoreDirector, Object entity,
+            CascadingUpdateVariableInformation<?, ?> parameter) {
         var targetVariableDescriptor = targetVariableDescriptorList.get(0);
         var oldValue = targetVariableDescriptor.getValue(entity);
-        targetMethod.executeGetter(entity);
+        targetMethod.executeSetter(entity, parameter);
         var newValue = targetVariableDescriptor.getValue(entity);
         if (!Objects.equals(oldValue, newValue)) {
             targetVariableDescriptor.setValue(entity, oldValue);
@@ -111,12 +116,13 @@ public final class CascadingUpdateShadowVariableDescriptor<Solution_> extends Sh
         return false;
     }
 
-    private boolean testAndUpdateMultiple(ScoreDirector<Solution_> scoreDirector, Object entity) {
+    private boolean testAndUpdateMultiple(ScoreDirector<Solution_> scoreDirector, Object entity,
+            CascadingUpdateVariableInformation<?, ?> parameter) {
         var oldValueList = new ArrayList<>(targetVariableDescriptorList.size());
         for (var targetVariableDescriptor : targetVariableDescriptorList) {
             oldValueList.add(targetVariableDescriptor.getValue(entity));
         }
-        targetMethod.executeGetter(entity);
+        targetMethod.executeSetter(entity, parameter);
         var hasChange = false;
         for (var i = 0; i < targetVariableDescriptorList.size(); i++) {
             var targetVariableDescriptor = targetVariableDescriptorList.get(i);
@@ -164,18 +170,21 @@ public final class CascadingUpdateShadowVariableDescriptor<Solution_> extends Sh
                 .stream()
                 .filter(member -> member.getName().equals(targetMethodName)
                         && member instanceof Method method
-                        && method.getParameterCount() == 0)
+                        && method.getParameterCount() == 1
+                        && method.getParameterTypes()[0] == CascadingUpdateVariableInformation.class)
                 .toList();
         if (allSourceMethodMembers.isEmpty()) {
             throw new IllegalArgumentException(
-                    "The entity class (%s) has an @%s annotated property (%s), but the method \"%s\" cannot be found."
+                    "The entity class (%s) has an @%s annotated property (%s), but the method \"%s\" with a single parameter of type \"%s\" cannot be found."
                             .formatted(entityDescriptor.getEntityClass(),
                                     CascadingUpdateShadowVariable.class.getSimpleName(),
                                     variableMemberAccessor.getName(),
-                                    targetMethodName));
+                                    targetMethodName,
+                                    CascadingUpdateVariableInformation.class));
         }
         targetMethod = descriptorPolicy.getMemberAccessorFactory().buildAndCacheMemberAccessor(allSourceMethodMembers.get(0),
-                MemberAccessorFactory.MemberAccessorType.REGULAR_METHOD, null, descriptorPolicy.getDomainAccessType());
+                MemberAccessorFactory.MemberAccessorType.REGULAR_METHOD_WITH_PARAM, null,
+                descriptorPolicy.getDomainAccessType());
     }
 
     @Override

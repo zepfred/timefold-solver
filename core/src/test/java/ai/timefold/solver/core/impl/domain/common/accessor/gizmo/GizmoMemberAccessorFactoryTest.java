@@ -37,7 +37,7 @@ class GizmoMemberAccessorFactoryTest {
         Method member = TestdataEntity.class.getMethod("getValue");
         MemberAccessor memberAccessor =
                 GizmoMemberAccessorFactory.buildGizmoMemberAccessor(member, PlanningVariable.class, true,
-                        new GizmoClassLoader());
+                        false, new GizmoClassLoader());
 
         TestdataEntity entity = new TestdataEntity();
         TestdataValue value = new TestdataValue("A");
@@ -72,7 +72,8 @@ class GizmoMemberAccessorFactoryTest {
         });
 
         assertThatCode(() -> {
-            GizmoMemberAccessorFactory.buildGizmoMemberAccessor(member, PlanningVariable.class, true, new GizmoClassLoader());
+            GizmoMemberAccessorFactory.buildGizmoMemberAccessor(member, PlanningVariable.class, true, false,
+                    new GizmoClassLoader());
         }).hasMessage("When using the domainAccessType (GIZMO) the classpath or modulepath must contain " +
                 "io.quarkus.gizmo:gizmo.\nMaybe add a dependency to io.quarkus.gizmo:gizmo.");
     }

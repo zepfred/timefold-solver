@@ -44,7 +44,7 @@ public class TestdataSingleCascadingEntity extends TestdataObject {
                 current = ++i < valueList.size() ? valueList.get(i) : null;
             }
             for (var v : valueList) {
-                v.updateCascadeValue();
+                v.updateCascadeValue(null);
             }
         }
         return this;

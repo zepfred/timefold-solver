@@ -26,14 +26,15 @@ public class GizmoMemberAccessorFactory {
     }
 
     /**
-     *
      * @param member never null
      * @param annotationClass may be null if the member is not annotated
+     * @param returnTypeRequired true if the method must return a type
+     * @param acceptParameter true if the method accepts parameter
      * @param gizmoClassLoader never null
      * @return never null
      */
     public static MemberAccessor buildGizmoMemberAccessor(Member member, Class<? extends Annotation> annotationClass,
-            boolean returnTypeRequired, GizmoClassLoader gizmoClassLoader) {
+            boolean returnTypeRequired, boolean acceptParameter, GizmoClassLoader gizmoClassLoader) {
         try {
             // Check if Gizmo on the classpath by verifying we can access one of its classes
             Class.forName("io.quarkus.gizmo.ClassCreator", false,
@@ -44,7 +45,8 @@ public class GizmoMemberAccessorFactory {
                     ") the classpath or modulepath must contain io.quarkus.gizmo:gizmo.\n" +
                     "Maybe add a dependency to io.quarkus.gizmo:gizmo.");
         }
-        return GizmoMemberAccessorImplementor.createAccessorFor(member, annotationClass, returnTypeRequired, gizmoClassLoader);
+        return GizmoMemberAccessorImplementor.createAccessorFor(member, annotationClass, returnTypeRequired, acceptParameter,
+                gizmoClassLoader);
     }
 
     private GizmoMemberAccessorFactory() {

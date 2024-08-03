@@ -47,4 +47,8 @@ public class TestdataEntity extends TestdataObject {
     public void updateValue() {
         this.value = new TestdataValue(value.code + "/" + value.code);
     }
+
+    public void updateValueWithParam(String code) {
+        this.value = new TestdataValue(code + "/" + code);
+    }
 }

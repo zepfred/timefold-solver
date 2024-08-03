@@ -99,10 +99,11 @@ class MemberAccessorFactoryTest {
 
     @Test
     void methodReturnVoid() throws NoSuchMethodException {
-        MemberAccessor memberAccessor = MemberAccessorFactory.buildMemberAccessor(TestdataEntity.class.getMethod("updateValue"),
-                MemberAccessorFactory.MemberAccessorType.REGULAR_METHOD, null, DomainAccessType.REFLECTION, null);
+        MemberAccessor memberAccessor = MemberAccessorFactory.buildMemberAccessor(
+                TestdataEntity.class.getMethod("updateValueWithParam", String.class),
+                MemberAccessorFactory.MemberAccessorType.REGULAR_METHOD_WITH_PARAM, null, DomainAccessType.REFLECTION, null);
         assertThat(memberAccessor).isInstanceOf(ReflectionMethodMemberAccessor.class);
-        assertThat(memberAccessor.getName()).isEqualTo("updateValue");
+        assertThat(memberAccessor.getName()).isEqualTo("updateValueWithParam");
         assertThat(memberAccessor.getType()).isEqualTo(void.class);
         assertThat(memberAccessor.getGenericType()).isEqualTo(void.class);
         assertThat(memberAccessor.getSpeedNote()).isEqualTo("MethodHandle");
@@ -111,7 +112,7 @@ class MemberAccessorFactoryTest {
         TestdataValue value = new TestdataValue("A");
         entity.setValue(value);
 
-        memberAccessor.executeGetter(entity);
+        memberAccessor.executeSetter(entity, "A");
         assertThat(entity.getValue().getCode()).isEqualTo("A/A");
     }
 

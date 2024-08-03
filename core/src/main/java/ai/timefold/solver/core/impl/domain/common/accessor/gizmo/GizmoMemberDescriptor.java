@@ -59,7 +59,12 @@ public final class GizmoMemberDescriptor {
             this.name = ReflectionHelper.isGetterMethod(method) ? ReflectionHelper.getGetterPropertyName(member)
                     : member.getName();
             this.memberHandler = GizmoMemberHandler.of(declaringClass, methodDescriptor);
-            this.setter = lookupSetter(methodDescriptor, declaringClass, name).orElse(null);
+            if (method.getParameterCount() > 0) {
+                // When the method has parameters, we use the method descriptor itself
+                this.setter = methodDescriptor;
+            } else {
+                this.setter = lookupSetter(methodDescriptor, declaringClass, name).orElse(null);
+            }
         } else {
             throw new IllegalArgumentException(member + " is not a Method or a Field.");
         }

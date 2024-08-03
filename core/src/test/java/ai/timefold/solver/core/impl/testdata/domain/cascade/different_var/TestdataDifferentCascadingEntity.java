@@ -44,8 +44,8 @@ public class TestdataDifferentCascadingEntity extends TestdataObject {
                 current = ++i < valueList.size() ? valueList.get(i) : null;
             }
             for (var v : valueList) {
-                v.updateCascadeValue();
-                v.updateSecondCascadeValue();
+                v.updateCascadeValue(null);
+                v.updateSecondCascadeValue(null);
             }
         }
         return this;

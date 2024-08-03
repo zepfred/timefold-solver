@@ -18,14 +18,20 @@ class SingleCascadingUpdateShadowVariableListenerTest {
         assertThatIllegalArgumentException().isThrownBy(TestdataCascadingWrongMethod::buildEntityDescriptor)
                 .withMessageContaining(
                         "The entity class (class ai.timefold.solver.core.impl.testdata.domain.shadow.wrong_cascade.TestdataCascadingWrongMethod)")
-                .withMessageContaining("has an @CascadingUpdateShadowVariable annotated property (cascadeValueReturnType)")
-                .withMessageContaining("but the method \"badUpdateCascadeValueWithReturnType\" cannot be found");
+                .withMessageContaining("has an @CascadingUpdateShadowVariable annotated property (cascadeValue)")
+                .withMessageContaining(
+                        "but the method \"updateCascadeValue\"")
+                .withMessageContaining(
+                        "with a single parameter of type \"class ai.timefold.solver.core.impl.domain.variable.cascade.CascadingUpdateVariableInformation\" cannot be found");
 
         assertThatIllegalArgumentException().isThrownBy(TestdataCascadingInvalidField::buildEntityDescriptor)
                 .withMessageContaining(
                         "The entity class (class ai.timefold.solver.core.impl.testdata.domain.shadow.wrong_cascade.TestdataCascadingInvalidField)")
                 .withMessageContaining("has an @CascadingUpdateShadowVariable annotated property (cascadeValue)")
-                .withMessageContaining("but the method \"value\" cannot be found");
+                .withMessageContaining(
+                        "but the method \"value\"")
+                .withMessageContaining(
+                        "with a single parameter of type \"class ai.timefold.solver.core.impl.domain.variable.cascade.CascadingUpdateVariableInformation\" cannot be found.");
     }
 
     @Test

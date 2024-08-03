@@ -26,6 +26,7 @@ import ai.timefold.solver.core.impl.domain.lookup.LookUpManager;
 import ai.timefold.solver.core.impl.domain.solution.ConstraintWeightSupplier;
 import ai.timefold.solver.core.impl.domain.solution.descriptor.SolutionDescriptor;
 import ai.timefold.solver.core.impl.domain.variable.ListVariableStateSupply;
+import ai.timefold.solver.core.impl.domain.variable.cascade.CascadingUpdateVariableInformation;
 import ai.timefold.solver.core.impl.domain.variable.descriptor.ListVariableDescriptor;
 import ai.timefold.solver.core.impl.domain.variable.descriptor.VariableDescriptor;
 import ai.timefold.solver.core.impl.domain.variable.listener.support.VariableListenerSupport;
@@ -341,12 +342,20 @@ public abstract class AbstractScoreDirector<Solution_, Score_ extends Score<Scor
                 var values = listVariableDescriptor.getValue(listVariableEvent.entity());
                 for (var cascadingUpdateShadowVariableDescriptor : cascadingUpdateShadowVarDescriptorList) {
                     // Update all the elements inside the range
-                    for (var i = listVariableEvent.fromIndex(); i < values.size(); i++) {
-                        cascadingUpdateShadowVariableDescriptor.testAndUpdate(this, values.get(i));
+                    for (var i = listVariableEvent.fromIndex(); i < listVariableEvent.toIndex(); i++) {
+                        var previousEntity = i > 0 ? values.get(i - 1) : null;
+                        var nextEntity = i < values.size() - 1 ? values.get(i + 1) : null;
+                        cascadingUpdateShadowVariableDescriptor.update(this, values.get(i),
+                                new CascadingUpdateVariableInformation<>(listVariableEvent.entity(), previousEntity,
+                                        nextEntity));
                     }
                     // Test and update the later elements
                     for (var i = listVariableEvent.toIndex(); i < values.size(); i++) {
-                        if (!cascadingUpdateShadowVariableDescriptor.testAndUpdate(this, values.get(i))) {
+                        var previousEntity = i > 0 ? values.get(i - 1) : null;
+                        var nextEntity = i < values.size() - 1 ? values.get(i + 1) : null;
+                        if (!cascadingUpdateShadowVariableDescriptor.testAndUpdate(this, values.get(i),
+                                new CascadingUpdateVariableInformation<>(listVariableEvent.entity(), previousEntity,
+                                        nextEntity))) {
                             break;
                         }
                     }
@@ -501,9 +510,7 @@ public abstract class AbstractScoreDirector<Solution_, Score_ extends Score<Scor
     public void afterListVariableChanged(ListVariableDescriptor<Solution_> variableDescriptor,
             Object entity, int fromIndex, int toIndex) {
         variableListenerSupport.afterListVariableChanged(variableDescriptor, entity, fromIndex, toIndex);
-        if (toIndex > fromIndex) {
-            listVariableEventList.add(new ListVariableEvent(entity, fromIndex, toIndex));
-        }
+        listVariableEventList.add(new ListVariableEvent(entity, fromIndex, toIndex));
     }
 
     public void beforeEntityRemoved(EntityDescriptor<Solution_> entityDescriptor, Object entity) {

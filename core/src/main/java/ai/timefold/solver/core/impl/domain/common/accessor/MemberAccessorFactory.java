@@ -49,7 +49,8 @@ public final class MemberAccessorFactory {
             Class<? extends Annotation> annotationClass, DomainAccessType domainAccessType, ClassLoader classLoader) {
         return switch (domainAccessType) {
             case GIZMO -> GizmoMemberAccessorFactory.buildGizmoMemberAccessor(member, annotationClass,
-                    memberAccessorType != MemberAccessorType.REGULAR_METHOD,
+                    memberAccessorType != MemberAccessorType.REGULAR_METHOD_WITH_PARAM,
+                    memberAccessorType == MemberAccessorType.REGULAR_METHOD_WITH_PARAM,
                     (GizmoClassLoader) Objects.requireNonNull(classLoader));
             case REFLECTION -> buildReflectiveMemberAccessor(member, memberAccessorType, annotationClass);
         };
@@ -83,8 +84,8 @@ public final class MemberAccessorFactory {
                     }
                     memberAccessor = new ReflectionBeanPropertyMemberAccessor(method, getterOnly);
                     break;
-                case REGULAR_METHOD:
-                    memberAccessor = new ReflectionMethodMemberAccessor(method, false);
+                case REGULAR_METHOD_WITH_PARAM:
+                    memberAccessor = new ReflectionMethodMemberAccessor(method, false, true);
                     break;
                 default:
                     throw new IllegalStateException("The memberAccessorType (%s) is not implemented."
@@ -168,6 +169,6 @@ public final class MemberAccessorFactory {
         FIELD_OR_READ_METHOD,
         FIELD_OR_GETTER_METHOD,
         FIELD_OR_GETTER_METHOD_WITH_SETTER,
-        REGULAR_METHOD
+        REGULAR_METHOD_WITH_PARAM
     }
 }

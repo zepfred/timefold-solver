@@ -5,9 +5,10 @@ import java.lang.annotation.Annotation;
 /**
  * @param descriptor never null
  * @param returnTypeRequired true if the method return type is required
+ * @param acceptParameter true if the method accepts parameter
  * @param annotationClass null if not annotated
  */
 public record GizmoMemberInfo(GizmoMemberDescriptor descriptor, boolean returnTypeRequired,
-        Class<? extends Annotation> annotationClass) {
+        boolean acceptParameter, Class<? extends Annotation> annotationClass) {
 
 }

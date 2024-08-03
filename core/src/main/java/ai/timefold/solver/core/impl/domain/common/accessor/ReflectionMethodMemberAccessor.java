@@ -17,15 +17,17 @@ public final class ReflectionMethodMemberAccessor extends AbstractMemberAccessor
     private final String methodName;
     private final Method readMethod;
     private final MethodHandle methodHandle;
+    private final boolean acceptParameters;
 
     public ReflectionMethodMemberAccessor(Method readMethod) {
-        this(readMethod, true);
+        this(readMethod, true, false);
     }
 
-    public ReflectionMethodMemberAccessor(Method readMethod, boolean returnTypeRequired) {
+    public ReflectionMethodMemberAccessor(Method readMethod, boolean returnTypeRequired, boolean acceptParameters) {
         this.readMethod = readMethod;
         this.returnType = readMethod.getReturnType();
         this.methodName = readMethod.getName();
+        this.acceptParameters = acceptParameters;
         try {
             readMethod.setAccessible(true);
             this.methodHandle = MethodHandles.lookup()
@@ -37,7 +39,7 @@ public final class ReflectionMethodMemberAccessor extends AbstractMemberAccessor
                     %s
                     """.formatted(readMethod, MemberAccessorFactory.CLASSLOADER_NUDGE_MESSAGE), e);
         }
-        if (readMethod.getParameterTypes().length != 0) {
+        if (!acceptParameters && readMethod.getParameterTypes().length != 0) {
             throw new IllegalArgumentException("The readMethod (" + readMethod + ") must not have any parameters ("
                     + Arrays.toString(readMethod.getParameterTypes()) + ").");
         }
@@ -69,6 +71,10 @@ public final class ReflectionMethodMemberAccessor extends AbstractMemberAccessor
 
     @Override
     public Object executeGetter(Object bean) {
+        if (acceptParameters) {
+            throw new UnsupportedOperationException("The getterMethod (%s) on bean of class (%s) does not support parameters."
+                    .formatted(readMethod, bean.getClass()));
+        }
         try {
             return methodHandle.invoke(bean);
         } catch (Throwable e) {
@@ -89,7 +95,15 @@ public final class ReflectionMethodMemberAccessor extends AbstractMemberAccessor
 
     @Override
     public void executeSetter(Object bean, Object value) {
-        throw new UnsupportedOperationException();
+        if (!acceptParameters) {
+            throw new UnsupportedOperationException();
+        }
+        try {
+            methodHandle.invoke(bean, value);
+        } catch (Throwable e) {
+            throw new IllegalStateException("The property (%s) setterMethod (%s) on bean of class (%s) throws an exception."
+                    .formatted(methodName, readMethod, bean.getClass()), e);
+        }
     }
 
     @Override

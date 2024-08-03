@@ -105,7 +105,7 @@ final class GizmoMemberAccessorEntityEnhancer {
         Field fieldMember = declaringClass.getDeclaredField(fieldInfo.name());
         GizmoMemberDescriptor member = createMemberDescriptorForField(fieldMember, transformers);
         GizmoMemberInfo memberInfo = new GizmoMemberInfo(member, true,
-                (Class<? extends Annotation>) Class.forName(annotationInstance.name().toString(), false,
+                false, (Class<? extends Annotation>) Class.forName(annotationInstance.name().toString(), false,
                         Thread.currentThread().getContextClassLoader()));
         String generatedClassName = GizmoMemberAccessorFactory.getGeneratedClassName(fieldMember);
         GizmoMemberAccessorImplementor.defineAccessorFor(generatedClassName, classOutput, memberInfo);
@@ -145,8 +145,22 @@ final class GizmoMemberAccessorEntityEnhancer {
                     .toUpperCase(Locale.ROOT) +
                     name.substring(1),
                     methodInfo.returnType())).map(MethodDescriptor::of);
+        } else if (methodInfo.parametersCount() > 0) {
+            // The method has a param, but it is not a regular set or is method
+            // The CascadingUpdateShadowVariable uses these methods
+            // to pass CascadingUpdateParameter values
+            return Optional.of(MethodDescriptor.of(methodInfo));
         } else {
             return Optional.empty();
+        }
+    }
+
+    private <T> Class<? extends T> convertClassInfoToClass(String className) {
+        ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+        try {
+            return (Class<? extends T>) classLoader.loadClass(className);
+        } catch (ClassNotFoundException e) {
+            throw new IllegalStateException("The class (%s) cannot be created.".formatted(className), e);
         }
     }
 
@@ -160,15 +174,25 @@ final class GizmoMemberAccessorEntityEnhancer {
      * @param classOutput Where to output the bytecode
      * @param classInfo The declaring class for the field
      * @param methodInfo The method to generate the MemberAccessor for
+     * @param requiredReturnType The return type is required
+     * @param acceptParameter The method accepts parameter
      * @param transformers BuildProducer of BytecodeTransformers
      */
     public String generateMethodAccessor(AnnotationInstance annotationInstance, ClassOutput classOutput,
             ClassInfo classInfo, MethodInfo methodInfo, boolean requiredReturnType,
-            BuildProducer<BytecodeTransformerBuildItem> transformers)
+            boolean acceptParameter, BuildProducer<BytecodeTransformerBuildItem> transformers)
             throws ClassNotFoundException, NoSuchMethodException {
         Class<?> declaringClass = Class.forName(methodInfo.declaringClass().name().toString(), false,
                 Thread.currentThread().getContextClassLoader());
-        Method methodMember = declaringClass.getDeclaredMethod(methodInfo.name());
+        Method methodMember = methodInfo.parametersCount() == 0 ? declaringClass.getDeclaredMethod(methodInfo.name())
+                : declaringClass.getDeclaredMethod(methodInfo.name(), methodInfo.parameterTypes().stream()
+                        .map(t -> t.name().toString())
+                        .map(this::convertClassInfoToClass)
+                        .toArray(Class<?>[]::new));
+        if (!acceptParameter && methodInfo.parametersCount() > 0) {
+            throw new IllegalStateException("The method (%s) from the class %s cannot have any parameter."
+                    .formatted(declaringClass.getSimpleName(), methodInfo.name()));
+        }
         String generatedClassName = GizmoMemberAccessorFactory.getGeneratedClassName(methodMember);
         GizmoMemberDescriptor member;
         String name = getMemberName(methodMember);
@@ -181,8 +205,10 @@ final class GizmoMemberAccessorEntityEnhancer {
         } else {
             setterDescriptor = addVirtualMethodGetter(classInfo, methodInfo, name, setterDescriptor, transformers);
             String methodName = getVirtualGetterName(false, name);
-            MethodDescriptor newMethodDescriptor =
-                    MethodDescriptor.ofMethod(declaringClass, methodName, memberDescriptor.getReturnType());
+            MethodDescriptor newMethodDescriptor = methodInfo.parametersCount() == 0
+                    ? MethodDescriptor.ofMethod(declaringClass, methodName, memberDescriptor.getReturnType())
+                    : MethodDescriptor.ofMethod(declaringClass, methodName, memberDescriptor.getReturnType(),
+                            memberDescriptor.getParameterTypes());
             member = new GizmoMemberDescriptor(name, newMethodDescriptor, memberDescriptor, declaringClass,
                     setterDescriptor.orElse(null));
         }
@@ -191,7 +217,7 @@ final class GizmoMemberAccessorEntityEnhancer {
             annotationClass = (Class<? extends Annotation>) Class.forName(annotationInstance.name().toString(), false,
                     Thread.currentThread().getContextClassLoader());
         }
-        GizmoMemberInfo memberInfo = new GizmoMemberInfo(member, requiredReturnType, annotationClass);
+        GizmoMemberInfo memberInfo = new GizmoMemberInfo(member, requiredReturnType, acceptParameter, annotationClass);
         GizmoMemberAccessorImplementor.defineAccessorFor(generatedClassName, classOutput, memberInfo);
         return generatedClassName;
     }

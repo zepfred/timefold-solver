@@ -6,6 +6,7 @@ import ai.timefold.solver.core.api.domain.variable.InverseRelationShadowVariable
 import ai.timefold.solver.core.api.domain.variable.NextElementShadowVariable;
 import ai.timefold.solver.core.api.domain.variable.PreviousElementShadowVariable;
 import ai.timefold.solver.core.impl.domain.entity.descriptor.EntityDescriptor;
+import ai.timefold.solver.core.impl.domain.variable.cascade.CascadingUpdateVariableInformation;
 
 @PlanningEntity
 public class TestdataSingleCascadingValue {
@@ -79,7 +80,7 @@ public class TestdataSingleCascadingValue {
     }
 
     //---Complex methods---//
-    public void updateCascadeValue() {
+    public void updateCascadeValue(CascadingUpdateVariableInformation<?, ?> information) {
         numberOfCalls++;
         if (cascadeValue == null || cascadeValue != value + 1) {
             cascadeValue = value + 1;

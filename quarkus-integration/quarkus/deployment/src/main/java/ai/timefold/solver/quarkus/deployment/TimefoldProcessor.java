@@ -37,6 +37,7 @@ import ai.timefold.solver.core.config.solver.SolverConfig;
 import ai.timefold.solver.core.config.solver.SolverManagerConfig;
 import ai.timefold.solver.core.impl.domain.common.ReflectionHelper;
 import ai.timefold.solver.core.impl.domain.solution.descriptor.SolutionDescriptor;
+import ai.timefold.solver.core.impl.domain.variable.cascade.CascadingUpdateVariableInformation;
 import ai.timefold.solver.core.impl.heuristic.selector.common.nearby.NearbyDistanceMeter;
 import ai.timefold.solver.quarkus.TimefoldRecorder;
 import ai.timefold.solver.quarkus.bean.DefaultTimefoldBeanProvider;
@@ -902,9 +903,10 @@ class TimefoldProcessor {
                                             "Fail to generate member accessor of the source method listener (%s) of the class(%s)."
                                                     .formatted(DotNames.CASCADING_UPDATE_SHADOW_VARIABLE.local(),
                                                             classInfo.name().toString())));
-                            var methodInfo = classInfo.method(targetMethodName);
+                            var methodInfo =
+                                    classInfo.method(targetMethodName, Type.create(CascadingUpdateVariableInformation.class));
                             buildMethodAccessor(null, generatedMemberAccessorsClassNameSet, entityEnhancer, classOutput,
-                                    classInfo, methodInfo, false, transformers);
+                                    classInfo, methodInfo, false, true, transformers);
                         }
                         break;
                     }
@@ -912,7 +914,7 @@ class TimefoldProcessor {
                         MethodInfo methodInfo = annotatedMember.target().asMethod();
                         ClassInfo classInfo = methodInfo.declaringClass();
                         buildMethodAccessor(annotatedMember, generatedMemberAccessorsClassNameSet, entityEnhancer, classOutput,
-                                classInfo, methodInfo, true, transformers);
+                                classInfo, methodInfo, true, false, transformers);
                         break;
                     }
                     default: {
@@ -940,7 +942,7 @@ class TimefoldProcessor {
                         .orElse(null);
                 if (constraintMethodInfo != null) {
                     buildMethodAccessor(solutionClassInstance, generatedMemberAccessorsClassNameSet, entityEnhancer,
-                            classOutput, solutionClassInfo, constraintMethodInfo, true, transformers);
+                            classOutput, solutionClassInfo, constraintMethodInfo, true, false, transformers);
                 } else {
                     buildFieldAccessor(solutionClassInstance, generatedMemberAccessorsClassNameSet, entityEnhancer, classOutput,
                             solutionClassInfo, constraintFieldInfo, transformers);
@@ -975,10 +977,11 @@ class TimefoldProcessor {
     private static void buildMethodAccessor(AnnotationInstance annotatedMember,
             Set<String> generatedMemberAccessorsClassNameSet,
             GizmoMemberAccessorEntityEnhancer entityEnhancer, ClassOutput classOutput, ClassInfo classInfo,
-            MethodInfo methodInfo, boolean requiredReturnType, BuildProducer<BytecodeTransformerBuildItem> transformers) {
+            MethodInfo methodInfo, boolean requiredReturnType, boolean acceptParameter,
+            BuildProducer<BytecodeTransformerBuildItem> transformers) {
         try {
             generatedMemberAccessorsClassNameSet.add(entityEnhancer.generateMethodAccessor(annotatedMember,
-                    classOutput, classInfo, methodInfo, requiredReturnType, transformers));
+                    classOutput, classInfo, methodInfo, requiredReturnType, acceptParameter, transformers));
         } catch (ClassNotFoundException | NoSuchMethodException e) {
             throw new IllegalStateException(
                     "Failed to generate member accessor for the method (%s) of the class (%s)."
