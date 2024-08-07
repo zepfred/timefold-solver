@@ -27,4 +27,8 @@ public interface Notifiable {
      * Close the variable listener.
      */
     void closeVariableListener();
+
+    boolean supportCache();
+
+    void resetCache();
 }

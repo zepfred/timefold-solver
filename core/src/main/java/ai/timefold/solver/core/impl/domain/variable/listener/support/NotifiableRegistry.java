@@ -15,6 +15,7 @@ import ai.timefold.solver.core.impl.domain.variable.descriptor.VariableDescripto
 final class NotifiableRegistry<Solution_> {
 
     private final List<Notifiable> notifiableList = new ArrayList<>();
+    private final List<Notifiable> cachedNotifiableList = new ArrayList<>();
     private final Set<EntityNotifiable<Solution_>>[] sourceEntityToNotifiableSetArray;
     private final List<Notifiable>[][] sourceVariableToNotifiableListArray;
 
@@ -46,10 +47,17 @@ final class NotifiableRegistry<Solution_> {
             sourceEntityToNotifiableSetArray[entityDescriptorId].add(notifiable);
         }
         notifiableList.add(notifiable);
+        if (notifiable.supportCache()) {
+            cachedNotifiableList.add(notifiable);
+        }
     }
 
     Iterable<Notifiable> getAll() {
         return notifiableList;
+    }
+
+    Iterable<Notifiable> getCacheListeners() {
+        return cachedNotifiableList;
     }
 
     Collection<EntityNotifiable<Solution_>> get(EntityDescriptor<?> entityDescriptor) {

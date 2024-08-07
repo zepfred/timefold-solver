@@ -1,6 +1,8 @@
 package ai.timefold.solver.core.impl.domain.variable.cascade;
 
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
 import ai.timefold.solver.core.api.domain.variable.VariableListener;
@@ -8,22 +10,26 @@ import ai.timefold.solver.core.api.score.director.ScoreDirector;
 import ai.timefold.solver.core.impl.domain.common.accessor.MemberAccessor;
 import ai.timefold.solver.core.impl.domain.variable.ListVariableStateSupply;
 import ai.timefold.solver.core.impl.domain.variable.descriptor.ListVariableDescriptor;
+import ai.timefold.solver.core.impl.domain.variable.listener.support.CacheListener;
 import ai.timefold.solver.core.impl.heuristic.selector.list.LocationInList;
 
 /**
  * @param <Solution_> the solution type, the class with the {@link PlanningSolution} annotation
  */
-public abstract class AbstractCascadingUpdateShadowVariableListener<Solution_> implements VariableListener<Solution_, Object> {
+public abstract class AbstractCascadingUpdateShadowVariableListener<Solution_>
+        implements VariableListener<Solution_, Object>, CacheListener {
 
     private final ListVariableStateSupply<Solution_> listVariableStateSupply;
     private final ListVariableDescriptor<Solution_> sourceListVariableDescriptor;
     private final MemberAccessor targetMethod;
+    private final Map<Object, Boolean> cache;
 
     AbstractCascadingUpdateShadowVariableListener(ListVariableDescriptor<Solution_> sourceListVariableDescriptor,
             MemberAccessor targetMethod, ListVariableStateSupply<Solution_> listVariableStateSupply) {
         this.sourceListVariableDescriptor = sourceListVariableDescriptor;
         this.targetMethod = targetMethod;
         this.listVariableStateSupply = listVariableStateSupply;
+        this.cache = new IdentityHashMap<>();
     }
 
     abstract boolean execute(ScoreDirector<Solution_> scoreDirector, Object entity);
@@ -42,7 +48,25 @@ public abstract class AbstractCascadingUpdateShadowVariableListener<Solution_> i
     }
 
     @Override
+    public void setVisited(Object entity) {
+        this.cache.put(entity, true);
+    }
+
+    @Override
+    public boolean isVisited(Object entity) {
+        return cache.getOrDefault(entity, false);
+    }
+
+    @Override
+    public void resetCache() {
+        this.cache.clear();
+    }
+
+    @Override
     public void afterVariableChanged(ScoreDirector<Solution_> scoreDirector, Object entity) {
+        if (isVisited(entity)) {
+            return;
+        }
         var isChanged = execute(scoreDirector, entity);
         if (isChanged) {
             var indexElement = listVariableStateSupply.getLocationInList(entity);

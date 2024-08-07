@@ -206,6 +206,7 @@ public final class VariableListenerSupport<Solution_> implements SupplyManager {
     }
 
     public void triggerVariableListenersInNotificationQueues() {
+        notifiableRegistry.getCacheListeners().forEach(Notifiable::resetCache);
         for (Notifiable notifiable : notifiableRegistry.getAll()) {
             notifiable.triggerAllNotifications();
         }

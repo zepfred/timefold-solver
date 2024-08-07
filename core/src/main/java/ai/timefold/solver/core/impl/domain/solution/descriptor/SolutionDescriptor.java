@@ -68,6 +68,9 @@ import ai.timefold.solver.core.impl.domain.variable.descriptor.GenuineVariableDe
 import ai.timefold.solver.core.impl.domain.variable.descriptor.ListVariableDescriptor;
 import ai.timefold.solver.core.impl.domain.variable.descriptor.ShadowVariableDescriptor;
 import ai.timefold.solver.core.impl.domain.variable.descriptor.VariableDescriptor;
+import ai.timefold.solver.core.impl.domain.variable.inverserelation.InverseRelationShadowVariableDescriptor;
+import ai.timefold.solver.core.impl.domain.variable.nextprev.NextElementShadowVariableDescriptor;
+import ai.timefold.solver.core.impl.domain.variable.nextprev.PreviousElementShadowVariableDescriptor;
 import ai.timefold.solver.core.impl.score.definition.ScoreDefinition;
 import ai.timefold.solver.core.impl.util.MathUtils;
 import ai.timefold.solver.core.impl.util.MutableInt;
@@ -581,8 +584,22 @@ public class SolutionDescriptor<Solution_> {
             }
         }
         int globalShadowOrder = 0;
+        Comparator<MutablePair<ShadowVariableDescriptor<Solution_>, Integer>> comparator = (p1, p2) -> {
+            int cmp = p1.getValue() - p2.getValue();
+            if (cmp == 0) {
+                if (p1.getKey() instanceof NextElementShadowVariableDescriptor) {
+                    return -1;
+                } else if (p1.getKey() instanceof InverseRelationShadowVariableDescriptor) {
+                    return -1;
+                } else if (p1.getKey() instanceof PreviousElementShadowVariableDescriptor) {
+                    return 1;
+                }
+                return 0;
+            }
+            return cmp;
+        };
         while (!pairList.isEmpty()) {
-            pairList.sort(Comparator.comparingInt(MutablePair::getValue));
+            pairList.sort(comparator);
             var pair = pairList.remove(0);
             var shadow = pair.getKey();
             if (pair.getValue() != 0) {
@@ -920,7 +937,6 @@ public class SolutionDescriptor<Solution_> {
     }
 
     /**
-     *
      * @param solution solution to extract the entities from
      * @param entityClass class of the entity to be visited, including subclasses
      * @param visitor never null; applied to every entity, iteration stops if it returns true
@@ -1164,7 +1180,8 @@ public class SolutionDescriptor<Solution_> {
     }
 
     public record SolutionInitializationStatistics(int genuineEntityCount, int shadowEntityCount,
-            int uninitializedEntityCount, int uninitializedVariableCount, int unassignedValueCount) {
+            int uninitializedEntityCount, int uninitializedVariableCount,
+            int unassignedValueCount) {
     }
 
     private Stream<Object> extractAllEntitiesStream(Solution_ solution) {

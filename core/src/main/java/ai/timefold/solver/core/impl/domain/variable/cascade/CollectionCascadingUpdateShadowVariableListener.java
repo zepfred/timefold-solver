@@ -47,6 +47,7 @@ public class CollectionCascadingUpdateShadowVariableListener<Solution_>
                 hasChange = true;
             }
         }
+        setVisited(entity);
         return hasChange;
     }
 }

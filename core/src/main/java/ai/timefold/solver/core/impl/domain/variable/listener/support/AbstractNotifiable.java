@@ -81,6 +81,18 @@ abstract class AbstractNotifiable<Solution_, T extends AbstractVariableListener<
     }
 
     @Override
+    public boolean supportCache() {
+        return variableListener instanceof CacheListener;
+    }
+
+    @Override
+    public void resetCache() {
+        if (variableListener instanceof CacheListener cacheListener) {
+            cacheListener.resetCache();
+        }
+    }
+
+    @Override
     public void triggerAllNotifications() {
         int notifiedCount = 0;
         for (Notification<Solution_, ? super T> notification : notificationQueue) {

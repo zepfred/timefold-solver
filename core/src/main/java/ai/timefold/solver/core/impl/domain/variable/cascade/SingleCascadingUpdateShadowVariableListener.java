@@ -34,6 +34,7 @@ public class SingleCascadingUpdateShadowVariableListener<Solution_>
         runTargetMethod(entity);
         var newValue = targetVariableDescriptor.getValue(entity);
         scoreDirector.afterVariableChanged(entity, targetVariableDescriptor.getVariableName());
+        setVisited(entity);
         return !Objects.equals(oldValue, newValue);
     }
 }
