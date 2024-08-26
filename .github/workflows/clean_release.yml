@@ -1,0 +1,23 @@
+name: Clean Release
+
+on:
+  push:
+    branches: [__timefold_release_branch__]
+
+jobs:
+  build:
+    env:
+      RELEASE_BRANCH_NAME: "__timefold_release_branch__"
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - name: Checkout timefold-solver-enterprise
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0 # Otherwise merge will fail on account of not having history.
+
+      # Delete the release branch after the PR "build: move back to 999-SNAPSHOT" is merged
+      - name: Delete release branch
+        continue-on-error: true
+        run: git push -d origin $RELEASE_BRANCH_NAME
