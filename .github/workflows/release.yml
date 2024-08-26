@@ -92,6 +92,7 @@ jobs:
           git push origin $RELEASE_BRANCH_NAME
 
       - name: Run JReleaser
+        continue-on-error: true
         uses: jreleaser/release-action@v2
         env:
           JRELEASER_DRY_RUN: ${{ github.event.inputs.dryRun }}
@@ -104,6 +105,7 @@ jobs:
           JRELEASER_NEXUS2_MAVEN_CENTRAL_PASSWORD: ${{ secrets.JRELEASER_MAVEN_CENTRAL_TOKEN }}
 
       - name: JReleaser release output
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         if: always()
         with:
