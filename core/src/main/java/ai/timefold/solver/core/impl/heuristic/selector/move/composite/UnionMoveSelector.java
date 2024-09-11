@@ -95,18 +95,23 @@ public class UnionMoveSelector<Solution_> extends CompositeMoveSelector<Solution
             }
             return stream.iterator();
         } else if (selectorProbabilityWeightFactory == null) {
-            return new UniformRandomUnionMoveIterator<>(childMoveSelectorList, workingRandom);
+            int limit = (int) childMoveSelectorList.stream().mapToLong(MoveSelector::getSize).sum();
+            return new FilterLimitMoveIterator<>(limit,
+                    new UniformRandomUnionMoveIterator<>(childMoveSelectorList, workingRandom));
         } else {
-            return new BiasedRandomUnionMoveIterator<>(childMoveSelectorList,
-                    moveSelector -> {
-                        double weight = selectorProbabilityWeightFactory.createProbabilityWeight(scoreDirector, moveSelector);
-                        if (weight < 0.0) {
-                            throw new IllegalStateException(
-                                    "The selectorProbabilityWeightFactory (" + selectorProbabilityWeightFactory
-                                            + ") returned a negative probabilityWeight (" + weight + ").");
-                        }
-                        return weight;
-                    }, workingRandom);
+            int limit = (int) childMoveSelectorList.stream().mapToLong(MoveSelector::getSize).sum();
+            return new FilterLimitMoveIterator<>(limit,
+                    new BiasedRandomUnionMoveIterator<>(childMoveSelectorList,
+                            moveSelector -> {
+                                double weight =
+                                        selectorProbabilityWeightFactory.createProbabilityWeight(scoreDirector, moveSelector);
+                                if (weight < 0.0) {
+                                    throw new IllegalStateException(
+                                            "The selectorProbabilityWeightFactory (" + selectorProbabilityWeightFactory
+                                                    + ") returned a negative probabilityWeight (" + weight + ").");
+                                }
+                                return weight;
+                            }, workingRandom));
         }
     }
 
