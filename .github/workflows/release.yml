@@ -45,14 +45,26 @@ jobs:
       - name: Checkout timefold-solver
         uses: actions/checkout@v4
         with:
+          path: ./timefold-solver
           fetch-depth: 0
           ref: ${{ github.event.inputs.sourceBranch }}
 
-      - name: Init release branch
+      - name: Checkout frontend
+        id: checkout-frontend
+        uses: actions/checkout@v4
+        with:
+          repository: TimefoldAI/frontend
+          token: ${{ secrets.JRELEASER_GITHUB_TOKEN }} # Safe; only used to clone the repo and not stored in the fork.
+          path: ./timefold-solver
+          fetch-depth: 0 # Otherwise merge will fail on account of not having history.
+
+      - name: Delete existing release branch
+        working-directory: ./timefold-solver
         continue-on-error: true
         run: git push -d origin $RELEASE_BRANCH_NAME
 
       - name: Create release branch and switch to it
+        working-directory: ./timefold-solver
         run: |
           git config user.name "Timefold Release Bot"
           git config user.email "release@timefold.ai"
@@ -75,15 +87,30 @@ jobs:
         with:
           python-version: 3.12
 
+      - name: Set up NodeJs
+        uses: actions/setup-node@v4
+        with:
+          working-directory: ./frontend
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Build Documentation
+        working-directory: ./frontend
+        run: |
+          npm ci
+          npm run build -- --filter docs          
+
       - name: Install Pip and build
+        working-directory: ./timefold-solver
         run: |
           python -m pip install --upgrade pip
-          pip install build
+          pip install build          
 
       # We skip tests in dry run, to make the process faster.
       # Technically, this goes against the main reason for doing a dry run; to eliminate potential problems.
       # But unless something catastrophic happened, PR checks on source branch already ensured that all tests pass.
       - name: Set release version and build release
+        working-directory: ./timefold-solver
         run: |
           mvn -Dfull versions:set -DnewVersion=${{ github.event.inputs.version }}
           sed -i "s/^timefold_solver_python_version.*=.*/timefold_solver_python_version = '${{ github.event.inputs.version }}${{ github.event.inputs.pythonVersionSuffix }}'/" setup.py
@@ -104,8 +131,8 @@ jobs:
           JRELEASER_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
           JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.JRELEASER_GPG_PUBLIC_KEY }}
           JRELEASER_GPG_SECRET_KEY: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
-          JRELEASER_NEXUS2_MAVEN_CENTRAL_USERNAME: ${{ secrets.JRELEASER_MAVEN_CENTRAL_TOKEN_USER }}
-          JRELEASER_NEXUS2_MAVEN_CENTRAL_PASSWORD: ${{ secrets.JRELEASER_MAVEN_CENTRAL_TOKEN }}
+#          JRELEASER_NEXUS2_MAVEN_CENTRAL_USERNAME: ${{ secrets.JRELEASER_MAVEN_CENTRAL_TOKEN_USER }}
+#          JRELEASER_NEXUS2_MAVEN_CENTRAL_PASSWORD: ${{ secrets.JRELEASER_MAVEN_CENTRAL_TOKEN }}
 
       - name: JReleaser release output
         uses: actions/upload-artifact@v4
@@ -116,6 +143,16 @@ jobs:
             out/jreleaser/trace.log
             out/jreleaser/output.properties
 
-      - name: Publish distribution to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        if: ${{ github.event.inputs.dryRun == 'false' }}
+#      - name: Publish distribution to PyPI
+#        uses: pypa/gh-action-pypi-publish@release/v1
+#        if: ${{ github.event.inputs.dryRun == 'false' }}
+
+      - name: Put back the 999-SNAPSHOT version on the release branch
+        working-directory: ./timefold-solver
+        run: |
+          git checkout -B $RELEASE_BRANCH_NAME
+          mvn -Dfull versions:set -DnewVersion=999-SNAPSHOT
+          sed -i "s/^timefold_solver_python_version.*=.*/timefold_solver_python_version = '999-dev0'/" setup.py
+          find . -name 'pom.xml' | xargs git add
+          git commit -am "build: move back to 999-SNAPSHOT"
+          git push origin $RELEASE_BRANCH_NAME
