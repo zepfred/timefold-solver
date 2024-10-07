@@ -31,6 +31,8 @@ on:
 jobs:
   test_build_documentation:
     runs-on: ubuntu-latest
+    env:
+      GIT_CREDENTIALS: ${{ secrets.ANTORA_GIT_CREDENTIALS }}
     steps:
       - name: Checkout frontend
         id: checkout-frontend
@@ -47,9 +49,8 @@ jobs:
           cache: npm
 
       - name: Build Documentation
-        with:
-          token: ${{ secrets.JRELEASER_GITHUB_TOKEN }} # Safe; only used to clone the repo and not stored in the fork.
         run: |
+          sed -i 's/tags:\s*\[v[0-9.]*,\s*v0.8.42]/tags: \[main]/' apps/docs/antora-playbook.yml
           npm ci
           npm run build -- --filter docs
   build_solver:
