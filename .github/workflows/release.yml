@@ -48,6 +48,7 @@ jobs:
       - name: Checkout timefold-solver
         uses: actions/checkout@v4
         with:
+          path: ./timefold-solver
           fetch-depth: 0
           ref: ${{ github.event.inputs.sourceBranch }}
 
@@ -55,6 +56,7 @@ jobs:
         id: checkout-frontend
         uses: actions/checkout@v4
         with:
+          path: ./frontend
           repository: TimefoldAI/frontend
           token: ${{ secrets.JRELEASER_GITHUB_TOKEN }} # Safe; only used to clone the repo and not stored in the fork.
           fetch-depth: 0 # Otherwise merge will fail on account of not having history.
