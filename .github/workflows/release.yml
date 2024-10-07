@@ -31,6 +31,8 @@ on:
 jobs:
   test_build_documentation:
     runs-on: ubuntu-latest
+    env:
+      GIT_CREDENTIALS: ${{ secrets.JRELEASER_GITHUB_TOKEN }}
     steps:
       - name: Checkout frontend
         id: checkout-frontend
@@ -47,8 +49,6 @@ jobs:
           cache: npm
 
       - name: Build Documentation
-        env:
-          GIT_CREDENTIALS: ${{ secrets.JRELEASER_GITHUB_TOKEN }}
         run: |
           sed -i 's/tags:\s*\[v[0-9.]*,\s*v0.8.42]/tags: \[main]/' apps/docs/antora-playbook.yml
           npm ci
