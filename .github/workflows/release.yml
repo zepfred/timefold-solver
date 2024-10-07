@@ -72,6 +72,7 @@ jobs:
 
       - uses: actions/setup-java@v4
         with:
+          working-directory: ./timefold-solver        
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
@@ -80,11 +81,13 @@ jobs:
       - name: Set up Maven
         uses: stCarolas/setup-maven@v5
         with:
+          working-directory: ./timefold-solver        
           maven-version: 3.9.3
 
       - name: Python 3.12 Setup
         uses: actions/setup-python@v5
         with:
+          working-directory: ./timefold-solver
           python-version: 3.12
 
       - name: Set up NodeJs
@@ -124,6 +127,8 @@ jobs:
 
       - name: Run JReleaser
         uses: jreleaser/release-action@v2
+        with: 
+          working-directory: ./timefold-solver
         env:
           JRELEASER_DRY_RUN: ${{ github.event.inputs.dryRun }}
           JRELEASER_PROJECT_VERSION: ${{ github.event.inputs.version }}
@@ -139,6 +144,7 @@ jobs:
         if: always()
         with:
           name: jreleaser-release
+          working-directory: ./timefold-solver
           path: |
             out/jreleaser/trace.log
             out/jreleaser/output.properties
