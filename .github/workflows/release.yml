@@ -32,7 +32,7 @@ jobs:
   test_build_documentation:
     runs-on: ubuntu-latest
     env:
-      GIT_CREDENTIALS: ${{ secrets.JRELEASER_GITHUB_TOKEN }}
+      GIT_CREDENTIALS: ${{ secrets.GIT_CREDENTIALS }}
     steps:
       - name: Checkout frontend
         id: checkout-frontend
