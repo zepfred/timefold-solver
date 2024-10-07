@@ -30,6 +30,9 @@ on:
         required: true
 jobs:
   build:
+    defaults:
+      run:
+        working-directory: ./timefold-solver
     env:
       MAVEN_ARGS: "--no-transfer-progress --batch-mode"
       RELEASE_BRANCH_NAME: "__timefold_release_branch__"
@@ -45,7 +48,6 @@ jobs:
       - name: Checkout timefold-solver
         uses: actions/checkout@v4
         with:
-          path: ./timefold-solver
           fetch-depth: 0
           ref: ${{ github.event.inputs.sourceBranch }}
 
@@ -55,16 +57,13 @@ jobs:
         with:
           repository: TimefoldAI/frontend
           token: ${{ secrets.JRELEASER_GITHUB_TOKEN }} # Safe; only used to clone the repo and not stored in the fork.
-          path: ./timefold-solver
           fetch-depth: 0 # Otherwise merge will fail on account of not having history.
 
       - name: Delete existing release branch
-        working-directory: ./timefold-solver
         continue-on-error: true
         run: git push -d origin $RELEASE_BRANCH_NAME
 
       - name: Create release branch and switch to it
-        working-directory: ./timefold-solver
         run: |
           git config user.name "Timefold Release Bot"
           git config user.email "release@timefold.ai"
@@ -72,7 +71,6 @@ jobs:
 
       - uses: actions/setup-java@v4
         with:
-          working-directory: ./timefold-solver        
           java-version: '17'
           distribution: 'temurin'
           cache: 'maven'
@@ -81,20 +79,17 @@ jobs:
       - name: Set up Maven
         uses: stCarolas/setup-maven@v5
         with:
-          working-directory: ./timefold-solver        
           maven-version: 3.9.3
 
       - name: Python 3.12 Setup
         uses: actions/setup-python@v5
         with:
-          working-directory: ./timefold-solver
           python-version: 3.12
 
       - name: Set up NodeJs
         uses: actions/setup-node@v4
         with:
-          working-directory: ./frontend
-          node-version-file: .nvmrc
+          node-version-file: ./frontend/.nvmrc
           cache: npm
 
       - name: Build Documentation
@@ -104,7 +99,6 @@ jobs:
           npm run build -- --filter docs          
 
       - name: Install Pip and build
-        working-directory: ./timefold-solver
         run: |
           python -m pip install --upgrade pip
           pip install build          
@@ -113,7 +107,6 @@ jobs:
       # Technically, this goes against the main reason for doing a dry run; to eliminate potential problems.
       # But unless something catastrophic happened, PR checks on source branch already ensured that all tests pass.
       - name: Set release version and build release
-        working-directory: ./timefold-solver
         run: |
           mvn -Dfull versions:set -DnewVersion=${{ github.event.inputs.version }}
           sed -i "s/^timefold_solver_python_version.*=.*/timefold_solver_python_version = '${{ github.event.inputs.version }}${{ github.event.inputs.pythonVersionSuffix }}'/" setup.py
@@ -127,8 +120,6 @@ jobs:
 
       - name: Run JReleaser
         uses: jreleaser/release-action@v2
-        with: 
-          working-directory: ./timefold-solver
         env:
           JRELEASER_DRY_RUN: ${{ github.event.inputs.dryRun }}
           JRELEASER_PROJECT_VERSION: ${{ github.event.inputs.version }}
@@ -136,25 +127,23 @@ jobs:
           JRELEASER_GPG_PASSPHRASE: ${{ secrets.JRELEASER_GPG_PASSPHRASE }}
           JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.JRELEASER_GPG_PUBLIC_KEY }}
           JRELEASER_GPG_SECRET_KEY: ${{ secrets.JRELEASER_GPG_SECRET_KEY }}
-#          JRELEASER_NEXUS2_MAVEN_CENTRAL_USERNAME: ${{ secrets.JRELEASER_MAVEN_CENTRAL_TOKEN_USER }}
-#          JRELEASER_NEXUS2_MAVEN_CENTRAL_PASSWORD: ${{ secrets.JRELEASER_MAVEN_CENTRAL_TOKEN }}
+      #          JRELEASER_NEXUS2_MAVEN_CENTRAL_USERNAME: ${{ secrets.JRELEASER_MAVEN_CENTRAL_TOKEN_USER }}
+      #          JRELEASER_NEXUS2_MAVEN_CENTRAL_PASSWORD: ${{ secrets.JRELEASER_MAVEN_CENTRAL_TOKEN }}
 
       - name: JReleaser release output
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: jreleaser-release
-          working-directory: ./timefold-solver
           path: |
             out/jreleaser/trace.log
             out/jreleaser/output.properties
 
-#      - name: Publish distribution to PyPI
-#        uses: pypa/gh-action-pypi-publish@release/v1
-#        if: ${{ github.event.inputs.dryRun == 'false' }}
+      #      - name: Publish distribution to PyPI
+      #        uses: pypa/gh-action-pypi-publish@release/v1
+      #        if: ${{ github.event.inputs.dryRun == 'false' }}
 
       - name: Put back the 999-SNAPSHOT version on the release branch
-        working-directory: ./timefold-solver
         run: |
           git checkout -B $RELEASE_BRANCH_NAME
           mvn -Dfull versions:set -DnewVersion=999-SNAPSHOT
