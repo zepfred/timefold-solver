@@ -3,6 +3,8 @@ package ai.timefold.solver.core.impl.localsearch.decider.acceptor.lateacceptance
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
+import java.util.Random;
+
 import ai.timefold.solver.core.api.score.buildin.simple.SimpleScore;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.AbstractAcceptorTest;
 import ai.timefold.solver.core.impl.localsearch.scope.LocalSearchPhaseScope;
@@ -124,6 +126,116 @@ class LateAcceptanceAcceptorTest extends AbstractAcceptorTest {
         phaseScope.setLastCompletedStepScope(stepScope5);
 
         acceptor.phaseEnded(phaseScope);
+    }
+
+    @Test
+    void lateAcceptanceSizeDiversificationStrategy() {
+        var acceptor = new LateAcceptanceAcceptor<>();
+        acceptor.setLateAcceptanceSize(3);
+        acceptor.setDiversificationEnabled(true);
+
+        var solverScope = new SolverScope<>();
+        solverScope.setBestScore(SimpleScore.of(-1000));
+        var phaseScope = new LocalSearchPhaseScope<>(solverScope, 0);
+        acceptor.phaseStarted(phaseScope);
+
+        // Accept
+        // Equal to the current solution
+        var stepScope0 = new LocalSearchStepScope<>(phaseScope);
+        var moveScope0 = buildMoveScope(stepScope0, -1000);
+        stepScope0.getPhaseScope().setLastCompletedStepScope(stepScope0);
+        assertThat(acceptor.isAccepted(moveScope0)).isTrue();
+
+        // Better than the current best late element
+        moveScope0 = buildMoveScope(stepScope0, -999);
+        assertThat(acceptor.isAccepted(moveScope0)).isTrue();
+
+        // Replacement
+        // Current worse than late score and previous better than late score
+        acceptor.phaseStarted(phaseScope);
+        moveScope0 = buildMoveScope(stepScope0, -2000);
+        stepScope0.setScore(moveScope0.getScore());
+        acceptor.previousScores[0] = SimpleScore.of(-1999);
+        acceptor.previous = SimpleScore.of(-1998);
+        acceptor.stepEnded(stepScope0);
+        assertThat(acceptor.previousScores[0]).isEqualTo(SimpleScore.of(-2000));
+
+        // Current worse than late score and previous worse than late score
+        acceptor.phaseStarted(phaseScope);
+        moveScope0 = buildMoveScope(stepScope0, -2001);
+        stepScope0.setScore(moveScope0.getScore());
+        acceptor.previousScores[0] = SimpleScore.of(-1999);
+        acceptor.previous = SimpleScore.of(-2000);
+        acceptor.stepEnded(stepScope0);
+        assertThat(acceptor.previousScores[0]).isEqualTo(SimpleScore.of(-2001));
+
+        // Current worse than late score and previous worse than late score
+        acceptor.phaseStarted(phaseScope);
+        moveScope0 = buildMoveScope(stepScope0, -2001);
+        stepScope0.setScore(moveScope0.getScore());
+        acceptor.previousScores[0] = SimpleScore.of(-1999);
+        acceptor.previous = SimpleScore.of(-2001);
+        acceptor.stepEnded(stepScope0);
+        assertThat(acceptor.previousScores[0]).isEqualTo(SimpleScore.of(-2001));
+
+        // Current better than late score and previous better than late score
+        acceptor.phaseStarted(phaseScope);
+        moveScope0 = buildMoveScope(stepScope0, -1998);
+        stepScope0.setScore(moveScope0.getScore());
+        acceptor.previousScores[0] = SimpleScore.of(-2000);
+        acceptor.previous = SimpleScore.of(-1999);
+        acceptor.stepEnded(stepScope0);
+        assertThat(acceptor.previousScores[0]).isEqualTo(SimpleScore.of(-1998));
+
+        // Current better than late score and previous worse than late score
+        acceptor.phaseStarted(phaseScope);
+        moveScope0 = buildMoveScope(stepScope0, -1998);
+        stepScope0.setScore(moveScope0.getScore());
+        acceptor.previousScores[0] = SimpleScore.of(-1999);
+        acceptor.previous = SimpleScore.of(-2000);
+        acceptor.stepEnded(stepScope0);
+        assertThat(acceptor.previousScores[0]).isEqualTo(SimpleScore.of(-1998));
+
+        // Current worse than late score and previous worse than late score and current
+        acceptor.phaseStarted(phaseScope);
+        moveScope0 = buildMoveScope(stepScope0, -2000);
+        stepScope0.setScore(moveScope0.getScore());
+        acceptor.previousScores[0] = SimpleScore.of(-1999);
+        acceptor.previous = SimpleScore.of(-2001);
+        acceptor.stepEnded(stepScope0);
+        assertThat(acceptor.previousScores[0]).isEqualTo(SimpleScore.of(-2000));
+
+        // No replacement
+        acceptor.phaseStarted(phaseScope);
+        acceptor.previous = SimpleScore.of(-998);
+        moveScope0 = buildMoveScope(stepScope0, -999);
+        stepScope0.setScore(moveScope0.getScore());
+        assertThat(acceptor.isAccepted(moveScope0)).isTrue();
+        acceptor.stepEnded(stepScope0);
+        assertThat(acceptor.previousScores[0]).isEqualTo(SimpleScore.of(-1000));
+
+        acceptor.phaseStarted(phaseScope);
+        acceptor.previous = SimpleScore.of(-998);
+        moveScope0 = buildMoveScope(stepScope0, -998);
+        stepScope0.setScore(moveScope0.getScore());
+        assertThat(acceptor.isAccepted(moveScope0)).isTrue();
+        acceptor.stepEnded(stepScope0);
+        assertThat(acceptor.previousScores[0]).isEqualTo(SimpleScore.of(-1000));
+
+        // Recompute lateBest and the number of occurrences
+        acceptor.phaseStarted(phaseScope);
+        moveScope0 = buildMoveScope(stepScope0, -2000);
+        stepScope0.setScore(moveScope0.getScore());
+        acceptor.lateBest = SimpleScore.of(-2001);
+        acceptor.lateBestOccurrences = 1;
+        acceptor.previousScores[0] = SimpleScore.of(-2001);
+        acceptor.previousScores[1] = SimpleScore.of(-2001);
+        acceptor.previousScores[2] = SimpleScore.of(-2000);
+        acceptor.previous = SimpleScore.of(-2001);
+        acceptor.stepEnded(stepScope0);
+        assertThat(acceptor.previousScores[0]).isEqualTo(SimpleScore.of(-2000));
+        assertThat(acceptor.lateBest).isEqualTo(SimpleScore.of(-2000));
+        assertThat(acceptor.lateBestOccurrences).isEqualTo(2);
     }
 
     @Test

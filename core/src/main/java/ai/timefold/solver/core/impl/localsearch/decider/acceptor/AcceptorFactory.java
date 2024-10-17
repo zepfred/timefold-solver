@@ -220,6 +220,8 @@ public class AcceptorFactory<Solution_> {
                 || acceptorConfig.getLateAcceptanceSize() != null) {
             LateAcceptanceAcceptor<Solution_> acceptor = new LateAcceptanceAcceptor<>();
             acceptor.setLateAcceptanceSize(Objects.requireNonNullElse(acceptorConfig.getLateAcceptanceSize(), 400));
+            acceptor.setDiversificationEnabled(
+                    Objects.requireNonNullElse(acceptorConfig.getEnableLateAcceptanceDiversification(), false));
             return Optional.of(acceptor);
         }
         return Optional.empty();
