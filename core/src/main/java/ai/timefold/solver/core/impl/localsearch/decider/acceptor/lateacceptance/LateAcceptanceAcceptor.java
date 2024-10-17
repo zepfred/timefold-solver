@@ -10,19 +10,27 @@ import ai.timefold.solver.core.impl.localsearch.scope.LocalSearchStepScope;
 
 public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution_> {
 
+    private static final int POOL_TIME_SECONDS = 10;
     protected int lateAcceptanceSize = -1;
     protected boolean hillClimbingEnabled = true;
     protected boolean diversificationEnabled = false;
+    protected boolean enableLocalMinimaDetection = false;
 
     protected Score<?>[] previousScores;
     protected int lateScoreIndex = -1;
 
+    // Current accepted solution
+    protected Score<?> current;
     // Previous accepted solution
     protected Score<?> previous;
     // The best score in the late elements list
     protected Score<?> lateBest;
     // Number of occurrences of lateBest in the late elements
     protected int lateBestOccurrences = -1;
+    // Unsuccessful trials after executing a given numbe of moves
+    protected int countUnsuccessfulTrials = -1;
+    protected long nextUnsuccessfulTrialMoveCount = -1L;
+    protected int countAcceptNextSolutions = -1;
 
     public void setLateAcceptanceSize(int lateAcceptanceSize) {
         this.lateAcceptanceSize = lateAcceptanceSize;
@@ -44,13 +52,24 @@ public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution
     public void phaseStarted(LocalSearchPhaseScope<Solution_> phaseScope) {
         super.phaseStarted(phaseScope);
         validate();
+        init(phaseScope.getBestScore());
+        resetTrials(0L);
+    }
+
+    private void init(Score<?> initialScore) {
         previousScores = new Score[lateAcceptanceSize];
-        var initialScore = phaseScope.getBestScore();
         Arrays.fill(previousScores, initialScore);
         lateScoreIndex = 0;
         lateBestOccurrences = lateAcceptanceSize;
-        lateBest = phaseScope.getBestScore();
-        previous = phaseScope.getBestScore();
+        current = initialScore;
+        lateBest = initialScore;
+        previous = initialScore;
+        countAcceptNextSolutions = 0;
+    }
+
+    private void resetTrials(long nextCount) {
+        countUnsuccessfulTrials = 0;
+        nextUnsuccessfulTrialMoveCount = nextCount;
     }
 
     private void validate() {
@@ -62,12 +81,16 @@ public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution
 
     @Override
     public boolean isAccepted(LocalSearchMoveScope<Solution_> moveScope) {
-        if (diversificationEnabled) {
-            var accepted = isAcceptedDiversifiedStrategy(moveScope);
-            executeReplacementDiversificationStrategy(moveScope);
-            return accepted;
+        return diversificationEnabled ? isAcceptedDiversifiedStrategy(moveScope) : isAcceptedDefaultStrategy(moveScope);
+    }
+
+    private boolean isAcceptedDiversifiedStrategy(LocalSearchMoveScope<Solution_> moveScope) {
+        var accepted = executeAcceptanceDiversifiedStrategy(moveScope);
+        executeReplacementDiversificationStrategy(moveScope);
+        if (enableLocalMinimaDetection) {
+            executeLocalMinimaValidation(moveScope);
         }
-        return isAcceptedDefaultStrategy(moveScope);
+        return accepted;
     }
 
     private boolean isAcceptedDefaultStrategy(LocalSearchMoveScope<Solution_> moveScope) {
@@ -87,13 +110,12 @@ public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution
      * The acceptance strategy is based on the work:
      * Diversified Late Acceptance Search by M. Namazi, C. Sanderson, M. A. H. Newton, M. M. A. Polash, and A. Sattar
      */
-    private boolean isAcceptedDiversifiedStrategy(LocalSearchMoveScope<Solution_> moveScope) {
+    private boolean executeAcceptanceDiversifiedStrategy(LocalSearchMoveScope<Solution_> moveScope) {
         // The first condition allows new solutions
         // to be accepted when the score is equal to lateBest and all late elements are set to lateBest.
         // This is useful in the initial and final iterations.
         var moveScore = moveScope.getScore();
-        var current = moveScope.getStepScope().getPhaseScope().getLastCompletedStepScope().getScore();
-        return compare(moveScore, current) == 0 || compare(moveScore, lateBest) > 0;
+        return compare(moveScore, current) == 0 || compare(moveScore, lateBest) > 0 || countAcceptNextSolutions > 0;
     }
 
     @Override
@@ -117,10 +139,19 @@ public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution
     private void executeReplacementDiversificationStrategy(LocalSearchMoveScope<Solution_> moveScope) {
         var lateScore = previousScores[lateScoreIndex];
         var moveScore = moveScope.getScore();
-        var current = moveScope.getStepScope().getPhaseScope().getLastCompletedStepScope().getScore();
         if (isAcceptedDiversifiedStrategy(moveScope)) {
             previous = current;
             current = moveScore;
+            resetTrials(nextTrialMoveCount(moveScope));
+            if (countAcceptNextSolutions > 0) {
+                logger.info("Stuck in local minima and accepting the solution with score ({})", moveScore);
+                updateLateScore(moveScore);
+                countAcceptNextSolutions--;
+                if (countAcceptNextSolutions == 0) {
+                    recomputeMaxLateElement();
+                }
+                return;
+            }
         }
         var lateCmp = compare(current, lateScore);
         if (lateCmp < 0) {
@@ -134,22 +165,59 @@ public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution
             }
             updateLateScore(current);
             if (lateBestOccurrences == 0) {
-                lateBest = previousScores[0];
-                // Recompute the new lateBest and the number of occurrences
-                for (var i = 1; i < lateAcceptanceSize; i++) {
-                    if (compare(previousScores[i], lateBest) > 0) {
-                        lateBest = previousScores[i];
-                    }
-                }
-                for (var i = 0; i < lateAcceptanceSize; i++) {
-                    if (compare(previousScores[i], lateBest) == 0) {
-                        lateBestOccurrences++;
-                    }
-                }
+                recomputeMaxLateElement();
+                resetTrials(nextTrialMoveCount(moveScope));
             }
         } else {
             lateScoreIndex = (lateScoreIndex + 1) % lateAcceptanceSize;
         }
+    }
+
+    private void executeLocalMinimaValidation(LocalSearchMoveScope<Solution_> moveScope) {
+        if (countAcceptNextSolutions > 0) {
+            return;
+        }
+        var solverScope = moveScope.getStepScope().getPhaseScope().getSolverScope();
+        if (countUnsuccessfulTrials == lateAcceptanceSize && compare(moveScope.getScore(), lateBest) < 0) {
+            countAcceptNextSolutions = 2;
+            lateScoreIndex = 0;
+            resetTrials(nextTrialMoveCount(moveScope));
+            logger.info("Stuck in local minima with score ({}), accepting next {} solutions", current,
+                    countAcceptNextSolutions);
+        } else if (moveScope.getStepIndex() > 0 && (nextUnsuccessfulTrialMoveCount == 0L
+                || solverScope.getMoveEvaluationCount() >= nextUnsuccessfulTrialMoveCount)) {
+            nextUnsuccessfulTrialMoveCount = nextTrialMoveCount(moveScope);
+            countUnsuccessfulTrials++;
+            logger.info("Unsuccessful trial ({}), next move count ({})", countUnsuccessfulTrials,
+                    nextUnsuccessfulTrialMoveCount);
+        }
+    }
+
+    private void recomputeMaxLateElement() {
+        lateBest = previousScores[0];
+        // Recompute the new lateBest and the number of occurrences
+        for (var i = 1; i < lateAcceptanceSize; i++) {
+            if (compare(previousScores[i], lateBest) > 0) {
+                lateBest = previousScores[i];
+            }
+        }
+        lateBestOccurrences = countOccurrences(lateBest);
+    }
+
+    private long nextTrialMoveCount(LocalSearchMoveScope<Solution_> moveScope) {
+        var solverScope = moveScope.getStepScope().getPhaseScope().getSolverScope();
+        // Next trial after about 30 seconds
+        return solverScope.getMoveEvaluationCount() + solverScope.getMoveEvaluationSpeed() * POOL_TIME_SECONDS;
+    }
+
+    private int countOccurrences(Score<?> score) {
+        var occurrences = 0;
+        for (var i = 0; i < lateAcceptanceSize; i++) {
+            if (compare(previousScores[i], score) == 0) {
+                occurrences++;
+            }
+        }
+        return occurrences;
     }
 
     @Override
