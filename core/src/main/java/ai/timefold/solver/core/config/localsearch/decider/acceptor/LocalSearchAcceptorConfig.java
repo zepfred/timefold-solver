@@ -26,6 +26,7 @@ import ai.timefold.solver.core.config.util.ConfigUtils;
         "fadingUndoMoveTabuSize",
         "simulatedAnnealingStartingTemperature",
         "lateAcceptanceSize",
+        "enableLateAcceptanceDiversification",
         "greatDelugeWaterLevelIncrementScore",
         "greatDelugeWaterLevelIncrementRatio",
         "stepCountingHillClimbingSize",
@@ -52,6 +53,8 @@ public class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchAccepto
     protected String simulatedAnnealingStartingTemperature = null;
 
     protected Integer lateAcceptanceSize = null;
+
+    protected Boolean enableLateAcceptanceDiversification = null;
 
     protected String greatDelugeWaterLevelIncrementScore = null;
     protected Double greatDelugeWaterLevelIncrementRatio = null;
@@ -195,6 +198,14 @@ public class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchAccepto
         this.lateAcceptanceSize = lateAcceptanceSize;
     }
 
+    public Boolean getEnableLateAcceptanceDiversification() {
+        return enableLateAcceptanceDiversification;
+    }
+
+    public void setEnableLateAcceptanceDiversification(Boolean enableLateAcceptanceDiversification) {
+        this.enableLateAcceptanceDiversification = enableLateAcceptanceDiversification;
+    }
+
     public String getGreatDelugeWaterLevelIncrementScore() {
         return greatDelugeWaterLevelIncrementScore;
     }
@@ -306,6 +317,11 @@ public class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchAccepto
         return this;
     }
 
+    public LocalSearchAcceptorConfig withEnableLateAcceptanceDiversification(Boolean enableLateAcceptanceDiversification) {
+        this.enableLateAcceptanceDiversification = enableLateAcceptanceDiversification;
+        return this;
+    }
+
     public LocalSearchAcceptorConfig withStepCountingHillClimbingSize(Integer stepCountingHillClimbingSize) {
         this.stepCountingHillClimbingSize = stepCountingHillClimbingSize;
         return this;
@@ -354,6 +370,8 @@ public class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchAccepto
                 simulatedAnnealingStartingTemperature, inheritedConfig.getSimulatedAnnealingStartingTemperature());
         lateAcceptanceSize = ConfigUtils.inheritOverwritableProperty(lateAcceptanceSize,
                 inheritedConfig.getLateAcceptanceSize());
+        enableLateAcceptanceDiversification = ConfigUtils.inheritOverwritableProperty(enableLateAcceptanceDiversification,
+                inheritedConfig.getEnableLateAcceptanceDiversification());
         greatDelugeWaterLevelIncrementScore = ConfigUtils.inheritOverwritableProperty(greatDelugeWaterLevelIncrementScore,
                 inheritedConfig.getGreatDelugeWaterLevelIncrementScore());
         greatDelugeWaterLevelIncrementRatio = ConfigUtils.inheritOverwritableProperty(greatDelugeWaterLevelIncrementRatio,
