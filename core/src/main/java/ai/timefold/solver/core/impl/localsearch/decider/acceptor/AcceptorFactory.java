@@ -45,7 +45,7 @@ public class AcceptorFactory<Solution_> {
                 buildMoveTabuAcceptor(configPolicy),
                 buildUndoMoveTabuAcceptor(configPolicy),
                 buildSimulatedAnnealingAcceptor(configPolicy),
-                buildLateAcceptanceAcceptor(),
+                buildLateAcceptanceAcceptor(configPolicy),
                 buildGreatDelugeAcceptor(configPolicy))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
@@ -236,14 +236,19 @@ public class AcceptorFactory<Solution_> {
         return Optional.empty();
     }
 
-    private Optional<LateAcceptanceAcceptor<Solution_>> buildLateAcceptanceAcceptor() {
+    private Optional<LateAcceptanceAcceptor<Solution_>>
+            buildLateAcceptanceAcceptor(HeuristicConfigPolicy<Solution_> configPolicy) {
         if ((acceptorConfig.getAcceptorTypeList() != null
                 && acceptorConfig.getAcceptorTypeList().contains(AcceptorType.LATE_ACCEPTANCE))
                 || acceptorConfig.getLateAcceptanceSize() != null) {
-            LateAcceptanceAcceptor<Solution_> acceptor = new LateAcceptanceAcceptor<>();
+            LateAcceptanceAcceptor<Solution_> acceptor = new LateAcceptanceAcceptor<>(configPolicy.getRandom());
             acceptor.setLateAcceptanceSize(Objects.requireNonNullElse(acceptorConfig.getLateAcceptanceSize(), 400));
             acceptor.setDiversificationEnabled(
                     Objects.requireNonNullElse(acceptorConfig.getEnableLateAcceptanceDiversification(), false));
+            acceptor.setEnableLocalMinimaDetection(
+                    Objects.requireNonNullElse(acceptorConfig.getEnableLocalMinimaDetection(), false));
+            acceptor.setLocalMinimaDetectionPoolTimeSeconds(
+                    Objects.requireNonNullElse(acceptorConfig.getLocalMinimaDetectionPoolTimeSeconds(), 30));
             return Optional.of(acceptor);
         }
         return Optional.empty();

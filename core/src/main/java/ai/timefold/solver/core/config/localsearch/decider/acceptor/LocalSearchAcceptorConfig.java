@@ -27,6 +27,8 @@ import ai.timefold.solver.core.config.util.ConfigUtils;
         "simulatedAnnealingStartingTemperature",
         "lateAcceptanceSize",
         "enableLateAcceptanceDiversification",
+        "enableLocalMinimaDetection",
+        "localMinimaDetectionPoolTimeSeconds",
         "greatDelugeWaterLevelIncrementScore",
         "greatDelugeWaterLevelIncrementRatio",
         "stepCountingHillClimbingSize",
@@ -55,6 +57,8 @@ public class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchAccepto
     protected Integer lateAcceptanceSize = null;
 
     protected Boolean enableLateAcceptanceDiversification = null;
+    protected Boolean enableLocalMinimaDetection = null;
+    protected Integer localMinimaDetectionPoolTimeSeconds = null;
 
     protected String greatDelugeWaterLevelIncrementScore = null;
     protected Double greatDelugeWaterLevelIncrementRatio = null;
@@ -206,6 +210,22 @@ public class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchAccepto
         this.enableLateAcceptanceDiversification = enableLateAcceptanceDiversification;
     }
 
+    public Boolean getEnableLocalMinimaDetection() {
+        return enableLocalMinimaDetection;
+    }
+
+    public void setEnableLocalMinimaDetection(Boolean enableLocalMinimaDetection) {
+        this.enableLocalMinimaDetection = enableLocalMinimaDetection;
+    }
+
+    public Integer getLocalMinimaDetectionPoolTimeSeconds() {
+        return localMinimaDetectionPoolTimeSeconds;
+    }
+
+    public void setLocalMinimaDetectionPoolTimeSeconds(Integer localMinimaDetectionPoolTimeSeconds) {
+        this.localMinimaDetectionPoolTimeSeconds = localMinimaDetectionPoolTimeSeconds;
+    }
+
     public String getGreatDelugeWaterLevelIncrementScore() {
         return greatDelugeWaterLevelIncrementScore;
     }
@@ -322,6 +342,16 @@ public class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchAccepto
         return this;
     }
 
+    public LocalSearchAcceptorConfig withEnableLocalMinimaDetection(Boolean enableLocalMinimaDetection) {
+        this.enableLocalMinimaDetection = enableLocalMinimaDetection;
+        return this;
+    }
+
+    public LocalSearchAcceptorConfig withLocalMinimaDetectionPoolTimeSeconds(Integer localMinimaDetectionPoolTimeSeconds) {
+        this.localMinimaDetectionPoolTimeSeconds = localMinimaDetectionPoolTimeSeconds;
+        return this;
+    }
+
     public LocalSearchAcceptorConfig withStepCountingHillClimbingSize(Integer stepCountingHillClimbingSize) {
         this.stepCountingHillClimbingSize = stepCountingHillClimbingSize;
         return this;
@@ -372,6 +402,10 @@ public class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchAccepto
                 inheritedConfig.getLateAcceptanceSize());
         enableLateAcceptanceDiversification = ConfigUtils.inheritOverwritableProperty(enableLateAcceptanceDiversification,
                 inheritedConfig.getEnableLateAcceptanceDiversification());
+        enableLocalMinimaDetection = ConfigUtils.inheritOverwritableProperty(enableLocalMinimaDetection,
+                inheritedConfig.getEnableLocalMinimaDetection());
+        localMinimaDetectionPoolTimeSeconds = ConfigUtils.inheritOverwritableProperty(localMinimaDetectionPoolTimeSeconds,
+                inheritedConfig.getLocalMinimaDetectionPoolTimeSeconds());
         greatDelugeWaterLevelIncrementScore = ConfigUtils.inheritOverwritableProperty(greatDelugeWaterLevelIncrementScore,
                 inheritedConfig.getGreatDelugeWaterLevelIncrementScore());
         greatDelugeWaterLevelIncrementRatio = ConfigUtils.inheritOverwritableProperty(greatDelugeWaterLevelIncrementRatio,

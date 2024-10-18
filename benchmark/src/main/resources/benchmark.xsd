@@ -2408,6 +2408,12 @@
           <xs:element minOccurs="0" name="enableLateAcceptanceDiversification" type="xs:boolean"/>
                               
           
+          <xs:element minOccurs="0" name="enableLocalMinimaDetection" type="xs:boolean"/>
+                              
+          
+          <xs:element minOccurs="0" name="localMinimaDetectionPoolTimeSeconds" type="xs:int"/>
+                              
+          
           <xs:element minOccurs="0" name="greatDelugeWaterLevelIncrementScore" type="xs:string"/>
                               
           
