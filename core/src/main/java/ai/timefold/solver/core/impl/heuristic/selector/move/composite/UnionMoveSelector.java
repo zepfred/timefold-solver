@@ -110,7 +110,7 @@ public class UnionMoveSelector<Solution_> extends CompositeMoveSelector<Solution
         }
     }
 
-    private static <Solution_> Stream<Move<Solution_>> toStream(MoveSelector<Solution_> moveSelector) {
+    protected static <Solution_> Stream<Move<Solution_>> toStream(MoveSelector<Solution_> moveSelector) {
         return StreamSupport.stream(moveSelector.spliterator(), false);
     }
 
