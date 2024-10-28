@@ -3,8 +3,6 @@ package ai.timefold.solver.core.impl.localsearch.decider.acceptor.lateacceptance
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
-import java.util.Random;
-
 import ai.timefold.solver.core.api.score.buildin.simple.SimpleScore;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.AbstractAcceptorTest;
 import ai.timefold.solver.core.impl.localsearch.scope.LocalSearchPhaseScope;
@@ -142,6 +140,7 @@ class LateAcceptanceAcceptorTest extends AbstractAcceptorTest {
         // Accept
         // Equal to the current solution
         var stepScope0 = new LocalSearchStepScope<>(phaseScope);
+        stepScope0.setScore(SimpleScore.of(-1000));
         var moveScope0 = buildMoveScope(stepScope0, -1000);
         stepScope0.getPhaseScope().setLastCompletedStepScope(stepScope0);
         assertThat(acceptor.isAccepted(moveScope0)).isTrue();
@@ -151,91 +150,101 @@ class LateAcceptanceAcceptorTest extends AbstractAcceptorTest {
         assertThat(acceptor.isAccepted(moveScope0)).isTrue();
 
         // Replacement
-        // Current worse than late score and previous better than late score
+        // Current worse than late score and late score worse than previous
         acceptor.phaseStarted(phaseScope);
+        acceptor.lateWorse = SimpleScore.of(-2005);
         moveScope0 = buildMoveScope(stepScope0, -2000);
         stepScope0.setScore(moveScope0.getScore());
         acceptor.previousScores[0] = SimpleScore.of(-1999);
-        acceptor.previous = SimpleScore.of(-1998);
-        acceptor.stepEnded(stepScope0);
+        stepScope0.getPhaseScope().getLastCompletedStepScope().setScore(SimpleScore.of(-1998));
+        acceptor.isAccepted(moveScope0);
         assertThat(acceptor.previousScores[0]).isEqualTo(SimpleScore.of(-2000));
 
-        // Current worse than late score and previous worse than late score
+        // Current worse than late score and late score better than late score
         acceptor.phaseStarted(phaseScope);
+        acceptor.lateWorse = SimpleScore.of(-2005);
         moveScope0 = buildMoveScope(stepScope0, -2001);
         stepScope0.setScore(moveScope0.getScore());
         acceptor.previousScores[0] = SimpleScore.of(-1999);
-        acceptor.previous = SimpleScore.of(-2000);
-        acceptor.stepEnded(stepScope0);
+        stepScope0.getPhaseScope().getLastCompletedStepScope().setScore(SimpleScore.of(-2000));
+        acceptor.isAccepted(moveScope0);
         assertThat(acceptor.previousScores[0]).isEqualTo(SimpleScore.of(-2001));
 
-        // Current worse than late score and previous worse than late score
+        // Current equal to previous and current worse than late score
         acceptor.phaseStarted(phaseScope);
+        acceptor.lateWorse = SimpleScore.of(-2005);
         moveScope0 = buildMoveScope(stepScope0, -2001);
         stepScope0.setScore(moveScope0.getScore());
         acceptor.previousScores[0] = SimpleScore.of(-1999);
-        acceptor.previous = SimpleScore.of(-2001);
-        acceptor.stepEnded(stepScope0);
+        stepScope0.getPhaseScope().getLastCompletedStepScope().setScore(SimpleScore.of(-2001));
+        acceptor.isAccepted(moveScope0);
         assertThat(acceptor.previousScores[0]).isEqualTo(SimpleScore.of(-2001));
 
-        // Current better than late score and previous better than late score
+        // Current better than previous and previous better than late score
         acceptor.phaseStarted(phaseScope);
+        acceptor.lateWorse = SimpleScore.of(-2005);
         moveScope0 = buildMoveScope(stepScope0, -1998);
         stepScope0.setScore(moveScope0.getScore());
         acceptor.previousScores[0] = SimpleScore.of(-2000);
-        acceptor.previous = SimpleScore.of(-1999);
-        acceptor.stepEnded(stepScope0);
+        stepScope0.getPhaseScope().getLastCompletedStepScope().setScore(SimpleScore.of(-1999));
+        acceptor.isAccepted(moveScope0);
         assertThat(acceptor.previousScores[0]).isEqualTo(SimpleScore.of(-1998));
 
-        // Current better than late score and previous worse than late score
+        // Current better than previous and previous worse than late score
         acceptor.phaseStarted(phaseScope);
+        acceptor.lateWorse = SimpleScore.of(-2005);
         moveScope0 = buildMoveScope(stepScope0, -1998);
         stepScope0.setScore(moveScope0.getScore());
         acceptor.previousScores[0] = SimpleScore.of(-1999);
-        acceptor.previous = SimpleScore.of(-2000);
-        acceptor.stepEnded(stepScope0);
+        stepScope0.getPhaseScope().getLastCompletedStepScope().setScore(SimpleScore.of(-2000));
+        acceptor.isAccepted(moveScope0);
         assertThat(acceptor.previousScores[0]).isEqualTo(SimpleScore.of(-1998));
 
-        // Current worse than late score and previous worse than late score and current
+        // Current worse than late score and previous worse than the current
         acceptor.phaseStarted(phaseScope);
+        acceptor.lateWorse = SimpleScore.of(-2005);
         moveScope0 = buildMoveScope(stepScope0, -2000);
         stepScope0.setScore(moveScope0.getScore());
         acceptor.previousScores[0] = SimpleScore.of(-1999);
-        acceptor.previous = SimpleScore.of(-2001);
-        acceptor.stepEnded(stepScope0);
+        stepScope0.getPhaseScope().getLastCompletedStepScope().setScore(SimpleScore.of(-2001));
+        acceptor.isAccepted(moveScope0);
         assertThat(acceptor.previousScores[0]).isEqualTo(SimpleScore.of(-2000));
 
         // No replacement
+        // Current better than late score and previous better than current
         acceptor.phaseStarted(phaseScope);
-        acceptor.previous = SimpleScore.of(-998);
-        moveScope0 = buildMoveScope(stepScope0, -999);
+        acceptor.lateWorse = SimpleScore.of(-2005);
+        moveScope0 = buildMoveScope(stepScope0, -2000);
         stepScope0.setScore(moveScope0.getScore());
-        assertThat(acceptor.isAccepted(moveScope0)).isTrue();
-        acceptor.stepEnded(stepScope0);
-        assertThat(acceptor.previousScores[0]).isEqualTo(SimpleScore.of(-1000));
+        acceptor.previousScores[0] = SimpleScore.of(-2001);
+        stepScope0.getPhaseScope().getLastCompletedStepScope().setScore(SimpleScore.of(-1999));
+        acceptor.isAccepted(moveScope0);
+        assertThat(acceptor.previousScores[0]).isEqualTo(SimpleScore.of(-2001));
 
+        // Current equal to previous and current better than late score
         acceptor.phaseStarted(phaseScope);
-        acceptor.previous = SimpleScore.of(-998);
-        moveScope0 = buildMoveScope(stepScope0, -998);
+        acceptor.lateWorse = SimpleScore.of(-2005);
+        moveScope0 = buildMoveScope(stepScope0, -2000);
         stepScope0.setScore(moveScope0.getScore());
-        assertThat(acceptor.isAccepted(moveScope0)).isTrue();
-        acceptor.stepEnded(stepScope0);
-        assertThat(acceptor.previousScores[0]).isEqualTo(SimpleScore.of(-1000));
+        acceptor.previousScores[0] = SimpleScore.of(-2001);
+        stepScope0.getPhaseScope().getLastCompletedStepScope().setScore(SimpleScore.of(-2000));
+        acceptor.isAccepted(moveScope0);
+        assertThat(acceptor.previousScores[0]).isEqualTo(SimpleScore.of(-2001));
 
         // Recompute lateBest and the number of occurrences
         acceptor.phaseStarted(phaseScope);
         moveScope0 = buildMoveScope(stepScope0, -2000);
         stepScope0.setScore(moveScope0.getScore());
-        acceptor.lateBest = SimpleScore.of(-2001);
-        acceptor.lateBestOccurrences = 1;
+        acceptor.lateWorse = SimpleScore.of(-2001);
+        acceptor.lateWorseOccurrences = 1;
         acceptor.previousScores[0] = SimpleScore.of(-2001);
         acceptor.previousScores[1] = SimpleScore.of(-2001);
         acceptor.previousScores[2] = SimpleScore.of(-2000);
-        acceptor.previous = SimpleScore.of(-2001);
-        acceptor.stepEnded(stepScope0);
+        stepScope0.getPhaseScope().getLastCompletedStepScope().setScore(SimpleScore.of(-2001));
+        acceptor.isAccepted(moveScope0);
         assertThat(acceptor.previousScores[0]).isEqualTo(SimpleScore.of(-2000));
-        assertThat(acceptor.lateBest).isEqualTo(SimpleScore.of(-2000));
-        assertThat(acceptor.lateBestOccurrences).isEqualTo(2);
+        assertThat(acceptor.lateWorse).isEqualTo(SimpleScore.of(-2001));
+        assertThat(acceptor.lateWorseOccurrences).isEqualTo(1);
     }
 
     @Test

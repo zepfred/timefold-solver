@@ -17,12 +17,10 @@ public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution
     protected Score<?>[] previousScores;
     protected int lateScoreIndex = -1;
 
-    // Previous accepted solution
-    protected Score<?> previous;
     // The best score in the late elements list
-    protected Score<?> lateBest;
-    // Number of occurrences of lateBest in the late elements
-    protected int lateBestOccurrences = -1;
+    protected Score<?> lateWorse;
+    // Number of occurrences of lateWorse in the late elements
+    protected int lateWorseOccurrences = -1;
 
     public void setLateAcceptanceSize(int lateAcceptanceSize) {
         this.lateAcceptanceSize = lateAcceptanceSize;
@@ -48,9 +46,8 @@ public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution
         var initialScore = phaseScope.getBestScore();
         Arrays.fill(previousScores, initialScore);
         lateScoreIndex = 0;
-        lateBestOccurrences = lateAcceptanceSize;
-        lateBest = phaseScope.getBestScore();
-        previous = phaseScope.getBestScore();
+        lateWorseOccurrences = lateAcceptanceSize;
+        lateWorse = phaseScope.getBestScore();
     }
 
     private void validate() {
@@ -62,12 +59,7 @@ public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution
 
     @Override
     public boolean isAccepted(LocalSearchMoveScope<Solution_> moveScope) {
-        if (diversificationEnabled) {
-            var accepted = isAcceptedDiversifiedStrategy(moveScope);
-            executeReplacementDiversificationStrategy(moveScope);
-            return accepted;
-        }
-        return isAcceptedDefaultStrategy(moveScope);
+        return diversificationEnabled ? executeDiversifiedStrategy(moveScope) : isAcceptedDefaultStrategy(moveScope);
     }
 
     private boolean isAcceptedDefaultStrategy(LocalSearchMoveScope<Solution_> moveScope) {
@@ -83,19 +75,6 @@ public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution
         return false;
     }
 
-    /**
-     * The acceptance strategy is based on the work:
-     * Diversified Late Acceptance Search by M. Namazi, C. Sanderson, M. A. H. Newton, M. M. A. Polash, and A. Sattar
-     */
-    private boolean isAcceptedDiversifiedStrategy(LocalSearchMoveScope<Solution_> moveScope) {
-        // The first condition allows new solutions
-        // to be accepted when the score is equal to lateBest and all late elements are set to lateBest.
-        // This is useful in the initial and final iterations.
-        var moveScore = moveScope.getScore();
-        var current = moveScope.getStepScope().getPhaseScope().getLastCompletedStepScope().getScore();
-        return compare(moveScore, current) == 0 || compare(moveScore, lateBest) > 0;
-    }
-
     @Override
     public void stepEnded(LocalSearchStepScope<Solution_> stepScope) {
         super.stepEnded(stepScope);
@@ -106,6 +85,9 @@ public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution
 
     @SuppressWarnings({ "rawtypes" })
     private void updateLateScore(Score score) {
+        if (compare(previousScores[lateScoreIndex], lateWorse) == 0) {
+            lateWorseOccurrences--;
+        }
         previousScores[lateScoreIndex] = score;
         lateScoreIndex = (lateScoreIndex + 1) % lateAcceptanceSize;
     }
@@ -114,42 +96,40 @@ public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution
      * The replacement strategy is based on the work:
      * Diversified Late Acceptance Search by M. Namazi, C. Sanderson, M. A. H. Newton, M. M. A. Polash, and A. Sattar
      */
-    private void executeReplacementDiversificationStrategy(LocalSearchMoveScope<Solution_> moveScope) {
+    private boolean executeDiversifiedStrategy(LocalSearchMoveScope<Solution_> moveScope) {
         var lateScore = previousScores[lateScoreIndex];
         var moveScore = moveScope.getScore();
         var current = moveScope.getStepScope().getPhaseScope().getLastCompletedStepScope().getScore();
-        if (isAcceptedDiversifiedStrategy(moveScope)) {
-            previous = current;
+        var previous = current;
+        var accept = compare(moveScore, current) == 0 || compare(moveScore, lateWorse) > 0;
+        if (accept) {
             current = moveScore;
         }
-        var lateCmp = compare(current, lateScore);
-        if (lateCmp < 0) {
-            // Improves the diversification to allow the next iterations to find a better solution
+        // Improves the diversification to allow the next iterations to find a better solution
+        var lateUnimprovedCmp = compare(current, lateScore) < 0;
+        // Improves the intensification,
+        // but avoids replacing values when the search falls into a plateau or local minima
+        var lateImprovedCmp = compare(current, lateScore) > 0 && compare(current, previous) > 0;
+        if (lateUnimprovedCmp || lateImprovedCmp) {
             updateLateScore(current);
-        } else if (lateCmp > 0 && compare(current, previous) > 0) {
-            // Improves the intensification
-            // but avoids replacing values when the search falls into a plateau or local minima
-            if (compare(lateScore, lateBest) == 0) {
-                lateBestOccurrences--;
-            }
-            updateLateScore(current);
-            if (lateBestOccurrences == 0) {
-                lateBest = previousScores[0];
+            if (lateWorseOccurrences == 0) {
+                lateWorse = previousScores[0];
                 // Recompute the new lateBest and the number of occurrences
                 for (var i = 1; i < lateAcceptanceSize; i++) {
-                    if (compare(previousScores[i], lateBest) > 0) {
-                        lateBest = previousScores[i];
+                    if (compare(previousScores[i], lateWorse) < 0) {
+                        lateWorse = previousScores[i];
                     }
                 }
                 for (var i = 0; i < lateAcceptanceSize; i++) {
-                    if (compare(previousScores[i], lateBest) == 0) {
-                        lateBestOccurrences++;
+                    if (compare(previousScores[i], lateWorse) == 0) {
+                        lateWorseOccurrences++;
                     }
                 }
             }
         } else {
             lateScoreIndex = (lateScoreIndex + 1) % lateAcceptanceSize;
         }
+        return accept;
     }
 
     @Override
@@ -157,9 +137,7 @@ public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution
         super.phaseEnded(phaseScope);
         previousScores = null;
         lateScoreIndex = -1;
-        lateBestOccurrences = -1;
-        previous = null;
-        lateBest = null;
+        lateWorseOccurrences = -1;
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
