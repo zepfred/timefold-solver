@@ -217,9 +217,11 @@ public class AcceptorFactory<Solution_> {
     }
 
     private Optional<LateAcceptanceAcceptor<Solution_>> buildLateAcceptanceAcceptor() {
+        var isDiversified = acceptorConfig.getAcceptorTypeList() != null
+                && acceptorConfig.getAcceptorTypeList().contains(AcceptorType.DIVERSIFIED_LATE_ACCEPTANCE);
         if ((acceptorConfig.getAcceptorTypeList() != null
                 && acceptorConfig.getAcceptorTypeList().contains(AcceptorType.LATE_ACCEPTANCE))
-                || acceptorConfig.getLateAcceptanceSize() != null) {
+                || (!isDiversified && acceptorConfig.getLateAcceptanceSize() != null)) {
             LateAcceptanceAcceptor<Solution_> acceptor = new LateAcceptanceAcceptor<>();
             acceptor.setLateAcceptanceSize(Objects.requireNonNullElse(acceptorConfig.getLateAcceptanceSize(), 400));
             return Optional.of(acceptor);
