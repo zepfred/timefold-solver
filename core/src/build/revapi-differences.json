@@ -80,17 +80,6 @@
           "old": "method Score_ ai.timefold.solver.core.api.score.constraint.ConstraintMatch<Score_ extends ai.timefold.solver.core.api.score.Score<Score_>>::getScore()",
           "new": "method Score_ ai.timefold.solver.core.api.score.constraint.ConstraintMatch<Score_ extends ai.timefold.solver.core.api.score.Score<Score_>>::getScore()",
           "justification": "False positive after addition of @NonNull annotation"
-        },
-        {
-          "ignore": true,
-          "code": "java.annotation.attributeValueChanged",
-          "old": "class ai.timefold.solver.core.config.localsearch.decider.acceptor.LocalSearchAcceptorConfig",
-          "new": "class ai.timefold.solver.core.config.localsearch.decider.acceptor.LocalSearchAcceptorConfig",
-          "annotationType": "jakarta.xml.bind.annotation.XmlType",
-          "attribute": "propOrder",
-          "oldValue": "{\"acceptorTypeList\", \"entityTabuSize\", \"entityTabuRatio\", \"fadingEntityTabuSize\", \"fadingEntityTabuRatio\", \"valueTabuSize\", \"valueTabuRatio\", \"fadingValueTabuSize\", \"fadingValueTabuRatio\", \"moveTabuSize\", \"fadingMoveTabuSize\", \"undoMoveTabuSize\", \"fadingUndoMoveTabuSize\", \"simulatedAnnealingStartingTemperature\", \"lateAcceptanceSize\", \"greatDelugeWaterLevelIncrementScore\", \"greatDelugeWaterLevelIncrementRatio\", \"stepCountingHillClimbingSize\", \"stepCountingHillClimbingType\"}",
-          "newValue": "{\"acceptorTypeList\", \"entityTabuSize\", \"entityTabuRatio\", \"fadingEntityTabuSize\", \"fadingEntityTabuRatio\", \"valueTabuSize\", \"valueTabuRatio\", \"fadingValueTabuSize\", \"fadingValueTabuRatio\", \"moveTabuSize\", \"fadingMoveTabuSize\", \"undoMoveTabuSize\", \"fadingUndoMoveTabuSize\", \"simulatedAnnealingStartingTemperature\", \"lateAcceptanceSize\", \"enableLateAcceptanceDiversification\", \"greatDelugeWaterLevelIncrementScore\", \"greatDelugeWaterLevelIncrementRatio\", \"stepCountingHillClimbingSize\", \"stepCountingHillClimbingType\"}",
-          "justification": "New LA property"
         }
       ]
     }

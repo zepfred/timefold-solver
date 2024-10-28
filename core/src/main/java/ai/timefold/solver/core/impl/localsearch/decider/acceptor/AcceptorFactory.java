@@ -12,6 +12,7 @@ import ai.timefold.solver.core.config.localsearch.decider.acceptor.stepcountingh
 import ai.timefold.solver.core.impl.heuristic.HeuristicConfigPolicy;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.greatdeluge.GreatDelugeAcceptor;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.hillclimbing.HillClimbingAcceptor;
+import ai.timefold.solver.core.impl.localsearch.decider.acceptor.lateacceptance.DiversifiedLateAcceptanceAcceptor;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.lateacceptance.LateAcceptanceAcceptor;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.simulatedannealing.SimulatedAnnealingAcceptor;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.stepcountinghillclimbing.StepCountingHillClimbingAcceptor;
@@ -45,6 +46,7 @@ public class AcceptorFactory<Solution_> {
                 buildMoveTabuAcceptor(configPolicy),
                 buildSimulatedAnnealingAcceptor(configPolicy),
                 buildLateAcceptanceAcceptor(),
+                buildDiversifiedLateAcceptanceAcceptor(),
                 buildGreatDelugeAcceptor(configPolicy))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
@@ -220,8 +222,16 @@ public class AcceptorFactory<Solution_> {
                 || acceptorConfig.getLateAcceptanceSize() != null) {
             LateAcceptanceAcceptor<Solution_> acceptor = new LateAcceptanceAcceptor<>();
             acceptor.setLateAcceptanceSize(Objects.requireNonNullElse(acceptorConfig.getLateAcceptanceSize(), 400));
-            acceptor.setDiversificationEnabled(
-                    Objects.requireNonNullElse(acceptorConfig.getEnableLateAcceptanceDiversification(), false));
+            return Optional.of(acceptor);
+        }
+        return Optional.empty();
+    }
+
+    private Optional<DiversifiedLateAcceptanceAcceptor<Solution_>> buildDiversifiedLateAcceptanceAcceptor() {
+        if (acceptorConfig.getAcceptorTypeList() != null
+                && acceptorConfig.getAcceptorTypeList().contains(AcceptorType.DIVERSIFIED_LATE_ACCEPTANCE)) {
+            DiversifiedLateAcceptanceAcceptor<Solution_> acceptor = new DiversifiedLateAcceptanceAcceptor<>();
+            acceptor.setLateAcceptanceSize(Objects.requireNonNullElse(acceptorConfig.getLateAcceptanceSize(), 5));
             return Optional.of(acceptor);
         }
         return Optional.empty();
