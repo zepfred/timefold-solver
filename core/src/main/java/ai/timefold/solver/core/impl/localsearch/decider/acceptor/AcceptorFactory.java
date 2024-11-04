@@ -70,11 +70,6 @@ public class AcceptorFactory<Solution_> {
                 && acceptorConfig.getAcceptorTypeList().contains(AcceptorType.HILL_CLIMBING)) {
             HillClimbingAcceptor<Solution_> acceptor = new HillClimbingAcceptor<>();
             return Optional.of(acceptor);
-        } else if (acceptorConfig.getAcceptorTypeList() != null
-                && acceptorConfig.getAcceptorTypeList().contains(AcceptorType.GLOBAL_HILL_CLIMBING)) {
-            HillClimbingAcceptor<Solution_> acceptor = new HillClimbingAcceptor<>();
-            acceptor.enableGlobalSearch();
-            return Optional.of(acceptor);
         }
         return Optional.empty();
     }

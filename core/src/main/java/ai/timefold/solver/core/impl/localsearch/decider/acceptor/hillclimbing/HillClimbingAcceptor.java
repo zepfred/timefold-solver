@@ -6,12 +6,6 @@ import ai.timefold.solver.core.impl.localsearch.scope.LocalSearchMoveScope;
 
 public class HillClimbingAcceptor<Solution_> extends AbstractAcceptor<Solution_> {
 
-    private boolean globalSearch = false;
-
-    public void enableGlobalSearch() {
-        this.globalSearch = true;
-    }
-
     // ************************************************************************
     // Worker methods
     // ************************************************************************
@@ -19,11 +13,8 @@ public class HillClimbingAcceptor<Solution_> extends AbstractAcceptor<Solution_>
     @Override
     public boolean isAccepted(LocalSearchMoveScope<Solution_> moveScope) {
         Score moveScore = moveScope.getScore();
-        if (globalSearch) {
-            return moveScore.compareTo(moveScope.getStepScope().getPhaseScope().getBestScore()) > 0;
-        } else {
-            return moveScore.compareTo(moveScope.getStepScope().getPhaseScope().getLastCompletedStepScope().getScore()) >= 0;
-        }
+        Score lastStepScore = moveScope.getStepScope().getPhaseScope().getLastCompletedStepScope().getScore();
+        return moveScore.compareTo(lastStepScore) >= 0;
     }
 
 }

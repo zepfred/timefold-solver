@@ -8,7 +8,6 @@ import ai.timefold.solver.core.config.heuristic.selector.common.SelectionOrder;
 import ai.timefold.solver.core.config.heuristic.selector.move.MoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.NearbyAutoConfigurationEnabled;
 import ai.timefold.solver.core.config.heuristic.selector.move.composite.UnionMoveSelectorConfig;
-import ai.timefold.solver.core.config.heuristic.selector.move.composite.VariableMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.generic.ChangeMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.generic.SwapMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.generic.chained.TailChainSwapMoveSelectorConfig;
@@ -21,6 +20,7 @@ import ai.timefold.solver.core.config.localsearch.decider.acceptor.AcceptorType;
 import ai.timefold.solver.core.config.localsearch.decider.acceptor.LocalSearchAcceptorConfig;
 import ai.timefold.solver.core.config.localsearch.decider.forager.LocalSearchForagerConfig;
 import ai.timefold.solver.core.config.localsearch.decider.forager.LocalSearchPickEarlyType;
+import ai.timefold.solver.core.config.solver.EnvironmentMode;
 import ai.timefold.solver.core.enterprise.TimefoldSolverEnterpriseService;
 import ai.timefold.solver.core.impl.domain.variable.descriptor.BasicVariableDescriptor;
 import ai.timefold.solver.core.impl.heuristic.HeuristicConfigPolicy;
@@ -28,7 +28,6 @@ import ai.timefold.solver.core.impl.heuristic.selector.move.AbstractMoveSelector
 import ai.timefold.solver.core.impl.heuristic.selector.move.MoveSelector;
 import ai.timefold.solver.core.impl.heuristic.selector.move.MoveSelectorFactory;
 import ai.timefold.solver.core.impl.heuristic.selector.move.composite.UnionMoveSelectorFactory;
-import ai.timefold.solver.core.impl.heuristic.selector.move.composite.VariableMoveSelectorFactory;
 import ai.timefold.solver.core.impl.localsearch.decider.LocalSearchDecider;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.Acceptor;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.AcceptorFactory;
@@ -48,16 +47,12 @@ public class DefaultLocalSearchPhaseFactory<Solution_> extends AbstractPhaseFact
     public LocalSearchPhase<Solution_> buildPhase(int phaseIndex, boolean triggerFirstInitializedSolutionEvent,
             HeuristicConfigPolicy<Solution_> solverConfigPolicy, BestSolutionRecaller<Solution_> bestSolutionRecaller,
             Termination<Solution_> solverTermination) {
-        var phaseConfigPolicy = solverConfigPolicy.createPhaseConfigPolicy();
-        var phaseTermination = buildPhaseTermination(phaseConfigPolicy, solverTermination);
-        var builder =
+        HeuristicConfigPolicy<Solution_> phaseConfigPolicy = solverConfigPolicy.createPhaseConfigPolicy();
+        Termination<Solution_> phaseTermination = buildPhaseTermination(phaseConfigPolicy, solverTermination);
+        DefaultLocalSearchPhase.Builder<Solution_> builder =
                 new DefaultLocalSearchPhase.Builder<>(phaseIndex, solverConfigPolicy.getLogIndentation(), phaseTermination,
-                        buildDecider(phaseConfigPolicy, phaseTermination),
-                        phaseConfig.getStepRefinementConfig() != null
-                                || (phaseConfig.getStepRefinementConfig() != null
-                                        && phaseConfig.getStepRefinementConfig().getMaxIterationsMultiplier() != null
-                                        && phaseConfig.getStepRefinementConfig().getMaxIterationsMultiplier() > 0));
-        var environmentMode = phaseConfigPolicy.getEnvironmentMode();
+                        buildDecider(phaseConfigPolicy, phaseTermination));
+        EnvironmentMode environmentMode = phaseConfigPolicy.getEnvironmentMode();
         if (environmentMode.isNonIntrusiveFullAsserted()) {
             builder.setAssertStepScoreFromScratch(true);
         }
@@ -70,12 +65,9 @@ public class DefaultLocalSearchPhaseFactory<Solution_> extends AbstractPhaseFact
 
     private LocalSearchDecider<Solution_> buildDecider(HeuristicConfigPolicy<Solution_> configPolicy,
             Termination<Solution_> termination) {
-        var moveSelector = buildMoveSelector(configPolicy);
-        var refinementMoveSelector = buildRefinementMoveSelector(configPolicy);
-        var acceptor = buildAcceptor(configPolicy);
-        var refinementAcceptor = buildRefinementAcceptor(configPolicy);
-        var forager = buildForager(configPolicy);
-        var refinementForager = buildRefinementForager();
+        MoveSelector<Solution_> moveSelector = buildMoveSelector(configPolicy);
+        Acceptor<Solution_> acceptor = buildAcceptor(configPolicy);
+        LocalSearchForager<Solution_> forager = buildForager(configPolicy);
         if (moveSelector.isNeverEnding() && !forager.supportsNeverEndingMoveSelector()) {
             throw new IllegalStateException("The moveSelector (" + moveSelector
                     + ") has neverEnding (" + moveSelector.isNeverEnding()
@@ -83,12 +75,11 @@ public class DefaultLocalSearchPhaseFactory<Solution_> extends AbstractPhaseFact
                     + ") does not support it.\n"
                     + "Maybe configure the <forager> with an <acceptedCountLimit>.");
         }
-        var moveThreadCount = configPolicy.getMoveThreadCount();
-        var environmentMode = configPolicy.getEnvironmentMode();
+        Integer moveThreadCount = configPolicy.getMoveThreadCount();
+        EnvironmentMode environmentMode = configPolicy.getEnvironmentMode();
         LocalSearchDecider<Solution_> decider;
         if (moveThreadCount == null) {
-            decider = new LocalSearchDecider<>(configPolicy.getLogIndentation(), termination, moveSelector,
-                    refinementMoveSelector, acceptor, refinementAcceptor, forager, refinementForager);
+            decider = new LocalSearchDecider<>(configPolicy.getLogIndentation(), termination, moveSelector, acceptor, forager);
         } else {
             decider = TimefoldSolverEnterpriseService.loadOrFail(TimefoldSolverEnterpriseService.Feature.MULTITHREADED_SOLVING)
                     .buildLocalSearch(moveThreadCount, termination, moveSelector, acceptor, forager, environmentMode,
@@ -142,12 +133,6 @@ public class DefaultLocalSearchPhaseFactory<Solution_> extends AbstractPhaseFact
                 .buildAcceptor(configPolicy);
     }
 
-    protected Acceptor<Solution_> buildRefinementAcceptor(HeuristicConfigPolicy<Solution_> configPolicy) {
-        var acceptorConfig_ = new LocalSearchAcceptorConfig();
-        acceptorConfig_.setAcceptorTypeList(Collections.singletonList(AcceptorType.GLOBAL_HILL_CLIMBING));
-        return AcceptorFactory.<Solution_> create(acceptorConfig_).buildAcceptor(configPolicy);
-    }
-
     protected LocalSearchForager<Solution_> buildForager(HeuristicConfigPolicy<Solution_> configPolicy) {
         LocalSearchForagerConfig foragerConfig_;
         if (phaseConfig.getForagerConfig() != null) {
@@ -186,15 +171,9 @@ public class DefaultLocalSearchPhaseFactory<Solution_> extends AbstractPhaseFact
         return LocalSearchForagerFactory.<Solution_> create(foragerConfig_).buildForager();
     }
 
-    protected LocalSearchForager<Solution_> buildRefinementForager() {
-        var foragerConfig_ = new LocalSearchForagerConfig();
-        foragerConfig_.setAcceptedCountLimit(1);
-        return LocalSearchForagerFactory.<Solution_> create(foragerConfig_).buildForager();
-    }
-
     protected MoveSelector<Solution_> buildMoveSelector(HeuristicConfigPolicy<Solution_> configPolicy) {
         MoveSelector<Solution_> moveSelector;
-        var defaultCacheType = SelectionCacheType.JUST_IN_TIME;
+        SelectionCacheType defaultCacheType = SelectionCacheType.JUST_IN_TIME;
         SelectionOrder defaultSelectionOrder;
         if (phaseConfig.getLocalSearchType() == LocalSearchType.VARIABLE_NEIGHBORHOOD_DESCENT) {
             defaultSelectionOrder = SelectionOrder.ORIGINAL;
@@ -214,7 +193,7 @@ public class DefaultLocalSearchPhaseFactory<Solution_> extends AbstractPhaseFact
                     && !UnionMoveSelectorConfig.class.isAssignableFrom(phaseConfig.getMoveSelectorConfig().getClass())) {
                 // The move selector config is not a composite selector, but it accepts Nearby autoconfiguration.
                 // We create a new UnionMoveSelectorConfig with the existing selector to enable Nearby autoconfiguration.
-                var moveSelectorCopy = (MoveSelectorConfig<?>) phaseConfig.getMoveSelectorConfig().copyConfig();
+                MoveSelectorConfig moveSelectorCopy = (MoveSelectorConfig) phaseConfig.getMoveSelectorConfig().copyConfig();
                 UnionMoveSelectorConfig updatedConfig = new UnionMoveSelectorConfig()
                         .withMoveSelectors(moveSelectorCopy);
                 moveSelectorFactory = MoveSelectorFactory.create(updatedConfig);
@@ -222,17 +201,6 @@ public class DefaultLocalSearchPhaseFactory<Solution_> extends AbstractPhaseFact
             moveSelector = moveSelectorFactory.buildMoveSelector(configPolicy, defaultCacheType, defaultSelectionOrder, true);
         }
         return moveSelector;
-    }
-
-    protected MoveSelector<Solution_> buildRefinementMoveSelector(HeuristicConfigPolicy<Solution_> configPolicy) {
-        var defaultCacheType = SelectionCacheType.JUST_IN_TIME;
-        var defaultSelectionOrder = SelectionOrder.RANDOM;
-        var defaultConfig = determineDefaultMoveSelectorConfig(configPolicy);
-        var refinementConfig = new VariableMoveSelectorConfig();
-        refinementConfig.setUnionMoveSelectorConfig(defaultConfig);
-        refinementConfig.setRefinementConfig(phaseConfig.getStepRefinementConfig());
-        return new VariableMoveSelectorFactory<Solution_>(refinementConfig)
-                .buildMoveSelector(configPolicy, defaultCacheType, defaultSelectionOrder, true);
     }
 
     private UnionMoveSelectorConfig determineDefaultMoveSelectorConfig(HeuristicConfigPolicy<Solution_> configPolicy) {

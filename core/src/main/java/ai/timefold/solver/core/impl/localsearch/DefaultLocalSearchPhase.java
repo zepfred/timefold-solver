@@ -30,7 +30,6 @@ import io.micrometer.core.instrument.Tags;
 public class DefaultLocalSearchPhase<Solution_> extends AbstractPhase<Solution_> implements LocalSearchPhase<Solution_>,
         LocalSearchPhaseLifecycleListener<Solution_> {
 
-    protected final boolean enableStepRefinement;
     protected final LocalSearchDecider<Solution_> decider;
     protected final AtomicLong acceptedMoveCountPerStep = new AtomicLong(0);
     protected final AtomicLong selectedMoveCountPerStep = new AtomicLong(0);
@@ -42,7 +41,6 @@ public class DefaultLocalSearchPhase<Solution_> extends AbstractPhase<Solution_>
     private DefaultLocalSearchPhase(Builder<Solution_> builder) {
         super(builder);
         decider = builder.decider;
-        enableStepRefinement = builder.enableStepRefinement;
     }
 
     @Override
@@ -92,30 +90,11 @@ public class DefaultLocalSearchPhase<Solution_> extends AbstractPhase<Solution_>
                 // Although stepStarted has been called, stepEnded is not called for this step
                 break;
             }
-            var bestScoreImproved = stepScope.getScore().compareTo(phaseScope.getBestScore()) > 0;
             doStep(stepScope);
             stepEnded(stepScope);
             phaseScope.setLastCompletedStepScope(stepScope);
-            if (enableStepRefinement && bestScoreImproved) {
-                refine(phaseScope);
-            }
         }
         phaseEnded(phaseScope);
-    }
-
-    public void refine(LocalSearchPhaseScope<Solution_> phaseScope) {
-        do {
-            LocalSearchStepScope<Solution_> refinementStepScope = new LocalSearchStepScope<>(phaseScope);
-            refinementStepScope.setTimeGradient(phaseTermination.calculatePhaseTimeGradient(phaseScope));
-            refinementStepStarted(refinementStepScope);
-            decider.refine(refinementStepScope);
-            if (refinementStepScope.getStep() == null) {
-                break;
-            }
-            doStep(refinementStepScope);
-            refinementStepEnded(refinementStepScope);
-            phaseScope.setLastCompletedStepScope(refinementStepScope);
-        } while (!phaseTermination.isPhaseTerminated(phaseScope) && !decider.isRefinementTerminated());
     }
 
     protected void doStep(LocalSearchStepScope<Solution_> stepScope) {
@@ -145,10 +124,6 @@ public class DefaultLocalSearchPhase<Solution_> extends AbstractPhase<Solution_>
         decider.stepStarted(stepScope);
     }
 
-    private void refinementStepStarted(LocalSearchStepScope<Solution_> stepScope) {
-        decider.refinementStepStarted(stepScope);
-    }
-
     @Override
     public void stepEnded(LocalSearchStepScope<Solution_> stepScope) {
         super.stepEnded(stepScope);
@@ -157,24 +132,6 @@ public class DefaultLocalSearchPhase<Solution_> extends AbstractPhase<Solution_>
         LocalSearchPhaseScope<Solution_> phaseScope = stepScope.getPhaseScope();
         if (logger.isDebugEnabled()) {
             logger.debug("{}    LS step ({}), time spent ({}), score ({}), {} best score ({})," +
-                    " accepted/selected move count ({}/{}), picked move ({}).",
-                    logIndentation,
-                    stepScope.getStepIndex(),
-                    phaseScope.calculateSolverTimeMillisSpentUpToNow(),
-                    stepScope.getScore(),
-                    (stepScope.getBestScoreImproved() ? "new" : "   "), phaseScope.getBestScore(),
-                    stepScope.getAcceptedMoveCount(),
-                    stepScope.getSelectedMoveCount(),
-                    stepScope.getStepString());
-        }
-    }
-
-    private void refinementStepEnded(LocalSearchStepScope<Solution_> stepScope) {
-        decider.refinementStepEnded(stepScope);
-        collectMetrics(stepScope);
-        LocalSearchPhaseScope<Solution_> phaseScope = stepScope.getPhaseScope();
-        if (logger.isDebugEnabled()) {
-            logger.debug("{}    Refinement step ({}), time spent ({}), score ({}), {} best score ({})," +
                     " accepted/selected move count ({}/{}), picked move ({}).",
                     logIndentation,
                     stepScope.getStepIndex(),
@@ -263,13 +220,10 @@ public class DefaultLocalSearchPhase<Solution_> extends AbstractPhase<Solution_>
 
         private final LocalSearchDecider<Solution_> decider;
 
-        private final boolean enableStepRefinement;
-
         public Builder(int phaseIndex, String logIndentation, Termination<Solution_> phaseTermination,
-                LocalSearchDecider<Solution_> decider, boolean enableStepRefinement) {
+                LocalSearchDecider<Solution_> decider) {
             super(phaseIndex, logIndentation, phaseTermination);
             this.decider = decider;
-            this.enableStepRefinement = enableStepRefinement;
         }
 
         @Override

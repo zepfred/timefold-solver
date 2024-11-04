@@ -26,13 +26,11 @@ import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.SubLi
 import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.SubListSwapMoveSelectorConfig;
 import ai.timefold.solver.core.config.localsearch.decider.acceptor.LocalSearchAcceptorConfig;
 import ai.timefold.solver.core.config.localsearch.decider.forager.LocalSearchForagerConfig;
-import ai.timefold.solver.core.config.localsearch.decider.refinement.LocalSearchRefinementConfig;
 import ai.timefold.solver.core.config.phase.PhaseConfig;
 import ai.timefold.solver.core.config.util.ConfigUtils;
 
 @XmlType(propOrder = {
         "localSearchType",
-        "stepRefinementConfig",
         "moveSelectorConfig",
         "acceptorConfig",
         "foragerConfig"
@@ -46,8 +44,6 @@ public class LocalSearchPhaseConfig extends PhaseConfig<LocalSearchPhaseConfig> 
 
     protected LocalSearchType localSearchType = null;
 
-    @XmlElement(name = "stepRefinement")
-    private LocalSearchRefinementConfig stepRefinementConfig = null;
     @XmlElements({
             @XmlElement(name = CartesianProductMoveSelectorConfig.XML_ELEMENT_NAME,
                     type = CartesianProductMoveSelectorConfig.class),
@@ -92,14 +88,6 @@ public class LocalSearchPhaseConfig extends PhaseConfig<LocalSearchPhaseConfig> 
         this.localSearchType = localSearchType;
     }
 
-    public LocalSearchRefinementConfig getStepRefinementConfig() {
-        return stepRefinementConfig;
-    }
-
-    public void setStepRefinementConfig(LocalSearchRefinementConfig stepRefinementConfig) {
-        this.stepRefinementConfig = stepRefinementConfig;
-    }
-
     public MoveSelectorConfig getMoveSelectorConfig() {
         return moveSelectorConfig;
     }
@@ -133,11 +121,6 @@ public class LocalSearchPhaseConfig extends PhaseConfig<LocalSearchPhaseConfig> 
         return this;
     }
 
-    public LocalSearchPhaseConfig withStepRefinementConfig(LocalSearchRefinementConfig stepRefinementConfig) {
-        this.stepRefinementConfig = stepRefinementConfig;
-        return this;
-    }
-
     public LocalSearchPhaseConfig withMoveSelectorConfig(MoveSelectorConfig moveSelectorConfig) {
         this.moveSelectorConfig = moveSelectorConfig;
         return this;
@@ -158,7 +141,6 @@ public class LocalSearchPhaseConfig extends PhaseConfig<LocalSearchPhaseConfig> 
         super.inherit(inheritedConfig);
         localSearchType = ConfigUtils.inheritOverwritableProperty(localSearchType,
                 inheritedConfig.getLocalSearchType());
-        stepRefinementConfig = ConfigUtils.inheritConfig(stepRefinementConfig, inheritedConfig.getStepRefinementConfig());
         setMoveSelectorConfig(ConfigUtils.inheritOverwritableProperty(
                 getMoveSelectorConfig(), inheritedConfig.getMoveSelectorConfig()));
         acceptorConfig = ConfigUtils.inheritConfig(acceptorConfig, inheritedConfig.getAcceptorConfig());
@@ -175,9 +157,6 @@ public class LocalSearchPhaseConfig extends PhaseConfig<LocalSearchPhaseConfig> 
     public void visitReferencedClasses(Consumer<Class<?>> classVisitor) {
         if (getTerminationConfig() != null) {
             getTerminationConfig().visitReferencedClasses(classVisitor);
-        }
-        if (stepRefinementConfig != null) {
-            stepRefinementConfig.visitReferencedClasses(classVisitor);
         }
         if (moveSelectorConfig != null) {
             moveSelectorConfig.visitReferencedClasses(classVisitor);

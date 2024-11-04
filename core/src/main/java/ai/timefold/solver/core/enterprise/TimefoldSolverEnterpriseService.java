@@ -99,18 +99,9 @@ public interface TimefoldSolverEnterpriseService {
     <Solution_> ConstructionHeuristicDecider<Solution_> buildConstructionHeuristic(Termination<Solution_> termination,
             ConstructionHeuristicForager<Solution_> forager, HeuristicConfigPolicy<Solution_> configPolicy);
 
-    default <Solution_> LocalSearchDecider<Solution_> buildLocalSearch(int moveThreadCount, Termination<Solution_> termination,
-            MoveSelector<Solution_> moveSelector, Acceptor<Solution_> acceptor, LocalSearchForager<Solution_> forager,
-            EnvironmentMode environmentMode, HeuristicConfigPolicy<Solution_> configPolicy) {
-        return buildLocalSearch(moveThreadCount, termination, moveSelector, null, acceptor, null, forager, null,
-                environmentMode, configPolicy);
-    }
-
     <Solution_> LocalSearchDecider<Solution_> buildLocalSearch(int moveThreadCount, Termination<Solution_> termination,
-            MoveSelector<Solution_> moveSelector, MoveSelector<Solution_> refinementMoveSelector, Acceptor<Solution_> acceptor,
-            Acceptor<Solution_> refinementAcceptor, LocalSearchForager<Solution_> forager,
-            LocalSearchForager<Solution_> refinementForager, EnvironmentMode environmentMode,
-            HeuristicConfigPolicy<Solution_> configPolicy);
+            MoveSelector<Solution_> moveSelector, Acceptor<Solution_> acceptor, LocalSearchForager<Solution_> forager,
+            EnvironmentMode environmentMode, HeuristicConfigPolicy<Solution_> configPolicy);
 
     <Solution_> PartitionedSearchPhase<Solution_> buildPartitionedSearch(int phaseIndex,
             PartitionedSearchPhaseConfig phaseConfig, HeuristicConfigPolicy<Solution_> solverConfigPolicy,

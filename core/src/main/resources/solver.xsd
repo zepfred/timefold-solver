@@ -1321,8 +1321,6 @@
                     
           <xs:element minOccurs="0" name="localSearchType" type="tns:localSearchType"/>
                     
-          <xs:element minOccurs="0" name="stepRefinement" type="tns:localSearchRefinementConfig"/>
-                    
           <xs:choice minOccurs="0">
                         
             <xs:element name="cartesianProductMoveSelector" type="tns:cartesianProductMoveSelectorConfig"/>
@@ -1364,24 +1362,6 @@
           <xs:element minOccurs="0" name="acceptor" type="tns:localSearchAcceptorConfig"/>
                     
           <xs:element minOccurs="0" name="forager" type="tns:localSearchForagerConfig"/>
-                  
-        </xs:sequence>
-              
-      </xs:extension>
-          
-    </xs:complexContent>
-      
-  </xs:complexType>
-    
-  <xs:complexType name="localSearchRefinementConfig">
-        
-    <xs:complexContent>
-            
-      <xs:extension base="tns:abstractConfig">
-                
-        <xs:sequence>
-                    
-          <xs:element minOccurs="0" name="maxIterationsMultiplier" type="xs:int"/>
                   
         </xs:sequence>
               
@@ -1872,8 +1852,6 @@
   <xs:simpleType name="acceptorType">
         
     <xs:restriction base="xs:string">
-            
-      <xs:enumeration value="GLOBAL_HILL_CLIMBING"/>
             
       <xs:enumeration value="HILL_CLIMBING"/>
             
