@@ -80,6 +80,17 @@
           "old": "method Score_ ai.timefold.solver.core.api.score.constraint.ConstraintMatch<Score_ extends ai.timefold.solver.core.api.score.Score<Score_>>::getScore()",
           "new": "method Score_ ai.timefold.solver.core.api.score.constraint.ConstraintMatch<Score_ extends ai.timefold.solver.core.api.score.Score<Score_>>::getScore()",
           "justification": "False positive after addition of @NonNull annotation"
+        },
+        {
+          "ignore": true,
+          "code": "java.annotation.attributeValueChanged",
+          "old": "class ai.timefold.solver.core.config.localsearch.LocalSearchPhaseConfig",
+          "new": "class ai.timefold.solver.core.config.localsearch.LocalSearchPhaseConfig",
+          "annotationType": "jakarta.xml.bind.annotation.XmlType",
+          "attribute": "propOrder",
+          "oldValue": "{\"localSearchType\", \"moveSelectorConfig\", \"acceptorConfig\", \"foragerConfig\"}",
+          "newValue": "{\"localSearchType\", \"stepRefinementConfig\", \"moveSelectorConfig\", \"acceptorConfig\", \"foragerConfig\"}",
+          "justification": "Local search with refinement configuration"
         }
       ]
     }

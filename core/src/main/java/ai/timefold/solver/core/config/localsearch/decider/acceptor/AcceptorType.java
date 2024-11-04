@@ -4,6 +4,7 @@ import jakarta.xml.bind.annotation.XmlEnum;
 
 @XmlEnum
 public enum AcceptorType {
+    GLOBAL_HILL_CLIMBING,
     HILL_CLIMBING,
     ENTITY_TABU,
     VALUE_TABU,

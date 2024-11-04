@@ -5,6 +5,7 @@ import ai.timefold.solver.core.config.heuristic.selector.common.SelectionOrder;
 import ai.timefold.solver.core.config.heuristic.selector.move.MoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.composite.CartesianProductMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.composite.UnionMoveSelectorConfig;
+import ai.timefold.solver.core.config.heuristic.selector.move.composite.VariableMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.factory.MoveIteratorFactoryConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.factory.MoveListFactoryConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.generic.ChangeMoveSelectorConfig;
@@ -25,6 +26,7 @@ import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.kopt.
 import ai.timefold.solver.core.impl.heuristic.HeuristicConfigPolicy;
 import ai.timefold.solver.core.impl.heuristic.selector.move.composite.CartesianProductMoveSelectorFactory;
 import ai.timefold.solver.core.impl.heuristic.selector.move.composite.UnionMoveSelectorFactory;
+import ai.timefold.solver.core.impl.heuristic.selector.move.composite.VariableMoveSelectorFactory;
 import ai.timefold.solver.core.impl.heuristic.selector.move.factory.MoveIteratorFactoryFactory;
 import ai.timefold.solver.core.impl.heuristic.selector.move.factory.MoveListFactoryFactory;
 import ai.timefold.solver.core.impl.heuristic.selector.move.generic.ChangeMoveSelectorFactory;
@@ -84,6 +86,8 @@ public interface MoveSelectorFactory<Solution_> {
             return new UnionMoveSelectorFactory<>(unionMoveSelectorConfig);
         } else if (moveSelectorConfig instanceof CartesianProductMoveSelectorConfig cartesianProductMoveSelectorConfig) {
             return new CartesianProductMoveSelectorFactory<>(cartesianProductMoveSelectorConfig);
+        } else if (moveSelectorConfig instanceof VariableMoveSelectorConfig variableMoveSelectorConfig) {
+            return new VariableMoveSelectorFactory<>(variableMoveSelectorConfig);
         } else {
             throw new IllegalArgumentException(String.format("Unknown %s type: (%s).",
                     MoveSelectorConfig.class.getSimpleName(), moveSelectorConfig.getClass().getName()));
