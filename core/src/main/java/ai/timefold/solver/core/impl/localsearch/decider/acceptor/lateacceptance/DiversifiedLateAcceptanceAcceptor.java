@@ -44,14 +44,14 @@ public class DiversifiedLateAcceptanceAcceptor<Solution_> extends LateAcceptance
             updateLateScore(current);
             if (lateWorseOccurrences == 0) {
                 lateWorse = previousScores[0];
+                lateWorseOccurrences = 1;
                 // Recompute the new lateBest and the number of occurrences
                 for (var i = 1; i < lateAcceptanceSize; i++) {
-                    if (compare(previousScores[i], lateWorse) < 0) {
+                    var worseCmp = compare(previousScores[i], lateWorse);
+                    if (worseCmp < 0) {
                         lateWorse = previousScores[i];
-                    }
-                }
-                for (var i = 0; i < lateAcceptanceSize; i++) {
-                    if (compare(previousScores[i], lateWorse) == 0) {
+                        lateWorseOccurrences = 1;
+                    } else if (worseCmp == 0) {
                         lateWorseOccurrences++;
                     }
                 }
