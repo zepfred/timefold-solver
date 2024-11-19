@@ -29,6 +29,9 @@ import org.jspecify.annotations.Nullable;
         "fadingUndoMoveTabuSize",
         "simulatedAnnealingStartingTemperature",
         "lateAcceptanceSize",
+        "reconfigurationStopFlatLineDetectionRatio",
+        "reconfigurationNoStopFlatLineDetectionRatio",
+        "reconfigurationMinimalExecutionTimeSeconds",
         "greatDelugeWaterLevelIncrementScore",
         "greatDelugeWaterLevelIncrementRatio",
         "stepCountingHillClimbingSize",
@@ -63,6 +66,10 @@ public class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchAccepto
     protected String simulatedAnnealingStartingTemperature = null;
 
     protected Integer lateAcceptanceSize = null;
+
+    protected Double reconfigurationStopFlatLineDetectionRatio = null;
+    protected Double reconfigurationNoStopFlatLineDetectionRatio = null;
+    protected Long reconfigurationMinimalExecutionTimeSeconds = null;
 
     protected String greatDelugeWaterLevelIncrementScore = null;
     protected Double greatDelugeWaterLevelIncrementRatio = null;
@@ -222,6 +229,30 @@ public class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchAccepto
         this.lateAcceptanceSize = lateAcceptanceSize;
     }
 
+    public @Nullable Double getReconfigurationStopFlatLineDetectionRatio() {
+        return reconfigurationStopFlatLineDetectionRatio;
+    }
+
+    public void setReconfigurationStopFlatLineDetectionRatio(@Nullable Double reconfigurationStopFlatLineDetectionRatio) {
+        this.reconfigurationStopFlatLineDetectionRatio = reconfigurationStopFlatLineDetectionRatio;
+    }
+
+    public @Nullable Double getReconfigurationNoStopFlatLineDetectionRatio() {
+        return reconfigurationNoStopFlatLineDetectionRatio;
+    }
+
+    public void setReconfigurationNoStopFlatLineDetectionRatio(@Nullable Double reconfigurationNoStopFlatLineDetectionRatio) {
+        this.reconfigurationNoStopFlatLineDetectionRatio = reconfigurationNoStopFlatLineDetectionRatio;
+    }
+
+    public @Nullable Long getReconfigurationMinimalExecutionTimeSeconds() {
+        return reconfigurationMinimalExecutionTimeSeconds;
+    }
+
+    public void setReconfigurationMinimalExecutionTimeSeconds(@Nullable Long reconfigurationMinimalExecutionTimeSeconds) {
+        this.reconfigurationMinimalExecutionTimeSeconds = reconfigurationMinimalExecutionTimeSeconds;
+    }
+
     public @Nullable String getGreatDelugeWaterLevelIncrementScore() {
         return greatDelugeWaterLevelIncrementScore;
     }
@@ -342,6 +373,24 @@ public class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchAccepto
         return this;
     }
 
+    public @NonNull LocalSearchAcceptorConfig
+            withReconfigurationStopFlatLineDetectionRatio(@NonNull Double reconfigurationStopFlatLineDetectionRatio) {
+        this.reconfigurationStopFlatLineDetectionRatio = reconfigurationStopFlatLineDetectionRatio;
+        return this;
+    }
+
+    public @NonNull LocalSearchAcceptorConfig
+            withReconfigurationNoStopFlatLineDetectionRatio(@NonNull Double reconfigurationNoStopFlatLineDetectionRatio) {
+        this.reconfigurationNoStopFlatLineDetectionRatio = reconfigurationNoStopFlatLineDetectionRatio;
+        return this;
+    }
+
+    public @NonNull LocalSearchAcceptorConfig
+            withReconfigurationMinimalExecutionTimeSeconds(@NonNull Long reconfigurationMinimalExecutionTimeSeconds) {
+        this.reconfigurationMinimalExecutionTimeSeconds = reconfigurationMinimalExecutionTimeSeconds;
+        return this;
+    }
+
     public @NonNull LocalSearchAcceptorConfig withStepCountingHillClimbingSize(@NonNull Integer stepCountingHillClimbingSize) {
         this.stepCountingHillClimbingSize = stepCountingHillClimbingSize;
         return this;
@@ -390,6 +439,15 @@ public class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchAccepto
                 simulatedAnnealingStartingTemperature, inheritedConfig.getSimulatedAnnealingStartingTemperature());
         lateAcceptanceSize = ConfigUtils.inheritOverwritableProperty(lateAcceptanceSize,
                 inheritedConfig.getLateAcceptanceSize());
+        reconfigurationStopFlatLineDetectionRatio =
+                ConfigUtils.inheritOverwritableProperty(reconfigurationStopFlatLineDetectionRatio,
+                        inheritedConfig.getReconfigurationStopFlatLineDetectionRatio());
+        reconfigurationNoStopFlatLineDetectionRatio =
+                ConfigUtils.inheritOverwritableProperty(reconfigurationNoStopFlatLineDetectionRatio,
+                        inheritedConfig.getReconfigurationNoStopFlatLineDetectionRatio());
+        reconfigurationMinimalExecutionTimeSeconds =
+                ConfigUtils.inheritOverwritableProperty(reconfigurationMinimalExecutionTimeSeconds,
+                        inheritedConfig.getReconfigurationMinimalExecutionTimeSeconds());
         greatDelugeWaterLevelIncrementScore = ConfigUtils.inheritOverwritableProperty(greatDelugeWaterLevelIncrementScore,
                 inheritedConfig.getGreatDelugeWaterLevelIncrementScore());
         greatDelugeWaterLevelIncrementRatio = ConfigUtils.inheritOverwritableProperty(greatDelugeWaterLevelIncrementRatio,

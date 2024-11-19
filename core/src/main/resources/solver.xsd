@@ -1415,6 +1415,14 @@
                     
           <xs:element minOccurs="0" name="lateAcceptanceSize" type="xs:int"/>
                     
+          <xs:element minOccurs="0" name="reconfigurationWorseningMovesCount" type="xs:int"/>
+                    
+          <xs:element minOccurs="0" name="reconfigurationStopFlatLineDetectionRatio" type="xs:double"/>
+                    
+          <xs:element minOccurs="0" name="reconfigurationNoStopFlatLineDetectionRatio" type="xs:double"/>
+                    
+          <xs:element minOccurs="0" name="reconfigurationMinimalExecutionTimeSeconds" type="xs:long"/>
+                    
           <xs:element minOccurs="0" name="greatDelugeWaterLevelIncrementScore" type="xs:string"/>
                     
           <xs:element minOccurs="0" name="greatDelugeWaterLevelIncrementRatio" type="xs:double"/>
@@ -1872,6 +1880,8 @@
       <xs:enumeration value="SIMULATED_ANNEALING"/>
             
       <xs:enumeration value="LATE_ACCEPTANCE"/>
+            
+      <xs:enumeration value="SMART_LATE_ACCEPTANCE"/>
             
       <xs:enumeration value="GREAT_DELUGE"/>
             

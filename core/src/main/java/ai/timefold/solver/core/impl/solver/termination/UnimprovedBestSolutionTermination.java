@@ -91,7 +91,7 @@ public final class UnimprovedBestSolutionTermination<Solution_> extends Abstract
     @SuppressWarnings("unchecked")
     public void phaseStarted(AbstractPhaseScope<Solution_> phaseScope) {
         super.phaseStarted(phaseScope);
-        initialCurvePointMillis = clock.millis();
+        resetStartTime();
         lastImprovementMillis = 0L;
         currentBest = phaseScope.getBestScore();
         previousBest = currentBest;
@@ -193,6 +193,10 @@ public final class UnimprovedBestSolutionTermination<Solution_> extends Abstract
     // ************************************************************************
     // Other methods
     // ************************************************************************
+
+    public void resetStartTime() {
+        this.initialCurvePointMillis = clock.millis();
+    }
 
     @Override
     public UnimprovedBestSolutionTermination<Solution_> createChildThreadTermination(SolverScope<Solution_> solverScope,
