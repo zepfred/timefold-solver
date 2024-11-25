@@ -13,6 +13,7 @@ import ai.timefold.solver.core.impl.heuristic.HeuristicConfigPolicy;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.greatdeluge.GreatDelugeAcceptor;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.hillclimbing.HillClimbingAcceptor;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.lateacceptance.LateAcceptanceAcceptor;
+import ai.timefold.solver.core.impl.localsearch.decider.acceptor.lateacceptance.SmartLateAcceptanceAcceptor;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.simulatedannealing.SimulatedAnnealingAcceptor;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.stepcountinghillclimbing.StepCountingHillClimbingAcceptor;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.tabu.EntityTabuAcceptor;
@@ -45,6 +46,7 @@ public class AcceptorFactory<Solution_> {
                 buildMoveTabuAcceptor(configPolicy),
                 buildSimulatedAnnealingAcceptor(configPolicy),
                 buildLateAcceptanceAcceptor(),
+                buildSmartLateAcceptanceAcceptor(),
                 buildGreatDelugeAcceptor(configPolicy))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
@@ -214,9 +216,31 @@ public class AcceptorFactory<Solution_> {
 
     private Optional<LateAcceptanceAcceptor<Solution_>> buildLateAcceptanceAcceptor() {
         if (acceptorTypeListsContainsAcceptorType(AcceptorType.LATE_ACCEPTANCE)
-                || acceptorConfig.getLateAcceptanceSize() != null) {
+                || (acceptorConfig.getLateAcceptanceSize() != null
+                        && acceptorConfig.getLateAcceptanceStopFlatLineDetectionRatio() == null
+                        && acceptorConfig.getLateAcceptanceNoStopFlatLineDetectionRatio() == null
+                        && acceptorConfig.getLateAcceptanceDelayFlatLineSecondsSpentLimit() == null)) {
             var acceptor = new LateAcceptanceAcceptor<Solution_>();
             acceptor.setLateAcceptanceSize(Objects.requireNonNullElse(acceptorConfig.getLateAcceptanceSize(), 400));
+            return Optional.of(acceptor);
+        }
+        return Optional.empty();
+    }
+
+    private Optional<LateAcceptanceAcceptor<Solution_>>
+            buildSmartLateAcceptanceAcceptor() {
+        if (acceptorTypeListsContainsAcceptorType(AcceptorType.SMART_LATE_ACCEPTANCE)
+                || (acceptorConfig.getLateAcceptanceStopFlatLineDetectionRatio() != null
+                        || acceptorConfig.getLateAcceptanceNoStopFlatLineDetectionRatio() != null
+                        || acceptorConfig.getLateAcceptanceDelayFlatLineSecondsSpentLimit() != null)) {
+            var acceptor = new SmartLateAcceptanceAcceptor<Solution_>();
+            acceptor.setLateAcceptanceSize(Objects.requireNonNullElse(acceptorConfig.getLateAcceptanceSize(), 400));
+            acceptor.setStopFlatLineDetectionRatio(
+                    Objects.requireNonNullElse(acceptorConfig.getLateAcceptanceStopFlatLineDetectionRatio(), 0.5));
+            acceptor.setNoStopFlatLineDetectionRatio(
+                    Objects.requireNonNullElse(acceptorConfig.getLateAcceptanceNoStopFlatLineDetectionRatio(), 0.4));
+            acceptor.setDelayFlatLineSecondsSpentLimit(
+                    Objects.requireNonNullElse(acceptorConfig.getLateAcceptanceDelayFlatLineSecondsSpentLimit(), 30L));
             return Optional.of(acceptor);
         }
         return Optional.empty();

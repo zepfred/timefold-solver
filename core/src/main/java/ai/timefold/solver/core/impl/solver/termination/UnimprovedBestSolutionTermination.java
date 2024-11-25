@@ -145,8 +145,8 @@ public final class UnimprovedBestSolutionTermination<Solution_> extends Abstract
             // as it would be the starting point for the new curve.
             var minInterval = Math.floor(lastImprovementInterval * noStopFlatLineDetectionRatio);
             var maxInterval = Math.floor(lastImprovementInterval * stopFlatLineDetectionRatio);
-            if (lastImprovementMillis > 0 && completeInterval >= delayExecutionTimeMillis && newInterval >= minInterval
-                    && newInterval < maxInterval) {
+            if (lastImprovementMillis > 0 && minInterval > 0 && completeInterval >= delayExecutionTimeMillis
+                    && newInterval >= minInterval && newInterval < maxInterval) {
                 initialCurvePointMillis = lastImprovementMillis;
                 previousBest = currentBest;
                 if (logger.isInfoEnabled()) {
@@ -194,6 +194,10 @@ public final class UnimprovedBestSolutionTermination<Solution_> extends Abstract
     // ************************************************************************
     // Other methods
     // ************************************************************************
+
+    public void resetLastImprovementTime() {
+        this.lastImprovementMillis = clock.millis();
+    }
 
     @Override
     public UnimprovedBestSolutionTermination<Solution_> createChildThreadTermination(SolverScope<Solution_> solverScope,
