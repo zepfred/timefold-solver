@@ -27,6 +27,8 @@ import ai.timefold.solver.core.impl.solver.termination.UnimprovedBestSolutionTer
 public class SmartLateAcceptanceAcceptor<Solution_> extends LateAcceptanceAcceptor<Solution_> {
 
     private static final int MAX_BEST_SCORES = 100;
+    private static final int[] ELEMENTS_SIZE = { 1, 25, 50, 100, 200, 400, 800, 1_600, 3_200, 6_400 };
+    private int posElementSize = 0;
     protected Double stopFlatLineDetectionRatio = null;
     protected Double noStopFlatLineDetectionRatio = null;
     protected Long delayFlatLineSecondsSpentLimit = null;
@@ -76,9 +78,9 @@ public class SmartLateAcceptanceAcceptor<Solution_> extends LateAcceptanceAccept
     @Override
     public void stepStarted(LocalSearchStepScope<Solution_> stepScope) {
         super.stepStarted(stepScope);
-        if (stepScope.getPhaseScope().isStuck()) {
+        if (stepScope.getPhaseScope().isStuck() && posElementSize < ELEMENTS_SIZE.length) {
             // Increases the size to improve the diversification
-            var newLateAcceptanceSize = this.lateAcceptanceSize * 4;
+            var newLateAcceptanceSize = ELEMENTS_SIZE[++posElementSize];
             logger.info("Increasing late elements list size from {} to {}, best score {}", this.lateAcceptanceSize,
                     newLateAcceptanceSize, stepScope.getPhaseScope().getBestScore());
             var newPreviousElements = new Score<?>[newLateAcceptanceSize];
@@ -90,8 +92,8 @@ public class SmartLateAcceptanceAcceptor<Solution_> extends LateAcceptanceAccept
             this.lateAcceptanceSize = newLateAcceptanceSize;
             this.previousScores = newPreviousElements;
             this.stuckTermination.resetLastImprovementTime();
-            stepScope.getPhaseScope().changeUnstuck();
         }
+        stepScope.getPhaseScope().changeUnstuck();
         stuckTermination.stepStarted(stepScope);
         currentBest = stepScope.getPhaseScope().getBestScore();
     }
