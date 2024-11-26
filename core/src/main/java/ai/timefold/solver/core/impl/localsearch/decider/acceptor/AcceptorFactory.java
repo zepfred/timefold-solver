@@ -12,6 +12,7 @@ import ai.timefold.solver.core.config.localsearch.decider.acceptor.stepcountingh
 import ai.timefold.solver.core.impl.heuristic.HeuristicConfigPolicy;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.greatdeluge.GreatDelugeAcceptor;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.hillclimbing.HillClimbingAcceptor;
+import ai.timefold.solver.core.impl.localsearch.decider.acceptor.lateacceptance.DiversifiedLateAcceptanceAcceptor;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.lateacceptance.LateAcceptanceAcceptor;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.lateacceptance.SmartLateAcceptanceAcceptor;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.simulatedannealing.SimulatedAnnealingAcceptor;
@@ -47,6 +48,7 @@ public class AcceptorFactory<Solution_> {
                 buildSimulatedAnnealingAcceptor(configPolicy),
                 buildLateAcceptanceAcceptor(),
                 buildSmartLateAcceptanceAcceptor(),
+                buildDiversifiedLateAcceptanceAcceptor(),
                 buildGreatDelugeAcceptor(configPolicy))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
@@ -241,6 +243,15 @@ public class AcceptorFactory<Solution_> {
                     Objects.requireNonNullElse(acceptorConfig.getLateAcceptanceNoStopFlatLineDetectionRatio(), 0.4));
             acceptor.setDelayFlatLineSecondsSpentLimit(
                     Objects.requireNonNullElse(acceptorConfig.getLateAcceptanceDelayFlatLineSecondsSpentLimit(), 30L));
+            return Optional.of(acceptor);
+        }
+        return Optional.empty();
+    }
+
+    private Optional<LateAcceptanceAcceptor<Solution_>> buildDiversifiedLateAcceptanceAcceptor() {
+        if (acceptorTypeListsContainsAcceptorType(AcceptorType.DIVERSIFIED_LATE_ACCEPTANCE)) {
+            var acceptor = new DiversifiedLateAcceptanceAcceptor<Solution_>();
+            acceptor.setLateAcceptanceSize(Objects.requireNonNullElse(acceptorConfig.getLateAcceptanceSize(), 5));
             return Optional.of(acceptor);
         }
         return Optional.empty();

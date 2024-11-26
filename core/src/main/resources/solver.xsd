@@ -1941,6 +1941,8 @@
             
       <xs:enumeration value="SMART_LATE_ACCEPTANCE"/>
             
+      <xs:enumeration value="DIVERSIFIED_LATE_ACCEPTANCE"/>
+            
       <xs:enumeration value="GREAT_DELUGE"/>
             
       <xs:enumeration value="STEP_COUNTING_HILL_CLIMBING"/>
