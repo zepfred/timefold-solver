@@ -32,6 +32,7 @@ public class SmartLateAcceptanceAcceptor<Solution_> extends LateAcceptanceAccept
     protected Long delayFlatLineSecondsSpentLimit = null;
     private UnimprovedBestSolutionTermination<Solution_> stuckTermination;
     private List<Score<?>> bestScores;
+    private int posBestScore = 0;
     private Score<?> currentBest;
 
     public void setStopFlatLineDetectionRatio(Double stopFlatLineDetectionRatio) {
@@ -64,10 +65,22 @@ public class SmartLateAcceptanceAcceptor<Solution_> extends LateAcceptanceAccept
     private boolean updateLateElementsListSize(LocalSearchMoveScope<Solution_> moveScope) {
         var accepted = super.isAccepted(moveScope);
         if (!accepted && stuckTermination.isPhaseTerminated(moveScope.getStepScope().getPhaseScope())) {
+            moveScope.getStepScope().getPhaseScope().changeStuck();
+            accepted = true;
+        } else if (!accepted) {
+            lateScoreIndex = (lateScoreIndex + 1) % lateAcceptanceSize;
+        }
+        return accepted;
+    }
+
+    @Override
+    public void stepStarted(LocalSearchStepScope<Solution_> stepScope) {
+        super.stepStarted(stepScope);
+        if (stepScope.getPhaseScope().isStuck()) {
             // Increases the size to improve the diversification
             var newLateAcceptanceSize = this.lateAcceptanceSize * 4;
             logger.info("Increasing late elements list size from {} to {}, best score {}", this.lateAcceptanceSize,
-                    newLateAcceptanceSize, moveScope.getStepScope().getPhaseScope().getBestScore());
+                    newLateAcceptanceSize, stepScope.getPhaseScope().getBestScore());
             var newPreviousElements = new Score<?>[newLateAcceptanceSize];
             for (var i = 0; i < newLateAcceptanceSize; i++) {
                 var idx = bestScores.size() - 1 - (i % bestScores.size());
@@ -77,14 +90,8 @@ public class SmartLateAcceptanceAcceptor<Solution_> extends LateAcceptanceAccept
             this.lateAcceptanceSize = newLateAcceptanceSize;
             this.previousScores = newPreviousElements;
             this.stuckTermination.resetLastImprovementTime();
-            accepted = true;
+            stepScope.getPhaseScope().changeUnstuck();
         }
-        return accepted;
-    }
-
-    @Override
-    public void stepStarted(LocalSearchStepScope<Solution_> stepScope) {
-        super.stepStarted(stepScope);
         stuckTermination.stepStarted(stepScope);
         currentBest = stepScope.getPhaseScope().getBestScore();
     }
@@ -100,7 +107,13 @@ public class SmartLateAcceptanceAcceptor<Solution_> extends LateAcceptanceAccept
         lateScoreIndex = (lateScoreIndex + 1) % lateAcceptanceSize;
         stuckTermination.stepEnded(stepScope);
         if (((Score) currentBest).compareTo(moveScore) < 0) {
-            logger.info("New best score is {}", moveScore);
+            //            logger.info("New best score is {}", moveScore);
+            posBestScore = (posBestScore + 1) % MAX_BEST_SCORES;
+            if (posBestScore < bestScores.size()) {
+                bestScores.set(posBestScore, moveScore);
+            } else {
+                bestScores.add(moveScore);
+            }
         }
     }
 

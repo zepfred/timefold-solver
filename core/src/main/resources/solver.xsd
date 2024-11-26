@@ -260,6 +260,8 @@
             <xs:element name="tailChainSwapMoveSelector" type="tns:tailChainSwapMoveSelectorConfig"/>
                         
             <xs:element name="unionMoveSelector" type="tns:unionMoveSelectorConfig"/>
+                        
+            <xs:element name="adaptiveMoveSelector" type="tns:adaptiveMoveSelectorConfig"/>
                       
           </xs:choice>
                     
@@ -1139,6 +1141,62 @@
       
   </xs:complexType>
     
+  <xs:complexType name="adaptiveMoveSelectorConfig">
+        
+    <xs:complexContent>
+            
+      <xs:extension base="tns:moveSelectorConfig">
+                
+        <xs:sequence>
+                    
+          <xs:choice maxOccurs="unbounded" minOccurs="0">
+                        
+            <xs:element name="cartesianProductMoveSelector" type="tns:cartesianProductMoveSelectorConfig"/>
+                        
+            <xs:element name="changeMoveSelector" type="tns:changeMoveSelectorConfig"/>
+                        
+            <xs:element name="kOptListMoveSelector" type="tns:kOptListMoveSelectorConfig"/>
+                        
+            <xs:element name="listChangeMoveSelector" type="tns:listChangeMoveSelectorConfig"/>
+                        
+            <xs:element name="listSwapMoveSelector" type="tns:listSwapMoveSelectorConfig"/>
+                        
+            <xs:element name="moveIteratorFactory" type="tns:moveIteratorFactoryConfig"/>
+                        
+            <xs:element name="moveListFactory" type="tns:moveListFactoryConfig"/>
+                        
+            <xs:element name="pillarChangeMoveSelector" type="tns:pillarChangeMoveSelectorConfig"/>
+                        
+            <xs:element name="pillarSwapMoveSelector" type="tns:pillarSwapMoveSelectorConfig"/>
+                        
+            <xs:element name="ruinRecreateMoveSelector" type="tns:ruinRecreateMoveSelectorConfig"/>
+                        
+            <xs:element name="listRuinRecreateMoveSelector" type="tns:listRuinRecreateMoveSelectorConfig"/>
+                        
+            <xs:element name="subChainChangeMoveSelector" type="tns:subChainChangeMoveSelectorConfig"/>
+                        
+            <xs:element name="subChainSwapMoveSelector" type="tns:subChainSwapMoveSelectorConfig"/>
+                        
+            <xs:element name="subListChangeMoveSelector" type="tns:subListChangeMoveSelectorConfig"/>
+                        
+            <xs:element name="subListSwapMoveSelector" type="tns:subListSwapMoveSelectorConfig"/>
+                        
+            <xs:element name="swapMoveSelector" type="tns:swapMoveSelectorConfig"/>
+                        
+            <xs:element name="tailChainSwapMoveSelector" type="tns:tailChainSwapMoveSelectorConfig"/>
+                        
+            <xs:element name="adaptiveMoveSelector" type="tns:adaptiveMoveSelectorConfig"/>
+                      
+          </xs:choice>
+                  
+        </xs:sequence>
+              
+      </xs:extension>
+          
+    </xs:complexContent>
+      
+  </xs:complexType>
+    
   <xs:complexType name="pooledEntityPlacerConfig">
         
     <xs:complexContent>
@@ -1362,6 +1420,8 @@
             <xs:element name="tailChainSwapMoveSelector" type="tns:tailChainSwapMoveSelectorConfig"/>
                         
             <xs:element name="unionMoveSelector" type="tns:unionMoveSelectorConfig"/>
+                        
+            <xs:element name="adaptiveMoveSelector" type="tns:adaptiveMoveSelectorConfig"/>
                       
           </xs:choice>
                     

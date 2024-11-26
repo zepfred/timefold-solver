@@ -3,6 +3,7 @@ package ai.timefold.solver.core.impl.heuristic.selector.move;
 import ai.timefold.solver.core.config.heuristic.selector.common.SelectionCacheType;
 import ai.timefold.solver.core.config.heuristic.selector.common.SelectionOrder;
 import ai.timefold.solver.core.config.heuristic.selector.move.MoveSelectorConfig;
+import ai.timefold.solver.core.config.heuristic.selector.move.composite.AdaptiveMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.composite.CartesianProductMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.composite.UnionMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.factory.MoveIteratorFactoryConfig;
@@ -23,6 +24,7 @@ import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.SubLi
 import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.SubListSwapMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.kopt.KOptListMoveSelectorConfig;
 import ai.timefold.solver.core.impl.heuristic.HeuristicConfigPolicy;
+import ai.timefold.solver.core.impl.heuristic.selector.move.composite.AdaptiveMoveSelectorFactory;
 import ai.timefold.solver.core.impl.heuristic.selector.move.composite.CartesianProductMoveSelectorFactory;
 import ai.timefold.solver.core.impl.heuristic.selector.move.composite.UnionMoveSelectorFactory;
 import ai.timefold.solver.core.impl.heuristic.selector.move.factory.MoveIteratorFactoryFactory;
@@ -82,6 +84,8 @@ public interface MoveSelectorFactory<Solution_> {
             return new MoveListFactoryFactory<>(moveListFactoryConfig);
         } else if (moveSelectorConfig instanceof UnionMoveSelectorConfig unionMoveSelectorConfig) {
             return new UnionMoveSelectorFactory<>(unionMoveSelectorConfig);
+        } else if (moveSelectorConfig instanceof AdaptiveMoveSelectorConfig adaptiveMoveSelectorConfig) {
+            return new AdaptiveMoveSelectorFactory<>(adaptiveMoveSelectorConfig);
         } else if (moveSelectorConfig instanceof CartesianProductMoveSelectorConfig cartesianProductMoveSelectorConfig) {
             return new CartesianProductMoveSelectorFactory<>(cartesianProductMoveSelectorConfig);
         } else {

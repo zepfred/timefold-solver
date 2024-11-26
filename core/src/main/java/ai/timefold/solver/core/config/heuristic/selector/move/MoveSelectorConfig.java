@@ -11,6 +11,7 @@ import ai.timefold.solver.core.config.heuristic.selector.SelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.common.SelectionCacheType;
 import ai.timefold.solver.core.config.heuristic.selector.common.SelectionOrder;
 import ai.timefold.solver.core.config.heuristic.selector.common.decorator.SelectionSorterOrder;
+import ai.timefold.solver.core.config.heuristic.selector.move.composite.AdaptiveMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.composite.CartesianProductMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.composite.UnionMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.factory.MoveIteratorFactoryConfig;
@@ -60,7 +61,8 @@ import org.jspecify.annotations.Nullable;
         SubListSwapMoveSelectorConfig.class,
         SwapMoveSelectorConfig.class,
         TailChainSwapMoveSelectorConfig.class,
-        UnionMoveSelectorConfig.class
+        UnionMoveSelectorConfig.class,
+        AdaptiveMoveSelectorConfig.class
 })
 @XmlType(propOrder = {
         "cacheType",

@@ -36,6 +36,8 @@ public abstract class AbstractPhaseScope<Solution_> {
 
     protected int bestSolutionStepIndex;
 
+    protected boolean stuck = false;
+
     /**
      * As defined by #AbstractPhaseScope(SolverScope, int, boolean)
      * with the phaseSendingBestSolutionEvents parameter set to true.
@@ -99,6 +101,7 @@ public abstract class AbstractPhaseScope<Solution_> {
 
     public void reset() {
         bestSolutionStepIndex = -1;
+        changeUnstuck();
         // solverScope.getBestScore() is null with an uninitialized score
         startingScore = solverScope.getBestScore() == null ? solverScope.calculateScore() : solverScope.getBestScore();
         if (getLastCompletedStepScope().getStepIndex() < 0) {
@@ -172,6 +175,18 @@ public abstract class AbstractPhaseScope<Solution_> {
             currentMoveEvaluationCount = getSolverScope().getMoveEvaluationCount();
         }
         return currentMoveEvaluationCount - startingMoveEvaluationCount + childThreadsMoveEvaluationCount;
+    }
+
+    public void changeStuck() {
+        this.stuck = true;
+    }
+
+    public void changeUnstuck() {
+        this.stuck = false;
+    }
+
+    public boolean isStuck() {
+        return stuck;
     }
 
     /**
@@ -263,5 +278,4 @@ public abstract class AbstractPhaseScope<Solution_> {
     public String toString() {
         return getClass().getSimpleName() + "(" + phaseIndex + ")";
     }
-
 }
