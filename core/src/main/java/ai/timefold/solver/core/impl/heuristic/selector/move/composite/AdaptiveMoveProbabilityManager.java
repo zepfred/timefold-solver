@@ -22,7 +22,10 @@ public class AdaptiveMoveProbabilityManager<Solution_> implements PhaseLifecycle
     private final List<MoveSelector<Solution_>> childMoveSelectorList;
     private final List<ProbabilityItem<Solution_>> probabilityItemList;
     private Score<?> currentBest;
-    private int probabilityWeightTotal;
+    private static final double IMPROVEMENT_INCREMENT = 0.1;
+    private static final double MAX_RESET_WEIGHT = 50;
+    private double probabilityWeightTotal;
+    private double resetAfterWeight;
 
     public AdaptiveMoveProbabilityManager(List<MoveSelector<Solution_>> childMoveSelectorList) {
         this.childMoveSelectorList = childMoveSelectorList;
@@ -33,7 +36,7 @@ public class AdaptiveMoveProbabilityManager<Solution_> implements PhaseLifecycle
     // Worker methods
     // ************************************************************************
     protected void reset() {
-        var probabilitySum = 0;
+        var probabilitySum = 0.0;
         probabilityItemList.clear();
         for (var moveSelector : childMoveSelectorList) {
             var moveIterator = moveSelector.iterator();
@@ -43,17 +46,18 @@ public class AdaptiveMoveProbabilityManager<Solution_> implements PhaseLifecycle
                 probabilityItem.moveIterator = new AdaptiveIteratorAdapter<>(moveIterator, probabilityItem);
                 probabilityItem.weight = 1;
                 probabilityItemList.add(probabilityItem);
-                probabilitySum += 1;
+                probabilitySum += 1.0;
             }
         }
         this.probabilityWeightTotal = probabilitySum;
+        this.resetAfterWeight = probabilityWeightTotal + MAX_RESET_WEIGHT;
     }
 
     public Iterator<Move<Solution_>> getMoveIterator(int pos) {
         return probabilityItemList.get(pos).moveIterator;
     }
 
-    public int getMoveWeight(int pos) {
+    public double getMoveWeight(int pos) {
         return probabilityItemList.get(pos).weight;
     }
 
@@ -61,7 +65,7 @@ public class AdaptiveMoveProbabilityManager<Solution_> implements PhaseLifecycle
         return probabilityItemList.size();
     }
 
-    public int getProbabilityWeightTotal() {
+    public double getProbabilityWeightTotal() {
         return probabilityWeightTotal;
     }
 
@@ -92,8 +96,8 @@ public class AdaptiveMoveProbabilityManager<Solution_> implements PhaseLifecycle
         if (improved && stepScope instanceof LocalSearchStepScope<Solution_> localSearchStepScope
                 && localSearchStepScope.getStep() instanceof LegacyMoveAdapter<Solution_> legacyMoveAdapter
                 && legacyMoveAdapter.legacyMove() instanceof AdaptiveMoveAdapter<Solution_> adaptiveMoveAdapter) {
-            adaptiveMoveAdapter.probabilityItem.increment();
-            this.probabilityWeightTotal++;
+            adaptiveMoveAdapter.probabilityItem.increment(IMPROVEMENT_INCREMENT);
+            this.probabilityWeightTotal += IMPROVEMENT_INCREMENT;
         }
     }
 
@@ -176,15 +180,20 @@ public class AdaptiveMoveProbabilityManager<Solution_> implements PhaseLifecycle
         public Collection<?> getPlanningValues() {
             return move.getPlanningValues();
         }
+
+        @Override
+        public String toString() {
+            return move.toString();
+        }
     }
 
     private static final class ProbabilityItem<Solution_> {
         MoveSelector<Solution_> moveSelector;
         Iterator<Move<Solution_>> moveIterator;
-        int weight;
+        double weight;
 
-        public void increment() {
-            weight++;
+        public void increment(double value) {
+            weight += value;
         }
     }
 }

@@ -24,12 +24,12 @@ public class AdaptiveUnionMoveIterator<Solution_> extends SelectionIterator<Move
 
     @Override
     public Move<Solution_> next() {
-        var weight = random.nextInt(adaptiveMoveProbabilityManager.getProbabilityWeightTotal()) + 1;
+        var weight = random.nextDouble(adaptiveMoveProbabilityManager.getProbabilityWeightTotal()) + 1;
         var movesSelected = new ArrayList<Iterator<Move<Solution_>>>(adaptiveMoveProbabilityManager.getMoveListSize());
         var multiplier = 1;
         while (movesSelected.isEmpty()) {
             for (var i = 0; i < adaptiveMoveProbabilityManager.getMoveListSize(); i++) {
-                if (weight - adaptiveMoveProbabilityManager.getMoveWeight(i) * multiplier <= 0) {
+                if (weight - adaptiveMoveProbabilityManager.getMoveWeight(i) * multiplier <= 0.0) {
                     movesSelected.add(adaptiveMoveProbabilityManager.getMoveIterator(i));
                 }
             }

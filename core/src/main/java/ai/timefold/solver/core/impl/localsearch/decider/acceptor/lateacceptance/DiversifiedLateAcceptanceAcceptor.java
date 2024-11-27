@@ -59,6 +59,9 @@ public class DiversifiedLateAcceptanceAcceptor<Solution_> extends LateAcceptance
         } else {
             lateScoreIndex = (lateScoreIndex + 1) % lateAcceptanceSize;
         }
+        //        if (accept && moveScore.compareTo(moveScope.getStepScope().getPhaseScope().getBestScore()) > 0) {
+        //            logger.info("New best solution at {} - {}", moveScore, moveScope.getMove());
+        //        }
         return accept;
     }
 
