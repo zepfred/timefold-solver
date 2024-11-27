@@ -22,10 +22,8 @@ public class AdaptiveMoveProbabilityManager<Solution_> implements PhaseLifecycle
     private final List<MoveSelector<Solution_>> childMoveSelectorList;
     private final List<ProbabilityItem<Solution_>> probabilityItemList;
     private Score<?> currentBest;
-    private static final double IMPROVEMENT_INCREMENT = 0.1;
-    private static final double MAX_RESET_WEIGHT = 50;
+    private static final double IMPROVEMENT_INCREMENT = 0.25;
     private double probabilityWeightTotal;
-    private double resetAfterWeight;
 
     public AdaptiveMoveProbabilityManager(List<MoveSelector<Solution_>> childMoveSelectorList) {
         this.childMoveSelectorList = childMoveSelectorList;
@@ -50,7 +48,6 @@ public class AdaptiveMoveProbabilityManager<Solution_> implements PhaseLifecycle
             }
         }
         this.probabilityWeightTotal = probabilitySum;
-        this.resetAfterWeight = probabilityWeightTotal + MAX_RESET_WEIGHT;
     }
 
     public Iterator<Move<Solution_>> getMoveIterator(int pos) {
