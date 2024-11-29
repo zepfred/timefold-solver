@@ -57,7 +57,7 @@ public class AdaptiveMoveSelector<Solution_> extends CompositeMoveSelector<Solut
 
     @Override
     public Iterator<Move<Solution_>> iterator() {
-        return new AdaptiveUnionMoveIterator<>(adaptiveMoveProbabilityManager, workingRandom);
+        return new AdaptiveUnionMoveIterator<>(adaptiveMoveProbabilityManager);
     }
 
     @Override
