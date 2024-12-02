@@ -1,5 +1,6 @@
 package ai.timefold.solver.core.impl.heuristic.selector.move.composite;
 
+import java.time.Clock;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -48,6 +49,6 @@ public class AdaptiveMoveSelectorFactory<Solution_>
         List<MoveSelector<Solution_>> moveSelectorList =
                 buildInnerMoveSelectors(moveSelectorConfigList, configPolicy, minimumCacheType, randomSelection);
 
-        return new AdaptiveMoveSelector<>(moveSelectorList);
+        return new AdaptiveMoveSelector<>(moveSelectorList, Clock.systemUTC());
     }
 }
