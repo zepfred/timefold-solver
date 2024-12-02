@@ -3,6 +3,7 @@ package ai.timefold.solver.core.impl.heuristic.selector.move.composite;
 import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Random;
 
 import ai.timefold.solver.core.api.score.director.ScoreDirector;
@@ -20,9 +21,9 @@ public class AdaptiveMoveIterator<Solution_> extends SelectionIterator<Move<Solu
 
     // Geometric restart
     private final Clock clock;
-    private static final int GEOMETRIC_FACTOR = 2;
+    private static final double GEOMETRIC_FACTOR = 1.3;
     private static final int MAX_GROW_GEOMETRIC_FACTOR_SECONDS = 600; // 10 minutes
-    private static final int SCALING_FACTOR = 1;
+    private static final double SCALING_FACTOR = 1.0;
 
     public AdaptiveMoveIterator(AdaptiveMoveSelectorStats<Solution_> stats, Random random, Clock clock) {
         this.stats = stats;
@@ -31,17 +32,28 @@ public class AdaptiveMoveIterator<Solution_> extends SelectionIterator<Move<Solu
     }
 
     private void ensureInitialized() {
-        if (stats.getNextRestartMillis() == 0 || stats.getGeometricGrowFactor() == 0) {
-            // Delay of 10 seconds
-            stats.addNextRestartMillis(clock.millis() + 10_000L);
+        if (stats.getNextRestart() == 0 || stats.getGeometricGrowFactor() == 0) {
+            stats.incrementNextRestart(clock.millis() + 1_000L);
             stats.setGeometricGrowFactor(1);
         }
     }
 
-    protected void checkRestart() {
-        if (clock.millis() >= stats.getNextRestartMillis()) {
+    protected void checkTimeRestart() {
+        if (clock.millis() >= stats.getNextRestart()) {
+            var nextRestart = Math.ceil(SCALING_FACTOR * stats.getGeometricGrowFactor());
+            stats.setNextRestart((long) (clock.millis() + nextRestart * 1_000L));
+            var newGrowFactor = Math.ceil(stats.getGeometricGrowFactor() * GEOMETRIC_FACTOR);
+            //            log.info("Adaptive move selector restarted, current grow factor {}, next grow factor {}, {}",
+            //                    stats.getGeometricGrowFactor(), newGrowFactor, stats);
+            stats.setGeometricGrowFactor(Math.min(newGrowFactor, MAX_GROW_GEOMETRIC_FACTOR_SECONDS));
+            stats.reset();
+        }
+    }
+
+    protected void checkBestSolutionRestart() {
+        if (stats.getBestSolutionCount() >= stats.getNextRestart()) {
             var nextRestart = SCALING_FACTOR * stats.getGeometricGrowFactor();
-            stats.addNextRestartMillis(nextRestart * 1_000L);
+            stats.setNextRestart((long) nextRestart);
             var newGrowFactor = stats.getGeometricGrowFactor() * GEOMETRIC_FACTOR;
             log.info("Adaptive move selector restarted, current grow factor {}, next grow factor {}",
                     stats.getGeometricGrowFactor(), newGrowFactor);
@@ -58,36 +70,39 @@ public class AdaptiveMoveIterator<Solution_> extends SelectionIterator<Move<Solu
     @Override
     public Move<Solution_> next() {
         ensureInitialized();
-        checkRestart();
-        var weight = random.nextInt(stats.getTotalWeight()) + 1;
-        var itemStatsList = stats.getIteratorList();
-        var iteratorList = new ArrayList<Integer>(itemStatsList.size());
-        var multiplier = 1;
-        while (iteratorList.isEmpty()) {
-            for (var i = 0; i < itemStatsList.size(); i++) {
-                var item = itemStatsList.get(i);
-                if (weight - item.getWeight() * multiplier <= 0) {
-                    iteratorList.add(i);
+        checkTimeRestart();
+        var itemStatsList = stats.getItemStatsList();
+        List<AdaptiveMoveIteratorData<Solution_>> iteratorList = new ArrayList<>(itemStatsList.size());
+        var weight = random.nextDouble(stats.getTotalWeight()) + 1;
+        if (stats.getBestSolutionCount() > 0 && weight > itemStatsList.size()) {
+            var multiplier = 1;
+            while (iteratorList.isEmpty()) {
+                for (var item : itemStatsList) {
+                    if (weight - item.getWeight() * multiplier <= 0) {
+                        iteratorList.add(item);
+                    }
                 }
+                multiplier++;
             }
-            multiplier++;
+        } else {
+            iteratorList = itemStatsList;
         }
         var pos = 0;
         if (iteratorList.size() > 1) {
             pos = random.nextInt(iteratorList.size());
         }
-        var iterator = itemStatsList.get(pos).getMoveIterator();
+        var item = iteratorList.get(pos);
+        var iterator = item.getMoveIterator();
         var move = iterator.next();
         if (!iterator.hasNext()) {
-            stats.removeIterator(pos);
-            pos = -1;
+            stats.reset();
+            item = null;
         }
-        return new AdaptiveMoveAdapter<>(move, stats, pos);
+        return new AdaptiveMoveAdapter<>(move, item);
     }
 
     protected record AdaptiveMoveAdapter<Solution_>(Move<Solution_> move,
-            AdaptiveMoveSelectorStats<Solution_> stats,
-            int iteratorIndex) implements Move<Solution_> {
+            AdaptiveMoveIteratorData<Solution_> item) implements Move<Solution_> {
 
         @Override
         public boolean isMoveDoable(ScoreDirector<Solution_> scoreDirector) {
@@ -125,8 +140,8 @@ public class AdaptiveMoveIterator<Solution_> extends SelectionIterator<Move<Solu
         }
 
         public void incrementWeight() {
-            if (iteratorIndex > -1) {
-                stats.incrementWeight(iteratorIndex);
+            if (item != null) {
+                item.incrementWeight();
             }
         }
 

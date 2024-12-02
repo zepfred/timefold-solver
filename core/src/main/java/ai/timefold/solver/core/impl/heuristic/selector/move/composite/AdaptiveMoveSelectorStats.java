@@ -22,12 +22,13 @@ public class AdaptiveMoveSelectorStats<Solution_> implements PhaseLifecycleListe
 
     private static final Logger log = LoggerFactory.getLogger(AdaptiveMoveSelectorStats.class);
     private final List<MoveSelector<Solution_>> childMoveSelectorList;
-    private final List<AdaptiveMoveIteratorData<Solution_>> itemStatsList;
+    private List<AdaptiveMoveIteratorData<Solution_>> itemStatsList;
     private Score<?> currentBest;
-    private int weightTotal;
+    private double weightTotal;
+    private int bestSolutionCount;
     // Geometric restart
-    private int geometricGrowFactor;
-    private long nextRestartMillis;
+    private double geometricGrowFactor;
+    private long nextRestart;
 
     public AdaptiveMoveSelectorStats(List<MoveSelector<Solution_>> childMoveSelectorList) {
         this.childMoveSelectorList = childMoveSelectorList;
@@ -38,53 +39,72 @@ public class AdaptiveMoveSelectorStats<Solution_> implements PhaseLifecycleListe
     // Worker methods
     // ************************************************************************
     protected void reset() {
+        this.weightTotal = 0;
+        this.bestSolutionCount = 0;
         itemStatsList.clear();
         for (var moveSelector : childMoveSelectorList) {
             var moveIterator = moveSelector.iterator();
             if (moveIterator.hasNext()) {
-                var itemStats = new AdaptiveMoveIteratorData<>(moveSelector, moveIterator, 1);
+                var itemStats = new AdaptiveMoveIteratorData<>(this, moveSelector, moveIterator, 1);
                 itemStatsList.add(itemStats);
                 weightTotal++;
             }
         }
     }
 
-    protected int getTotalWeight() {
+    protected void resetWithHistory() {
+        this.weightTotal = 0;
+        this.bestSolutionCount = 0;
+        List<AdaptiveMoveIteratorData<Solution_>> newItemStatsList = new ArrayList<>(itemStatsList.size());
+        for (var item : itemStatsList) {
+            item.setMoveIterator(item.getMoveSelector().iterator());
+            if (item.getMoveIterator().hasNext()) {
+                item.setWeight(Math.max(1.0, 1.0 + item.getWeight() * 0.25));
+                newItemStatsList.add(item);
+                weightTotal += item.getWeight();
+            }
+        }
+        itemStatsList = newItemStatsList;
+    }
+
+    protected double getTotalWeight() {
         return weightTotal;
     }
 
-    protected void incrementWeight(int iteratorIndex) {
-        itemStatsList.get(iteratorIndex).incrementWeight();
-        this.weightTotal++;
+    protected void incrementNextRestart(long increment) {
+        this.nextRestart += increment;
     }
 
-    protected void addNextRestartMillis(long increment) {
-        this.nextRestartMillis += increment;
+    protected void setNextRestart(long nextRestart) {
+        this.nextRestart = nextRestart;
     }
 
-    protected long getNextRestartMillis() {
-        return nextRestartMillis;
+    protected long getNextRestart() {
+        return nextRestart;
     }
 
-    protected void setGeometricGrowFactor(int geometricGrowFactor) {
+    protected void setGeometricGrowFactor(double geometricGrowFactor) {
         this.geometricGrowFactor = geometricGrowFactor;
     }
 
-    protected int getGeometricGrowFactor() {
+    protected double getGeometricGrowFactor() {
         return geometricGrowFactor;
     }
 
-    public List<AdaptiveMoveIteratorData<Solution_>> getIteratorList() {
-        return itemStatsList;
-    }
-
-    public void removeIterator(int pos) {
-        var item = itemStatsList.remove(pos);
-        this.weightTotal -= item.getWeight();
+    public int getBestSolutionCount() {
+        return bestSolutionCount;
     }
 
     protected boolean hasMoveIterator() {
         return weightTotal > 0;
+    }
+
+    protected void incrementWeightTotal() {
+        this.weightTotal++;
+    }
+
+    public List<AdaptiveMoveIteratorData<Solution_>> getItemStatsList() {
+        return itemStatsList;
     }
 
     // ************************************************************************
@@ -94,7 +114,8 @@ public class AdaptiveMoveSelectorStats<Solution_> implements PhaseLifecycleListe
     public void phaseStarted(AbstractPhaseScope<Solution_> phaseScope) {
         this.weightTotal = 0;
         this.geometricGrowFactor = 0;
-        this.nextRestartMillis = 0;
+        this.nextRestart = 0;
+        this.bestSolutionCount = 0;
     }
 
     @Override
@@ -114,19 +135,16 @@ public class AdaptiveMoveSelectorStats<Solution_> implements PhaseLifecycleListe
         if (improved && stepScope instanceof LocalSearchStepScope<Solution_> localSearchStepScope
                 && localSearchStepScope.getStep() instanceof LegacyMoveAdapter<Solution_> legacyMoveAdapter
                 && legacyMoveAdapter.legacyMove() instanceof AdaptiveMoveAdapter<Solution_> adaptiveMoveAdapter) {
-            log.info("Best solution improved {}, {}", stepScope.getScore(), legacyMoveAdapter.legacyMove());
+            //            log.info("Best solution improved {}, {}", stepScope.getScore(), legacyMoveAdapter.legacyMove());
             adaptiveMoveAdapter.incrementWeight();
+            bestSolutionCount++;
         }
     }
 
     @Override
     public void phaseEnded(AbstractPhaseScope<Solution_> phaseScope) {
         // Do nothing
-        log.info("Move weight ({}): {}", weightTotal, itemStatsList.stream()
-                .map(i -> "%s=%d".formatted(
-                        i.getMoveSelector().toString().substring(0, i.getMoveSelector().toString().indexOf("(")),
-                        i.getWeight()))
-                .collect(joining(";")));
+        log.info("Move weight ({}): {}", weightTotal, this);
     }
 
     @Override
@@ -137,5 +155,14 @@ public class AdaptiveMoveSelectorStats<Solution_> implements PhaseLifecycleListe
     @Override
     public void solvingEnded(SolverScope<Solution_> solverScope) {
         // Do nothing
+    }
+
+    @Override
+    public String toString() {
+        return itemStatsList.stream()
+                .map(i -> "%s=%.2f".formatted(
+                        i.getMoveSelector().toString().substring(0, i.getMoveSelector().toString().indexOf("(")),
+                        i.getWeight()))
+                .collect(joining(";"));
     }
 }
