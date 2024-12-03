@@ -39,9 +39,7 @@ import org.jspecify.annotations.Nullable;
         "unimprovedStepCountLimit",
         "scoreCalculationCountLimit",
         "moveCountLimit",
-        "stopFlatLineDetectionRatio",
-        "noStopFlatLineDetectionRatio",
-        "delayFlatLineSecondsSpentLimit",
+        "unimprovedRetries",
         "terminationConfigList"
 })
 public class TerminationConfig extends AbstractConfig<TerminationConfig> {
@@ -81,9 +79,7 @@ public class TerminationConfig extends AbstractConfig<TerminationConfig> {
 
     private Long moveCountLimit = null;
 
-    private Double stopFlatLineDetectionRatio = null;
-    private Double noStopFlatLineDetectionRatio = null;
-    private Long delayFlatLineSecondsSpentLimit = null;
+    private Integer unimprovedRetries = null;
 
     @XmlElement(name = "termination")
     private List<TerminationConfig> terminationConfigList = null;
@@ -264,28 +260,12 @@ public class TerminationConfig extends AbstractConfig<TerminationConfig> {
         this.moveCountLimit = moveCountLimit;
     }
 
-    public @Nullable Double getStopFlatLineDetectionRatio() {
-        return stopFlatLineDetectionRatio;
+    public Integer getUnimprovedRetries() {
+        return unimprovedRetries;
     }
 
-    public void setStopFlatLineDetectionRatio(@Nullable Double stopFlatLineDetectionRatio) {
-        this.stopFlatLineDetectionRatio = stopFlatLineDetectionRatio;
-    }
-
-    public @Nullable Double getNoStopFlatLineDetectionRatio() {
-        return noStopFlatLineDetectionRatio;
-    }
-
-    public void setNoStopFlatLineDetectionRatio(@Nullable Double noStopFlatLineDetectionRatio) {
-        this.noStopFlatLineDetectionRatio = noStopFlatLineDetectionRatio;
-    }
-
-    public @Nullable Long getDelayFlatLineSecondsSpentLimit() {
-        return delayFlatLineSecondsSpentLimit;
-    }
-
-    public void setDelayFlatLineSecondsSpentLimit(@Nullable Long delayFlatLineSecondsSpentLimit) {
-        this.delayFlatLineSecondsSpentLimit = delayFlatLineSecondsSpentLimit;
+    public void setUnimprovedRetries(Integer unimprovedRetries) {
+        this.unimprovedRetries = unimprovedRetries;
     }
 
     public @Nullable List<@NonNull TerminationConfig> getTerminationConfigList() {
@@ -411,18 +391,8 @@ public class TerminationConfig extends AbstractConfig<TerminationConfig> {
         return this;
     }
 
-    public @NonNull TerminationConfig withStopFlatLineDetectionRatio(@NonNull Double stopFlatLineDetectionRatio) {
-        this.stopFlatLineDetectionRatio = stopFlatLineDetectionRatio;
-        return this;
-    }
-
-    public @NonNull TerminationConfig withNoStopFlatLineDetectionRatio(@NonNull Double noStopFlatLineDetectionRatio) {
-        this.noStopFlatLineDetectionRatio = noStopFlatLineDetectionRatio;
-        return this;
-    }
-
-    public @NonNull TerminationConfig withDelayFlatLineSecondsSpentLimit(@NonNull Long delayFlatLineSecondsSpentLimit) {
-        this.delayFlatLineSecondsSpentLimit = delayFlatLineSecondsSpentLimit;
+    public @NonNull TerminationConfig withUnimprovedRetries(@NonNull Integer unimprovedRetries) {
+        this.unimprovedRetries = unimprovedRetries;
         return this;
     }
 
@@ -535,9 +505,8 @@ public class TerminationConfig extends AbstractConfig<TerminationConfig> {
                 unimprovedStepCountLimit != null ||
                 scoreCalculationCountLimit != null ||
                 moveCountLimit != null ||
-                stopFlatLineDetectionRatio != null ||
-                noStopFlatLineDetectionRatio != null ||
-                delayFlatLineSecondsSpentLimit != null ||
+                minFlatLineRatio != null ||
+                maxFlatLineRatio != null ||
                 isTerminationListConfigured();
     }
 
@@ -578,12 +547,10 @@ public class TerminationConfig extends AbstractConfig<TerminationConfig> {
                 inheritedConfig.getScoreCalculationCountLimit());
         moveCountLimit = ConfigUtils.inheritOverwritableProperty(moveCountLimit,
                 inheritedConfig.getMoveCountLimit());
-        stopFlatLineDetectionRatio = ConfigUtils.inheritOverwritableProperty(stopFlatLineDetectionRatio,
-                inheritedConfig.getStopFlatLineDetectionRatio());
-        noStopFlatLineDetectionRatio = ConfigUtils.inheritOverwritableProperty(noStopFlatLineDetectionRatio,
-                inheritedConfig.getNoStopFlatLineDetectionRatio());
-        delayFlatLineSecondsSpentLimit = ConfigUtils.inheritOverwritableProperty(delayFlatLineSecondsSpentLimit,
-                inheritedConfig.getDelayFlatLineSecondsSpentLimit());
+        minFlatLineRatio = ConfigUtils.inheritOverwritableProperty(minFlatLineRatio,
+                inheritedConfig.getMinFlatLineRatio());
+        maxFlatLineRatio = ConfigUtils.inheritOverwritableProperty(maxFlatLineRatio,
+                inheritedConfig.getMaxFlatLineRatio());
         terminationConfigList = ConfigUtils.inheritMergeableListConfig(
                 terminationConfigList, inheritedConfig.getTerminationConfigList());
         return this;

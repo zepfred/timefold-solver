@@ -234,22 +234,4 @@ class TerminationFactoryTest {
         assertThat(termination)
                 .isInstanceOf(UnimprovedStepCountTermination.class);
     }
-
-    @Test
-    void buildUnimprovedBestScoreRatio() {
-        var terminationConfig = new TerminationConfig();
-        terminationConfig.setStopFlatLineDetectionRatio(0.5);
-        terminationConfig.setNoStopFlatLineDetectionRatio(0.1);
-        terminationConfig.setDelayFlatLineSecondsSpentLimit(10L);
-        var termination = TerminationFactory.create(terminationConfig)
-                .buildTermination(mock(HeuristicConfigPolicy.class));
-        assertThat(termination)
-                .isInstanceOf(UnimprovedBestSolutionTermination.class);
-        assertThat(((UnimprovedBestSolutionTermination<?>) termination).getStopFlatLineDetectionRatio())
-                .isEqualTo(0.5);
-        assertThat(((UnimprovedBestSolutionTermination<?>) termination).getNoStopFlatLineDetectionRatio())
-                .isEqualTo(0.1);
-        assertThat(((UnimprovedBestSolutionTermination<?>) termination).getDelayExecutionTimeMillis())
-                .isEqualTo(10000L);
-    }
 }

@@ -88,13 +88,11 @@ class TerminationConfigTest {
     void childWithUnimprovedPropertiesFromParent() {
         TerminationConfig child = new TerminationConfig();
         TerminationConfig parent = new TerminationConfig()
-                .withStopFlatLineDetectionRatio(0.5)
-                .withNoStopFlatLineDetectionRatio(0.1)
-                .withDelayFlatLineSecondsSpentLimit(10L);
+                .withMinFlatLineRatio(0.1)
+                .withMaxFlatLineRatio(0.5);
         child.inherit(parent);
-        assertThat(child.getStopFlatLineDetectionRatio()).isEqualTo(0.5);
-        assertThat(child.getNoStopFlatLineDetectionRatio()).isEqualTo(0.1);
-        assertThat(child.getDelayFlatLineSecondsSpentLimit()).isEqualTo(10L);
+        assertThat(child.getMinFlatLineRatio()).isEqualTo(0.1);
+        assertThat(child.getMaxFlatLineRatio()).isEqualTo(0.5);
     }
 
     @Test

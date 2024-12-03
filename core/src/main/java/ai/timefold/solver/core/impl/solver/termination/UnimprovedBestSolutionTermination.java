@@ -1,8 +1,5 @@
 package ai.timefold.solver.core.impl.solver.termination;
 
-import java.time.Clock;
-import java.util.Objects;
-
 import ai.timefold.solver.core.api.score.Score;
 import ai.timefold.solver.core.impl.phase.scope.AbstractPhaseScope;
 import ai.timefold.solver.core.impl.phase.scope.AbstractStepScope;
@@ -11,77 +8,18 @@ import ai.timefold.solver.core.impl.solver.thread.ChildThreadType;
 
 public final class UnimprovedBestSolutionTermination<Solution_> extends AbstractTermination<Solution_> {
 
-    // Evaluation delay to avoid early conclusions
-    private final long delayExecutionTimeMillis;
-    // This setting determines the amount of time
-    // that is allowed without any improvements since the last best solution was identified.
-    // For example, if the last solution was found at 10 seconds and the setting is configured to 0.5,
-    // the solver will stop if no improvement is made within 5 seconds.
-    private final double stopFlatLineDetectionRatio;
-    // This criterion functions similarly to the stopFlatLineDetectionRatio,
-    // as it is also used to identify periods without improvement.
-    // However, the key difference is that it focuses on detecting "flat lines" between solution improvements.
-    // When a flat line is detected after the solution has improved,
-    // it indicates that the previous duration was not enough to terminate the process,
-    // but it indicates that the solver will begin
-    // re-evaluating the termination criterion from the last improvement before the recent improvement.
-    private final double noStopFlatLineDetectionRatio;
-    private final Clock clock;
-    // The field stores the time of the first best solution of the current curve.
-    // If a solving process involves multiple curves,
-    // the value is tied to the growth of the last curve analyzed.
-    protected long initialCurvePointMillis;
-    protected long lastImprovementMillis;
-    private Score<?> previousBest;
+    private final int retries;
+    protected long lastUnimprovedMoveCount;
+    protected long unimprovedMoveCountLimit;
     protected Score<?> currentBest;
-    protected boolean waitForFirstBestScore;
     protected Boolean terminate;
 
-    public UnimprovedBestSolutionTermination(Double stopFlatLineDetectionRatio,
-            Double noStopFlatLineDetectionRatio, Long delayFlatLineSecondsSpentLimit) {
-        this(stopFlatLineDetectionRatio, noStopFlatLineDetectionRatio, delayFlatLineSecondsSpentLimit, Clock.systemUTC());
+    public UnimprovedBestSolutionTermination(int retries) {
+        this.retries = retries;
     }
 
-    public UnimprovedBestSolutionTermination(Double stopFlatLineDetectionRatio, Double noStopFlatLineDetectionRatio,
-            Long delayFlatLineSecondsSpentLimit, Clock clock) {
-        this.stopFlatLineDetectionRatio = Objects.requireNonNull(stopFlatLineDetectionRatio,
-                "The field stopFlatLineDetectionRatio is required for the termination UnimprovedBestSolutionTermination");
-        this.noStopFlatLineDetectionRatio = Objects.requireNonNull(noStopFlatLineDetectionRatio,
-                "The field noStopFlatLineDetectionRatio is required for the termination UnimprovedBestSolutionTermination");
-        this.delayExecutionTimeMillis =
-                (Objects.requireNonNull(delayFlatLineSecondsSpentLimit,
-                        "The field delayFlatLineSecondsSpentLimit is required for the termination UnimprovedBestSolutionTermination")
-                        * 1000L);
-        this.clock = Objects.requireNonNull(clock);
-        if (stopFlatLineDetectionRatio < 0) {
-            throw new IllegalArgumentException(
-                    "The stopFlatLineDetectionRatio (%.2f) cannot be negative.".formatted(stopFlatLineDetectionRatio));
-        }
-        if (noStopFlatLineDetectionRatio < 0) {
-            throw new IllegalArgumentException(
-                    "The noStopFlatLineDetectionRatio (%.2f) cannot be negative.".formatted(noStopFlatLineDetectionRatio));
-        }
-        if (noStopFlatLineDetectionRatio > stopFlatLineDetectionRatio) {
-            throw new IllegalArgumentException(
-                    "The noStopFlatLineDetectionRatio (%.2f) cannot be greater than stopFlatLineDetectionRatio (%.2f)."
-                            .formatted(noStopFlatLineDetectionRatio, stopFlatLineDetectionRatio));
-        }
-        if (delayFlatLineSecondsSpentLimit < 0) {
-            throw new IllegalArgumentException(
-                    "The delayFlatLineSecondsSpentLimit (%d) cannot be negative.".formatted(delayFlatLineSecondsSpentLimit));
-        }
-    }
-
-    public long getDelayExecutionTimeMillis() {
-        return delayExecutionTimeMillis;
-    }
-
-    public double getStopFlatLineDetectionRatio() {
-        return stopFlatLineDetectionRatio;
-    }
-
-    public double getNoStopFlatLineDetectionRatio() {
-        return noStopFlatLineDetectionRatio;
+    public int getRetries() {
+        return retries;
     }
 
     // ************************************************************************
@@ -92,26 +30,40 @@ public final class UnimprovedBestSolutionTermination<Solution_> extends Abstract
     @SuppressWarnings("unchecked")
     public void phaseStarted(AbstractPhaseScope<Solution_> phaseScope) {
         super.phaseStarted(phaseScope);
-        initialCurvePointMillis = clock.millis();
-        lastImprovementMillis = 0L;
-        currentBest = phaseScope.getBestScore();
-        previousBest = currentBest;
-        waitForFirstBestScore = true;
-        terminate = null;
+        this.delayPeriodMillis = clock.millis() + WAIT_PERIOD_MILLIS;
+        this.lastSolutionImprovementMillis = 0;
+        this.currentBest = phaseScope.getBestScore();
+        this.flatLineIntervalMillis = 0;
+        this.maxFlatLineMillis = 0;
+        this.terminate = null;
     }
 
     @Override
     public void stepStarted(AbstractStepScope<Solution_> stepScope) {
         super.stepStarted(stepScope);
+        this.currentBest = stepScope.getPhaseScope().getBestScore();
         terminate = null;
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @Override
-    @SuppressWarnings({ "unchecked", "rawtypes" })
     public void stepEnded(AbstractStepScope<Solution_> stepScope) {
         super.stepEnded(stepScope);
-        if (waitForFirstBestScore) {
-            waitForFirstBestScore = ((Score) currentBest).compareTo(stepScope.getScore()) >= 0;
+        var improved = ((Score) currentBest).compareTo(stepScope.getScore()) < 0;
+        if (flatLineIntervalMillis == 0) {
+            var currentTimeMillis = clock.millis();
+            if (isStarting(currentTimeMillis)) {
+                // The delay phase is finished and minFlatLineMillis is not calculated yet
+                if (improved && lastSolutionImprovementMillis == 0) {
+                    lastSolutionImprovementMillis = currentTimeMillis;
+                } else if (improved) {
+                    flatLineIntervalMillis = currentTimeMillis - lastSolutionImprovementMillis;
+                    maxFlatLineMillis = (long) (flatLineIntervalMillis * maxFlatLineRatio);
+
+                }
+            }
+        } else if (improved) {
+            lastSolutionImprovementMillis = clock.millis();
         }
     }
 
@@ -130,54 +82,19 @@ public final class UnimprovedBestSolutionTermination<Solution_> extends Abstract
         if (terminate != null) {
             return terminate;
         }
-        // Validate if there is a first best solution
-        if (waitForFirstBestScore) {
-            return false;
-        }
+        // 1 - Delay phase
         var currentTimeMillis = clock.millis();
-        var improved = currentBest.compareTo(phaseScope.getBestScore()) < 0;
-        var lastImprovementInterval = lastImprovementMillis - initialCurvePointMillis;
-        var completeInterval = currentTimeMillis - initialCurvePointMillis;
-        var newInterval = currentTimeMillis - lastImprovementMillis;
-        if (improved) {
-            // If there is a flat line between the last and new best solutions,
-            // the initial value becomes the most recent best score,
-            // as it would be the starting point for the new curve.
-            var minInterval = Math.floor(lastImprovementInterval * noStopFlatLineDetectionRatio);
-            var maxInterval = Math.floor(lastImprovementInterval * stopFlatLineDetectionRatio);
-            if (lastImprovementMillis > 0 && completeInterval >= delayExecutionTimeMillis && newInterval >= minInterval
-                    && newInterval < maxInterval) {
-                initialCurvePointMillis = lastImprovementMillis;
-                previousBest = currentBest;
-                if (logger.isInfoEnabled()) {
-                    logger.debug("Starting a new curve with ({}), time interval ({}s)",
-                            previousBest,
-                            String.format("%.2f", completeInterval / 1000.0));
-                }
-            }
-            lastImprovementMillis = currentTimeMillis;
-            currentBest = phaseScope.getBestScore();
-            terminate = null;
+        if (isStarting(currentTimeMillis)) {
             return false;
-        } else {
-            if (completeInterval < delayExecutionTimeMillis) {
-                return false;
-            }
-            var maxInterval = Math.floor(lastImprovementInterval * stopFlatLineDetectionRatio);
-            if (newInterval > maxInterval) {
-                terminate = true;
-                return true;
-            } else {
-                terminate = null;
-                return false;
-            }
         }
+        // 2 - Active monitoring phase
+        terminate = isActiveMonitoringPhaseFinished(currentTimeMillis);
+        return terminate;
     }
 
     // ************************************************************************
     // Time gradient methods
     // ************************************************************************
-
     @Override
     public double calculateSolverTimeGradient(SolverScope<Solution_> solverScope) {
         throw new UnsupportedOperationException(
@@ -195,16 +112,22 @@ public final class UnimprovedBestSolutionTermination<Solution_> extends Abstract
     // Other methods
     // ************************************************************************
 
+    private boolean isStarting(long currentTimeMillis) {
+        return currentTimeMillis >= delayPeriodMillis;
+    }
+
+    private boolean isActiveMonitoringPhaseFinished(long currentTimeMillis) {
+        return (currentTimeMillis - lastSolutionImprovementMillis) >= maxFlatLineMillis;
+    }
+
     @Override
     public UnimprovedBestSolutionTermination<Solution_> createChildThreadTermination(SolverScope<Solution_> solverScope,
             ChildThreadType childThreadType) {
-        return new UnimprovedBestSolutionTermination<>(stopFlatLineDetectionRatio, noStopFlatLineDetectionRatio,
-                delayExecutionTimeMillis / 1000, clock);
+        return new UnimprovedBestSolutionTermination<>(maxFlatLineRatio, clock);
     }
 
     @Override
     public String toString() {
-        return "UnimprovedBestSolutionTermination(%.2f, %.2f, %d)".formatted(stopFlatLineDetectionRatio,
-                noStopFlatLineDetectionRatio, delayExecutionTimeMillis / 1000);
+        return "UnimprovedBestSolutionTermination(%.2f)".formatted(maxFlatLineRatio);
     }
 }
