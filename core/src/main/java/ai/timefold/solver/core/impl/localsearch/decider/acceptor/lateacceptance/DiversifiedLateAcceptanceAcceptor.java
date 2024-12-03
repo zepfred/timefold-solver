@@ -56,7 +56,7 @@ public class DiversifiedLateAcceptanceAcceptor<Solution_> extends LateAcceptance
                     }
                 }
             }
-        } else {
+        } else if (accept) {
             lateScoreIndex = (lateScoreIndex + 1) % lateAcceptanceSize;
         }
         //        if (accept && moveScore.compareTo(moveScope.getStepScope().getPhaseScope().getBestScore()) > 0) {
@@ -71,8 +71,15 @@ public class DiversifiedLateAcceptanceAcceptor<Solution_> extends LateAcceptance
     }
 
     private void updateLateScore(Score<?> score) {
-        if (compare(previousScores[lateScoreIndex], lateWorse) == 0) {
-            lateWorseOccurrences--;
+        var worseCmp = compare(score, lateWorse);
+        var lateCmp = compare(previousScores[lateScoreIndex], lateWorse);
+        if (worseCmp < 0) {
+            this.lateWorse = score;
+            this.lateWorseOccurrences = 1;
+        } else if (lateCmp == 0 && worseCmp != 0) {
+            this.lateWorseOccurrences--;
+        } else if (lateCmp != 0 && worseCmp == 0) {
+            this.lateWorseOccurrences++;
         }
         previousScores[lateScoreIndex] = score;
         lateScoreIndex = (lateScoreIndex + 1) % lateAcceptanceSize;
