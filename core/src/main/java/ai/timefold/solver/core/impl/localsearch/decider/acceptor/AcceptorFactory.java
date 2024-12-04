@@ -217,11 +217,7 @@ public class AcceptorFactory<Solution_> {
     }
 
     private Optional<LateAcceptanceAcceptor<Solution_>> buildLateAcceptanceAcceptor() {
-        if (acceptorTypeListsContainsAcceptorType(AcceptorType.LATE_ACCEPTANCE)
-                || (acceptorConfig.getLateAcceptanceSize() != null
-                        && acceptorConfig.getLateAcceptanceStopFlatLineDetectionRatio() == null
-                        && acceptorConfig.getLateAcceptanceNoStopFlatLineDetectionRatio() == null
-                        && acceptorConfig.getLateAcceptanceDelayFlatLineSecondsSpentLimit() == null)) {
+        if (acceptorTypeListsContainsAcceptorType(AcceptorType.LATE_ACCEPTANCE)) {
             var acceptor = new LateAcceptanceAcceptor<Solution_>();
             acceptor.setLateAcceptanceSize(Objects.requireNonNullElse(acceptorConfig.getLateAcceptanceSize(), 400));
             return Optional.of(acceptor);
@@ -231,18 +227,9 @@ public class AcceptorFactory<Solution_> {
 
     private Optional<LateAcceptanceAcceptor<Solution_>>
             buildSmartLateAcceptanceAcceptor() {
-        if (acceptorTypeListsContainsAcceptorType(AcceptorType.SMART_LATE_ACCEPTANCE)
-                || (acceptorConfig.getLateAcceptanceStopFlatLineDetectionRatio() != null
-                        || acceptorConfig.getLateAcceptanceNoStopFlatLineDetectionRatio() != null
-                        || acceptorConfig.getLateAcceptanceDelayFlatLineSecondsSpentLimit() != null)) {
+        if (acceptorTypeListsContainsAcceptorType(AcceptorType.SMART_LATE_ACCEPTANCE)) {
             var acceptor = new SmartLateAcceptanceAcceptor<Solution_>();
-            acceptor.setLateAcceptanceSize(Objects.requireNonNullElse(acceptorConfig.getLateAcceptanceSize(), 400));
-            acceptor.setStopFlatLineDetectionRatio(
-                    Objects.requireNonNullElse(acceptorConfig.getLateAcceptanceStopFlatLineDetectionRatio(), 0.5));
-            acceptor.setNoStopFlatLineDetectionRatio(
-                    Objects.requireNonNullElse(acceptorConfig.getLateAcceptanceNoStopFlatLineDetectionRatio(), 0.4));
-            acceptor.setDelayFlatLineSecondsSpentLimit(
-                    Objects.requireNonNullElse(acceptorConfig.getLateAcceptanceDelayFlatLineSecondsSpentLimit(), 30L));
+            acceptor.setLateAcceptanceSize(Objects.requireNonNullElse(acceptorConfig.getLateAcceptanceSize(), 1));
             return Optional.of(acceptor);
         }
         return Optional.empty();

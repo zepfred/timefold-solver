@@ -95,17 +95,6 @@
         {
           "ignore": true,
           "code": "java.annotation.attributeValueChanged",
-          "old": "class ai.timefold.solver.core.config.localsearch.decider.acceptor.LocalSearchAcceptorConfig",
-          "new": "class ai.timefold.solver.core.config.localsearch.decider.acceptor.LocalSearchAcceptorConfig",
-          "annotationType": "jakarta.xml.bind.annotation.XmlType",
-          "attribute": "propOrder",
-          "oldValue": "{\"acceptorTypeList\", \"entityTabuSize\", \"entityTabuRatio\", \"fadingEntityTabuSize\", \"fadingEntityTabuRatio\", \"valueTabuSize\", \"valueTabuRatio\", \"fadingValueTabuSize\", \"fadingValueTabuRatio\", \"moveTabuSize\", \"fadingMoveTabuSize\", \"undoMoveTabuSize\", \"fadingUndoMoveTabuSize\", \"simulatedAnnealingStartingTemperature\", \"lateAcceptanceSize\", \"greatDelugeWaterLevelIncrementScore\", \"greatDelugeWaterLevelIncrementRatio\", \"stepCountingHillClimbingSize\", \"stepCountingHillClimbingType\"}",
-          "newValue": "{\"acceptorTypeList\", \"entityTabuSize\", \"entityTabuRatio\", \"fadingEntityTabuSize\", \"fadingEntityTabuRatio\", \"valueTabuSize\", \"valueTabuRatio\", \"fadingValueTabuSize\", \"fadingValueTabuRatio\", \"moveTabuSize\", \"fadingMoveTabuSize\", \"undoMoveTabuSize\", \"fadingUndoMoveTabuSize\", \"simulatedAnnealingStartingTemperature\", \"lateAcceptanceSize\", \"lateAcceptanceStopFlatLineDetectionRatio\", \"lateAcceptanceNoStopFlatLineDetectionRatio\", \"lateAcceptanceDelayFlatLineSecondsSpentLimit\", \"greatDelugeWaterLevelIncrementScore\", \"greatDelugeWaterLevelIncrementRatio\", \"stepCountingHillClimbingSize\", \"stepCountingHillClimbingType\"}",
-          "justification": "Add the Smart Late Acceptance properties"
-        },
-        {
-          "ignore": true,
-          "code": "java.annotation.attributeValueChanged",
           "old": "field ai.timefold.solver.core.config.constructionheuristic.ConstructionHeuristicPhaseConfig.moveSelectorConfigList",
           "new": "field ai.timefold.solver.core.config.constructionheuristic.ConstructionHeuristicPhaseConfig.moveSelectorConfigList",
           "annotationType": "jakarta.xml.bind.annotation.XmlElements",

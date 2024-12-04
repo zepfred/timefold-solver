@@ -29,9 +29,6 @@ import org.jspecify.annotations.Nullable;
         "fadingUndoMoveTabuSize",
         "simulatedAnnealingStartingTemperature",
         "lateAcceptanceSize",
-        "lateAcceptanceStopFlatLineDetectionRatio",
-        "lateAcceptanceNoStopFlatLineDetectionRatio",
-        "lateAcceptanceDelayFlatLineSecondsSpentLimit",
         "greatDelugeWaterLevelIncrementScore",
         "greatDelugeWaterLevelIncrementRatio",
         "stepCountingHillClimbingSize",
@@ -66,10 +63,6 @@ public class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchAccepto
     protected String simulatedAnnealingStartingTemperature = null;
 
     protected Integer lateAcceptanceSize = null;
-
-    protected Double lateAcceptanceStopFlatLineDetectionRatio = null;
-    protected Double lateAcceptanceNoStopFlatLineDetectionRatio = null;
-    protected Long lateAcceptanceDelayFlatLineSecondsSpentLimit = null;
 
     protected String greatDelugeWaterLevelIncrementScore = null;
     protected Double greatDelugeWaterLevelIncrementRatio = null;
@@ -229,30 +222,6 @@ public class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchAccepto
         this.lateAcceptanceSize = lateAcceptanceSize;
     }
 
-    public @Nullable Double getLateAcceptanceStopFlatLineDetectionRatio() {
-        return lateAcceptanceStopFlatLineDetectionRatio;
-    }
-
-    public void setLateAcceptanceStopFlatLineDetectionRatio(@Nullable Double lateAcceptanceStopFlatLineDetectionRatio) {
-        this.lateAcceptanceStopFlatLineDetectionRatio = lateAcceptanceStopFlatLineDetectionRatio;
-    }
-
-    public @Nullable Double getLateAcceptanceNoStopFlatLineDetectionRatio() {
-        return lateAcceptanceNoStopFlatLineDetectionRatio;
-    }
-
-    public void setLateAcceptanceNoStopFlatLineDetectionRatio(@Nullable Double lateAcceptanceNoStopFlatLineDetectionRatio) {
-        this.lateAcceptanceNoStopFlatLineDetectionRatio = lateAcceptanceNoStopFlatLineDetectionRatio;
-    }
-
-    public @Nullable Long getLateAcceptanceDelayFlatLineSecondsSpentLimit() {
-        return lateAcceptanceDelayFlatLineSecondsSpentLimit;
-    }
-
-    public void setLateAcceptanceDelayFlatLineSecondsSpentLimit(@Nullable Long lateAcceptanceDelayFlatLineSecondsSpentLimit) {
-        this.lateAcceptanceDelayFlatLineSecondsSpentLimit = lateAcceptanceDelayFlatLineSecondsSpentLimit;
-    }
-
     public @Nullable String getGreatDelugeWaterLevelIncrementScore() {
         return greatDelugeWaterLevelIncrementScore;
     }
@@ -373,24 +342,6 @@ public class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchAccepto
         return this;
     }
 
-    public @NonNull LocalSearchAcceptorConfig
-            withLateAcceptanceStopFlatLineDetectionRatio(@NonNull Double lateAcceptanceStopFlatLineDetectionRatio) {
-        this.lateAcceptanceStopFlatLineDetectionRatio = lateAcceptanceStopFlatLineDetectionRatio;
-        return this;
-    }
-
-    public @NonNull LocalSearchAcceptorConfig
-            withLateAcceptanceNoStopFlatLineDetectionRatio(@NonNull Double reconfigurationNoStopFlatLineDetectionRatio) {
-        this.lateAcceptanceNoStopFlatLineDetectionRatio = reconfigurationNoStopFlatLineDetectionRatio;
-        return this;
-    }
-
-    public @NonNull LocalSearchAcceptorConfig
-            withLateAcceptanceMinimalExecutionTimeSeconds(@NonNull Long lateAcceptanceDelayFlatLineSecondsSpentLimit) {
-        this.lateAcceptanceDelayFlatLineSecondsSpentLimit = lateAcceptanceDelayFlatLineSecondsSpentLimit;
-        return this;
-    }
-
     public @NonNull LocalSearchAcceptorConfig withStepCountingHillClimbingSize(@NonNull Integer stepCountingHillClimbingSize) {
         this.stepCountingHillClimbingSize = stepCountingHillClimbingSize;
         return this;
@@ -439,15 +390,6 @@ public class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchAccepto
                 simulatedAnnealingStartingTemperature, inheritedConfig.getSimulatedAnnealingStartingTemperature());
         lateAcceptanceSize = ConfigUtils.inheritOverwritableProperty(lateAcceptanceSize,
                 inheritedConfig.getLateAcceptanceSize());
-        lateAcceptanceStopFlatLineDetectionRatio =
-                ConfigUtils.inheritOverwritableProperty(lateAcceptanceStopFlatLineDetectionRatio,
-                        inheritedConfig.getLateAcceptanceStopFlatLineDetectionRatio());
-        lateAcceptanceNoStopFlatLineDetectionRatio =
-                ConfigUtils.inheritOverwritableProperty(lateAcceptanceNoStopFlatLineDetectionRatio,
-                        inheritedConfig.getLateAcceptanceNoStopFlatLineDetectionRatio());
-        lateAcceptanceDelayFlatLineSecondsSpentLimit =
-                ConfigUtils.inheritOverwritableProperty(lateAcceptanceDelayFlatLineSecondsSpentLimit,
-                        inheritedConfig.getLateAcceptanceDelayFlatLineSecondsSpentLimit());
         greatDelugeWaterLevelIncrementScore = ConfigUtils.inheritOverwritableProperty(greatDelugeWaterLevelIncrementScore,
                 inheritedConfig.getGreatDelugeWaterLevelIncrementScore());
         greatDelugeWaterLevelIncrementRatio = ConfigUtils.inheritOverwritableProperty(greatDelugeWaterLevelIncrementRatio,

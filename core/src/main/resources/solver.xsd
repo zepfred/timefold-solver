@@ -1475,12 +1475,6 @@
                     
           <xs:element minOccurs="0" name="lateAcceptanceSize" type="xs:int"/>
                     
-          <xs:element minOccurs="0" name="lateAcceptanceStopFlatLineDetectionRatio" type="xs:double"/>
-                    
-          <xs:element minOccurs="0" name="lateAcceptanceNoStopFlatLineDetectionRatio" type="xs:double"/>
-                    
-          <xs:element minOccurs="0" name="lateAcceptanceDelayFlatLineSecondsSpentLimit" type="xs:long"/>
-                    
           <xs:element minOccurs="0" name="greatDelugeWaterLevelIncrementScore" type="xs:string"/>
                     
           <xs:element minOccurs="0" name="greatDelugeWaterLevelIncrementRatio" type="xs:double"/>
