@@ -85,8 +85,8 @@ public class DefaultLocalSearchPhaseFactory<Solution_> extends AbstractPhaseFact
                     reconfigurationStrategy, acceptor, forager);
         } else {
             decider = TimefoldSolverEnterpriseService.loadOrFail(TimefoldSolverEnterpriseService.Feature.MULTITHREADED_SOLVING)
-                    .buildLocalSearch(moveThreadCount, termination, moveSelector, acceptor, forager, environmentMode,
-                            configPolicy);
+                    .buildLocalSearch(moveThreadCount, termination, moveSelector, reconfigurationStrategy, acceptor, forager,
+                            environmentMode, configPolicy);
         }
         if (environmentMode.isNonIntrusiveFullAsserted()) {
             decider.setAssertMoveScoreFromScratch(true);
