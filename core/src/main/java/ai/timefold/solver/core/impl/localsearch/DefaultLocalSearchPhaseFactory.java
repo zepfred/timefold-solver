@@ -67,8 +67,8 @@ public class DefaultLocalSearchPhaseFactory<Solution_> extends AbstractPhaseFact
     private LocalSearchDecider<Solution_> buildDecider(HeuristicConfigPolicy<Solution_> configPolicy,
             Termination<Solution_> termination) {
         var moveSelector = buildMoveSelector(configPolicy);
-        var reconfigurationStrategy = buildReconfigurationStrategy(configPolicy);
         var acceptor = buildAcceptor(configPolicy);
+        var reconfigurationStrategy = buildReconfigurationStrategy(configPolicy, moveSelector, acceptor);
         var forager = buildForager(configPolicy);
         if (moveSelector.isNeverEnding() && !forager.supportsNeverEndingMoveSelector()) {
             throw new IllegalStateException("The moveSelector (" + moveSelector
@@ -93,9 +93,6 @@ public class DefaultLocalSearchPhaseFactory<Solution_> extends AbstractPhaseFact
         }
         if (environmentMode.isIntrusiveFastAsserted()) {
             decider.setAssertExpectedUndoMoveScore(true);
-        }
-        if (reconfigurationStrategy instanceof RestoreBestSolutionReconfigurationStrategy<Solution_> castReconfigurationStrategy) {
-            castReconfigurationStrategy.setDecider(decider);
         }
         return decider;
     }
@@ -203,14 +200,15 @@ public class DefaultLocalSearchPhaseFactory<Solution_> extends AbstractPhaseFact
         return moveSelector;
     }
 
-    private ReconfigurationStrategy<Solution_> buildReconfigurationStrategy(HeuristicConfigPolicy<Solution_> configPolicy) {
+    private ReconfigurationStrategy<Solution_> buildReconfigurationStrategy(HeuristicConfigPolicy<Solution_> configPolicy,
+            MoveSelector<Solution_> moveSelector, Acceptor<Solution_> acceptor) {
         var acceptorConfig = phaseConfig.getAcceptorConfig();
         if (acceptorConfig != null) {
             var enableReconfiguration =
                     acceptorConfig.getEnableReconfiguration() != null && acceptorConfig.getEnableReconfiguration();
             if (enableReconfiguration) {
                 configPolicy.ensurePreviewFeature(PreviewFeature.RECONFIGURATION);
-                return new RestoreBestSolutionReconfigurationStrategy<>();
+                return new RestoreBestSolutionReconfigurationStrategy<>(moveSelector, acceptor);
             }
         }
         return new NoOpReconfigurationStrategy<>();
