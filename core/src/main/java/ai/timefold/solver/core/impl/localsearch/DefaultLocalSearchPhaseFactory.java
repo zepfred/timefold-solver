@@ -32,9 +32,9 @@ import ai.timefold.solver.core.impl.localsearch.decider.acceptor.Acceptor;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.AcceptorFactory;
 import ai.timefold.solver.core.impl.localsearch.decider.forager.LocalSearchForager;
 import ai.timefold.solver.core.impl.localsearch.decider.forager.LocalSearchForagerFactory;
-import ai.timefold.solver.core.impl.localsearch.decider.perturbation.MoveSelectorPerturbationStrategy;
-import ai.timefold.solver.core.impl.localsearch.decider.perturbation.NoPerturbationStrategy;
-import ai.timefold.solver.core.impl.localsearch.decider.perturbation.PerturbationStrategy;
+import ai.timefold.solver.core.impl.localsearch.decider.reconfiguration.NoOpReconfigurationStrategy;
+import ai.timefold.solver.core.impl.localsearch.decider.reconfiguration.ReconfigurationStrategy;
+import ai.timefold.solver.core.impl.localsearch.decider.reconfiguration.RestoreBestSolutionReconfigurationStrategy;
 import ai.timefold.solver.core.impl.phase.AbstractPhaseFactory;
 import ai.timefold.solver.core.impl.solver.recaller.BestSolutionRecaller;
 import ai.timefold.solver.core.impl.solver.termination.Termination;
@@ -67,7 +67,7 @@ public class DefaultLocalSearchPhaseFactory<Solution_> extends AbstractPhaseFact
     private LocalSearchDecider<Solution_> buildDecider(HeuristicConfigPolicy<Solution_> configPolicy,
             Termination<Solution_> termination) {
         var moveSelector = buildMoveSelector(configPolicy);
-        var reconfigurationStrategy = buildPerturbationStrategy(configPolicy);
+        var reconfigurationStrategy = buildReconfigurationStrategy(configPolicy);
         var acceptor = buildAcceptor(configPolicy);
         var forager = buildForager(configPolicy);
         if (moveSelector.isNeverEnding() && !forager.supportsNeverEndingMoveSelector()) {
@@ -93,6 +93,9 @@ public class DefaultLocalSearchPhaseFactory<Solution_> extends AbstractPhaseFact
         }
         if (environmentMode.isIntrusiveFastAsserted()) {
             decider.setAssertExpectedUndoMoveScore(true);
+        }
+        if (reconfigurationStrategy instanceof RestoreBestSolutionReconfigurationStrategy<Solution_> castReconfigurationStrategy) {
+            castReconfigurationStrategy.setDecider(decider);
         }
         return decider;
     }
@@ -200,21 +203,17 @@ public class DefaultLocalSearchPhaseFactory<Solution_> extends AbstractPhaseFact
         return moveSelector;
     }
 
-    private PerturbationStrategy<Solution_> buildPerturbationStrategy(HeuristicConfigPolicy<Solution_> configPolicy) {
+    private ReconfigurationStrategy<Solution_> buildReconfigurationStrategy(HeuristicConfigPolicy<Solution_> configPolicy) {
         var acceptorConfig = phaseConfig.getAcceptorConfig();
         if (acceptorConfig != null) {
-            var reconfigurationSelectorConfig = acceptorConfig.getPerturbationSelectorConfig();
-            if (reconfigurationSelectorConfig != null) {
-                configPolicy.ensurePreviewFeature(PreviewFeature.ACCEPTOR_RECONFIGURATION);
-                AbstractMoveSelectorFactory<Solution_, ?> moveSelectorFactory =
-                        MoveSelectorFactory.create(reconfigurationSelectorConfig);
-                var moveSelector = moveSelectorFactory.buildMoveSelector(configPolicy, SelectionCacheType.JUST_IN_TIME,
-                        SelectionOrder.RANDOM, true);
-                var maxLevels = Objects.requireNonNullElse(acceptorConfig.getMaxPerturbationCount(), 3);
-                return new MoveSelectorPerturbationStrategy<>(moveSelector, maxLevels);
+            var enableReconfiguration =
+                    acceptorConfig.getEnableReconfiguration() != null && acceptorConfig.getEnableReconfiguration();
+            if (enableReconfiguration) {
+                configPolicy.ensurePreviewFeature(PreviewFeature.RECONFIGURATION);
+                return new RestoreBestSolutionReconfigurationStrategy<>();
             }
         }
-        return new NoPerturbationStrategy<>();
+        return new NoOpReconfigurationStrategy<>();
     }
 
     private UnionMoveSelectorConfig determineDefaultMoveSelectorConfig(HeuristicConfigPolicy<Solution_> configPolicy) {
