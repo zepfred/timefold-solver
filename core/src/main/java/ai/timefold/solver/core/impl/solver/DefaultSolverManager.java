@@ -14,6 +14,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
+import ai.timefold.solver.core.api.score.stream.ConstraintMetaModel;
 import ai.timefold.solver.core.api.solver.Solver;
 import ai.timefold.solver.core.api.solver.SolverConfigOverride;
 import ai.timefold.solver.core.api.solver.SolverFactory;
@@ -26,6 +27,7 @@ import ai.timefold.solver.core.config.solver.SolverManagerConfig;
 import ai.timefold.solver.core.config.util.ConfigUtils;
 
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -127,6 +129,15 @@ public final class DefaultSolverManager<Solution_, ProblemId_> implements Solver
             return SolverStatus.NOT_SOLVING;
         }
         return solverJob.getSolverStatus();
+    }
+
+    @Override
+    public @Nullable ConstraintMetaModel getConstraintMetaModel(@NonNull ProblemId_ problemId) {
+        DefaultSolverJob<Solution_, ProblemId_> solverJob = getSolverJob(problemId);
+        if (solverJob == null) {
+            return null;
+        }
+        return solverJob.getConstraintMetaModel();
     }
 
     // TODO Future features

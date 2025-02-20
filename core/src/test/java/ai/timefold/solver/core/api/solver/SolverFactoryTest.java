@@ -1,11 +1,7 @@
 package ai.timefold.solver.core.api.solver;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
-import static org.mockito.Mockito.atLeast;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,6 +11,7 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
 
+import ai.timefold.solver.core.api.score.buildin.simple.SimpleScore;
 import ai.timefold.solver.core.config.constructionheuristic.ConstructionHeuristicPhaseConfig;
 import ai.timefold.solver.core.config.localsearch.LocalSearchPhaseConfig;
 import ai.timefold.solver.core.config.phase.custom.CustomPhaseConfig;
@@ -24,7 +21,9 @@ import ai.timefold.solver.core.impl.score.DummySimpleScoreEasyScoreCalculator;
 import ai.timefold.solver.core.impl.score.constraint.ConstraintMatchPolicy;
 import ai.timefold.solver.core.impl.solver.DefaultSolver;
 import ai.timefold.solver.core.impl.solver.DefaultSolverFactory;
+import ai.timefold.solver.core.impl.testdata.domain.TestdataConstraintProvider;
 import ai.timefold.solver.core.impl.testdata.domain.TestdataEntity;
+import ai.timefold.solver.core.impl.testdata.domain.TestdataIncrementalScoreCalculator;
 import ai.timefold.solver.core.impl.testdata.domain.TestdataSolution;
 import ai.timefold.solver.core.impl.testdata.domain.TestdataValue;
 import ai.timefold.solver.core.impl.testdata.util.PlannerTestUtils;
@@ -141,7 +140,7 @@ class SolverFactoryTest {
     }
 
     @Test
-    void createAndOverrideSettings() {
+    void createAndOverrideTermination() {
         var solverConfig = PlannerTestUtils.buildSolverConfig(TestdataSolution.class, TestdataEntity.class);
         SolverFactory<TestdataSolution> solverFactory = SolverFactory.create(solverConfig);
         SolverConfigOverride<TestdataSolution> configOverride = mock(SolverConfigOverride.class);
@@ -152,6 +151,61 @@ class SolverFactoryTest {
         assertThat(solver).isNotNull();
         verify(configOverride, atLeast(1)).getTerminationConfig();
     }
+
+    @Test
+    void easyScoreCalculatorOverrideConstraints() {
+        var solverConfig = PlannerTestUtils.buildSolverConfig(TestdataSolution.class, TestdataEntity.class);
+        var solverFactory = (DefaultSolverFactory) SolverFactory.create(solverConfig);
+        var configOverride = new SolverConfigOverride<TestdataSolution>();
+        configOverride.withConstraint(factory -> factory.forEach(TestdataEntity.class)
+                .penalizeLong(SimpleScore.of(-1))
+                .asConstraint("New Constraint"));
+        assertThatThrownBy(() -> solverFactory.buildSolver(configOverride))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Overriding constraints are not supported for EasyScoreDirectorFactory.");
+    }
+
+    @Test
+    void incrementalScoreCalculatorOverrideConstraints() {
+        var solverConfig =
+                PlannerTestUtils.buildIncrementalCalculatorSolverConfig(TestdataIncrementalScoreCalculator.class,
+                        TestdataSolution.class, TestdataEntity.class);
+        var solverFactory = (DefaultSolverFactory) SolverFactory.create(solverConfig);
+        var configOverride = new SolverConfigOverride<TestdataSolution>();
+        configOverride.withConstraint(factory -> factory.forEach(TestdataEntity.class)
+                .penalizeLong(SimpleScore.of(-1))
+                .asConstraint("New Constraint"));
+        assertThatThrownBy(() -> solverFactory.buildSolver(configOverride))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("Overriding constraints are not supported for IncrementalScoreDirectorFactory.");
+    }
+
+    @Test
+    void constraintProviderAddNewConstraint() {
+        var solverConfig = PlannerTestUtils.buildSolverConfig(TestdataSolution.class, TestdataEntity.class);
+        solverConfig.getScoreDirectorFactoryConfig().setEasyScoreCalculatorClass(null);
+        solverConfig.getScoreDirectorFactoryConfig().withConstraintProviderClass(TestdataConstraintProvider.class);
+        var solverFactory = (DefaultSolverFactory) SolverFactory.create(solverConfig);
+        var configOverride = new SolverConfigOverride<TestdataSolution>();
+        configOverride.withConstraint(factory -> factory.forEach(TestdataEntity.class)
+                .penalizeLong(SimpleScore.of(-1))
+                .asConstraint("New Constraint"));
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> solverFactory.buildSolver(configOverride));
+    }
+
+    @Test
+    void constraintProviderOverrideConstraint() {
+        var solverConfig = PlannerTestUtils.buildSolverConfig(TestdataSolution.class, TestdataEntity.class);
+        solverConfig.getScoreDirectorFactoryConfig().setEasyScoreCalculatorClass(null);
+        solverConfig.getScoreDirectorFactoryConfig().withConstraintProviderClass(TestdataConstraintProvider.class);
+        var solverFactory = (DefaultSolverFactory) SolverFactory.create(solverConfig);
+        var configOverride = new SolverConfigOverride<TestdataSolution>();
+        configOverride.withConstraint(factory -> factory.forEach(TestdataEntity.class)
+                .penalize(SimpleScore.of(10))
+                .asConstraint("Always penalize"));
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(() -> solverFactory.buildSolver(configOverride));
+    }
+
 
     @Test
     void getScoreDirectorFactory() {

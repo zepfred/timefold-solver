@@ -129,6 +129,7 @@ public class TimefoldDevUIPropertiesRPCService {
         }
     }
 
+    // TODO - This provides the default list of constraints from the factory. What should we do if the user overrides these constraints  (maybe nothing at all)?
     private List<ConstraintRef> buildConstraintList(SolverFactory<?> solverFactory) {
         if (solverFactory != null) {
             var scoreDirectorFactory = ((DefaultSolverFactory<?>) solverFactory).getScoreDirectorFactory();

@@ -1,8 +1,11 @@
 package ai.timefold.solver.core.impl.score.director;
 
 import java.util.ArrayList;
+import java.util.function.Function;
 
 import ai.timefold.solver.core.api.score.Score;
+import ai.timefold.solver.core.api.score.stream.Constraint;
+import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
 import ai.timefold.solver.core.config.score.trend.InitializingScoreTrendLevel;
 import ai.timefold.solver.core.config.solver.EnvironmentMode;
@@ -22,8 +25,9 @@ public class ScoreDirectorFactoryFactory<Solution_, Score_ extends Score<Score_>
     }
 
     public InnerScoreDirectorFactory<Solution_, Score_> buildScoreDirectorFactory(EnvironmentMode environmentMode,
-            SolutionDescriptor<Solution_> solutionDescriptor) {
-        var scoreDirectorFactory = decideMultipleScoreDirectorFactories(solutionDescriptor, environmentMode);
+            SolutionDescriptor<Solution_> solutionDescriptor, Function<ConstraintFactory, Constraint>[] constraintsToOverride) {
+        var scoreDirectorFactory =
+                decideMultipleScoreDirectorFactories(solutionDescriptor, environmentMode, constraintsToOverride);
         var assertionScoreDirectorFactory = config.getAssertionScoreDirectorFactory();
         if (assertionScoreDirectorFactory != null) {
             if (assertionScoreDirectorFactory.getAssertionScoreDirectorFactory() != null) {
@@ -40,7 +44,7 @@ public class ScoreDirectorFactoryFactory<Solution_, Score_ extends Score<Score_>
             var assertionScoreDirectorFactoryFactory =
                     new ScoreDirectorFactoryFactory<Solution_, Score_>(assertionScoreDirectorFactory);
             scoreDirectorFactory.setAssertionScoreDirectorFactory(assertionScoreDirectorFactoryFactory
-                    .buildScoreDirectorFactory(EnvironmentMode.NON_REPRODUCIBLE, solutionDescriptor));
+                    .buildScoreDirectorFactory(EnvironmentMode.NON_REPRODUCIBLE, solutionDescriptor, constraintsToOverride));
         }
         scoreDirectorFactory.setInitializingScoreTrend(InitializingScoreTrend.parseTrend(
                 config.getInitializingScoreTrend() == null ? InitializingScoreTrendLevel.ANY.name()
@@ -56,7 +60,8 @@ public class ScoreDirectorFactoryFactory<Solution_, Score_ extends Score<Score_>
     }
 
     protected AbstractScoreDirectorFactory<Solution_, Score_> decideMultipleScoreDirectorFactories(
-            SolutionDescriptor<Solution_> solutionDescriptor, EnvironmentMode environmentMode) {
+            SolutionDescriptor<Solution_> solutionDescriptor, EnvironmentMode environmentMode,
+            Function<ConstraintFactory, Constraint>[] constraintsToOverride) {
         if (!ConfigUtils.isEmptyCollection(config.getScoreDrlList())) {
             throw new IllegalStateException(
                     """
@@ -68,12 +73,19 @@ public class ScoreDirectorFactoryFactory<Solution_, Score_ extends Score<Score_>
 
         // At this point, we are guaranteed to have at most one score director factory selected.
         if (config.getEasyScoreCalculatorClass() != null) {
+            if (constraintsToOverride != null) {
+                throw new IllegalArgumentException("Overriding constraints are not supported for EasyScoreDirectorFactory.");
+            }
             return EasyScoreDirectorFactory.buildScoreDirectorFactory(solutionDescriptor, config);
         } else if (config.getIncrementalScoreCalculatorClass() != null) {
+            if (constraintsToOverride != null) {
+                throw new IllegalArgumentException(
+                        "Overriding constraints are not supported for IncrementalScoreDirectorFactory.");
+            }
             return IncrementalScoreDirectorFactory.buildScoreDirectorFactory(solutionDescriptor, config);
         } else if (config.getConstraintProviderClass() != null) {
             return BavetConstraintStreamScoreDirectorFactory.buildScoreDirectorFactory(solutionDescriptor, config,
-                    environmentMode);
+                    environmentMode, constraintsToOverride);
         } else {
             throw new IllegalArgumentException(
                     "The scoreDirectorFactory lacks configuration for either constraintProviderClass, " +

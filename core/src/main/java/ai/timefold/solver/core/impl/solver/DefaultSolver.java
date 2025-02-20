@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 import ai.timefold.solver.core.api.domain.lookup.PlanningId;
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
 import ai.timefold.solver.core.api.score.Score;
+import ai.timefold.solver.core.api.score.stream.ConstraintMetaModel;
 import ai.timefold.solver.core.api.solver.ProblemFactChange;
 import ai.timefold.solver.core.api.solver.Solver;
 import ai.timefold.solver.core.api.solver.change.ProblemChange;
@@ -20,6 +21,7 @@ import ai.timefold.solver.core.impl.domain.common.accessor.MemberAccessor;
 import ai.timefold.solver.core.impl.phase.Phase;
 import ai.timefold.solver.core.impl.score.director.InnerScoreDirector;
 import ai.timefold.solver.core.impl.score.director.InnerScoreDirectorFactory;
+import ai.timefold.solver.core.impl.score.stream.common.AbstractConstraintStreamScoreDirectorFactory;
 import ai.timefold.solver.core.impl.solver.change.ProblemChangeAdapter;
 import ai.timefold.solver.core.impl.solver.random.RandomFactory;
 import ai.timefold.solver.core.impl.solver.recaller.BestSolutionRecaller;
@@ -108,6 +110,19 @@ public class DefaultSolver<Solution_> extends AbstractSolver<Solution_> {
 
     public long getMoveEvaluationSpeed() {
         return solverScope.getMoveEvaluationSpeed();
+    }
+
+    @Override
+    @NonNull
+    public ConstraintMetaModel getConstraintMetaModel() {
+        var solverScoreDirectorFactory = solverScope.getScoreDirector().getScoreDirectorFactory();
+        if (solverScoreDirectorFactory instanceof AbstractConstraintStreamScoreDirectorFactory<?, ?> castSolverScoreDirectorFactory) {
+            return castSolverScoreDirectorFactory.getConstraintMetaModel();
+        } else {
+            throw new IllegalStateException(
+                    "Cannot provide %s because the score director does not use the Constraint Streams API."
+                            .formatted(ConstraintMetaModel.class.getSimpleName()));
+        }
     }
 
     @Override

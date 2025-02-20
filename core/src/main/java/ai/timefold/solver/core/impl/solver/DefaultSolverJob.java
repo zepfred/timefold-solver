@@ -16,6 +16,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
+import ai.timefold.solver.core.api.score.stream.ConstraintMetaModel;
 import ai.timefold.solver.core.api.solver.ProblemSizeStatistics;
 import ai.timefold.solver.core.api.solver.Solver;
 import ai.timefold.solver.core.api.solver.SolverJob;
@@ -254,6 +255,12 @@ public final class DefaultSolverJob<Solution_, ProblemId_> implements SolverJob<
         }
         // Solving has not started yet
         return solver.getSolverScope().getSolutionDescriptor().getProblemSizeStatistics(problemFinder.apply(problemId));
+    }
+
+    @Override
+    @NonNull
+    public ConstraintMetaModel getConstraintMetaModel() {
+        return solver.getConstraintMetaModel();
     }
 
     public Termination<Solution_> getSolverTermination() {

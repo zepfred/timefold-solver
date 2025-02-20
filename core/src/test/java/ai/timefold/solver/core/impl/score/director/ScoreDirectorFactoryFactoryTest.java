@@ -82,7 +82,7 @@ class ScoreDirectorFactoryFactoryTest {
     private <Score_ extends Score<Score_>> ScoreDirectorFactory<TestdataSolution> buildTestdataScoreDirectoryFactory(
             ScoreDirectorFactoryConfig config, EnvironmentMode environmentMode) {
         return new ScoreDirectorFactoryFactory<TestdataSolution, Score_>(config)
-                .buildScoreDirectorFactory(environmentMode, TestdataSolution.buildSolutionDescriptor());
+                .buildScoreDirectorFactory(environmentMode, TestdataSolution.buildSolutionDescriptor(), null);
     }
 
     private ScoreDirectorFactory<TestdataSolution> buildTestdataScoreDirectoryFactory(ScoreDirectorFactoryConfig config) {
@@ -95,7 +95,7 @@ class ScoreDirectorFactoryFactoryTest {
                 .withConstraintProviderClass(TestdataConstraintProvider.class);
         var scoreDirectorFactory =
                 BavetConstraintStreamScoreDirectorFactory.buildScoreDirectorFactory(TestdataSolution.buildSolutionDescriptor(),
-                        config, EnvironmentMode.REPRODUCIBLE);
+                        config, EnvironmentMode.REPRODUCIBLE, null);
         assertThat(scoreDirectorFactory).isInstanceOf(BavetConstraintStreamScoreDirectorFactory.class);
     }
 

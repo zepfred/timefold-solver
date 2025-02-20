@@ -7,6 +7,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.function.Consumer;
 
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
+import ai.timefold.solver.core.api.score.stream.ConstraintMetaModel;
 import ai.timefold.solver.core.api.solver.change.ProblemChange;
 
 import org.jspecify.annotations.NonNull;
@@ -139,4 +140,16 @@ public interface SolverJob<Solution_, ProblemId_> {
      *         since the last (re)start, at least 0
      */
     long getMoveEvaluationSpeed();
+
+    /**
+     * Retrieve the constraint metamodel of the current {@link SolverJob}.
+     * The solver instance may contain distinct constraint models,
+     * as the constraints can be overridden during the solver's creation process.
+     *
+     * @return never null, the solver job constraint model
+     *
+     * @see Solver#getConstraintMetaModel()
+     */
+    @NonNull
+    ConstraintMetaModel getConstraintMetaModel();
 }

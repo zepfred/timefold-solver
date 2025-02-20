@@ -2,8 +2,11 @@ package ai.timefold.solver.core.impl.score.director.stream;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import ai.timefold.solver.core.api.score.Score;
+import ai.timefold.solver.core.api.score.stream.Constraint;
+import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.api.score.stream.ConstraintMetaModel;
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
 import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
@@ -24,7 +27,7 @@ public final class BavetConstraintStreamScoreDirectorFactory<Solution_, Score_ e
 
     public static <Solution_, Score_ extends Score<Score_>> BavetConstraintStreamScoreDirectorFactory<Solution_, Score_>
             buildScoreDirectorFactory(SolutionDescriptor<Solution_> solutionDescriptor, ScoreDirectorFactoryConfig config,
-                    EnvironmentMode environmentMode) {
+                    EnvironmentMode environmentMode, Function<ConstraintFactory, Constraint>[] constraintsToOverride) {
         var providedConstraintProviderClass = config.getConstraintProviderClass();
         if (providedConstraintProviderClass == null
                 || !ConstraintProvider.class.isAssignableFrom(providedConstraintProviderClass)) {
@@ -36,7 +39,8 @@ public final class BavetConstraintStreamScoreDirectorFactory<Solution_, Score_ e
         var constraintProvider = ConfigUtils.newInstance(config, "constraintProviderClass", constraintProviderClass);
         ConfigUtils.applyCustomProperties(constraintProvider, "constraintProviderClass",
                 config.getConstraintProviderCustomProperties(), "constraintProviderCustomProperties");
-        return new BavetConstraintStreamScoreDirectorFactory<>(solutionDescriptor, constraintProvider, environmentMode);
+        return new BavetConstraintStreamScoreDirectorFactory<>(solutionDescriptor, constraintProvider, constraintsToOverride,
+                environmentMode);
     }
 
     private static Class<? extends ConstraintProvider> getConstraintProviderClass(ScoreDirectorFactoryConfig config,
@@ -55,9 +59,16 @@ public final class BavetConstraintStreamScoreDirectorFactory<Solution_, Score_ e
 
     public BavetConstraintStreamScoreDirectorFactory(SolutionDescriptor<Solution_> solutionDescriptor,
             ConstraintProvider constraintProvider, EnvironmentMode environmentMode) {
+        this(solutionDescriptor, constraintProvider, null, environmentMode);
+    }
+
+    public BavetConstraintStreamScoreDirectorFactory(SolutionDescriptor<Solution_> solutionDescriptor,
+            ConstraintProvider constraintProvider, Function<ConstraintFactory, Constraint>[] constraintsToOverride,
+            EnvironmentMode environmentMode) {
         super(solutionDescriptor);
         var constraintFactory = new BavetConstraintFactory<>(solutionDescriptor, environmentMode);
-        constraintMetaModel = DefaultConstraintMetaModel.of(constraintFactory.buildConstraints(constraintProvider));
+        constraintMetaModel =
+                DefaultConstraintMetaModel.of(constraintFactory.buildConstraints(constraintProvider, constraintsToOverride));
         constraintSessionFactory = new BavetConstraintSessionFactory<>(solutionDescriptor, constraintMetaModel);
     }
 

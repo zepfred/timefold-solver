@@ -1,7 +1,6 @@
 package ai.timefold.solver.test.impl.score.stream;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.BiFunction;
@@ -60,9 +59,9 @@ final class ScoreDirectorFactoryCache<ConstraintProvider_ extends ConstraintProv
          */
         InnerConstraintFactory<Solution_, ?> fullConstraintFactory =
                 new BavetConstraintFactory<>(solutionDescriptor, environmentMode);
-        List<Constraint> constraints = (List<Constraint>) fullConstraintFactory.buildConstraints(constraintProvider);
-        Constraint expectedConstraint = constraintFunction.apply(constraintProvider, fullConstraintFactory);
-        Constraint result = constraints.stream()
+        var constraints = fullConstraintFactory.buildConstraints(constraintProvider, null);
+        var expectedConstraint = constraintFunction.apply(constraintProvider, fullConstraintFactory);
+        var result = constraints.stream()
                 .filter(c -> Objects.equals(c.getConstraintRef(), expectedConstraint.getConstraintRef()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("Impossible state: Constraint provider (" + constraintProvider

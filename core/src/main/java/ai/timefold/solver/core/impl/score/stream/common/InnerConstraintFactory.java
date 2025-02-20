@@ -3,16 +3,14 @@ package ai.timefold.solver.core.impl.score.stream.common;
 import static ai.timefold.solver.core.api.score.stream.Joiners.lessThan;
 import static java.util.stream.Collectors.groupingBy;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import ai.timefold.solver.core.api.domain.lookup.PlanningId;
-import ai.timefold.solver.core.api.score.constraint.ConstraintRef;
 import ai.timefold.solver.core.api.score.stream.Constraint;
 import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
@@ -20,7 +18,6 @@ import ai.timefold.solver.core.api.score.stream.bi.BiConstraintStream;
 import ai.timefold.solver.core.api.score.stream.bi.BiJoiner;
 import ai.timefold.solver.core.impl.bavet.bi.joiner.BiJoinerComber;
 import ai.timefold.solver.core.impl.bavet.bi.joiner.DefaultBiJoiner;
-import ai.timefold.solver.core.impl.domain.common.accessor.MemberAccessor;
 import ai.timefold.solver.core.impl.domain.solution.descriptor.SolutionDescriptor;
 import ai.timefold.solver.core.impl.score.stream.common.uni.InnerUniConstraintStream;
 
@@ -31,15 +28,15 @@ public abstract class InnerConstraintFactory<Solution_, Constraint_ extends Cons
     @Override
     public <A> @NonNull BiConstraintStream<A, A> forEachUniquePair(@NonNull Class<A> sourceClass,
             BiJoiner<A, A> @NonNull... joiners) {
-        BiJoinerComber<A, A> joinerComber = BiJoinerComber.comb(joiners);
+        var joinerComber = BiJoinerComber.comb(joiners);
         joinerComber.addJoiner(buildLessThanId(sourceClass));
         return ((InnerUniConstraintStream<A>) forEach(sourceClass))
                 .join(forEach(sourceClass), joinerComber);
     }
 
     private <A> DefaultBiJoiner<A, A> buildLessThanId(Class<A> sourceClass) {
-        SolutionDescriptor<Solution_> solutionDescriptor = getSolutionDescriptor();
-        MemberAccessor planningIdMemberAccessor = solutionDescriptor.getPlanningIdAccessor(sourceClass);
+        var solutionDescriptor = getSolutionDescriptor();
+        var planningIdMemberAccessor = solutionDescriptor.getPlanningIdAccessor(sourceClass);
         if (planningIdMemberAccessor == null) {
             throw new IllegalArgumentException(
                     "The fromClass (%s) has no member with a @%s annotation, so the pairs cannot be made unique ([A,B] vs [B,A])."
@@ -52,15 +49,15 @@ public abstract class InnerConstraintFactory<Solution_, Constraint_ extends Cons
     @Override
     public @NonNull <A> BiConstraintStream<A, A> fromUniquePair(@NonNull Class<A> fromClass,
             @NonNull BiJoiner<A, A>... joiners) {
-        BiJoinerComber<A, A> joinerComber = BiJoinerComber.comb(joiners);
+        var joinerComber = BiJoinerComber.comb(joiners);
         joinerComber.addJoiner(buildLessThanId(fromClass));
         return ((InnerUniConstraintStream<A>) from(fromClass))
                 .join(from(fromClass), joinerComber);
     }
 
     public <A> void assertValidFromType(Class<A> fromType) {
-        SolutionDescriptor<Solution_> solutionDescriptor = getSolutionDescriptor();
-        Set<Class<?>> problemFactOrEntityClassSet = solutionDescriptor.getProblemFactOrEntityClassSet();
+        var solutionDescriptor = getSolutionDescriptor();
+        var problemFactOrEntityClassSet = solutionDescriptor.getProblemFactOrEntityClassSet();
         /*
          * Need to support the following situations:
          * 1/ FactType == FromType; querying for the declared type.
@@ -86,8 +83,9 @@ public abstract class InnerConstraintFactory<Solution_, Constraint_ extends Cons
     }
 
     @SuppressWarnings("unchecked")
-    public List<Constraint_> buildConstraints(ConstraintProvider constraintProvider) {
-        Constraint[] constraints = Objects.requireNonNull(constraintProvider.defineConstraints(this),
+    public List<Constraint_> buildConstraints(ConstraintProvider constraintProvider,
+            Function<ConstraintFactory, Constraint>[] constraintsToOverride) {
+        var constraints = Objects.requireNonNull(constraintProvider.defineConstraints(this),
                 () -> """
                         The constraintProvider class (%s)'s defineConstraints() must not return null."
                         Maybe return an empty array instead if there are no constraints."""
@@ -98,18 +96,53 @@ public abstract class InnerConstraintFactory<Solution_, Constraint_ extends Cons
                     Maybe don't include any null elements in the %s array."""
                     .formatted(constraintProvider.getClass(), Constraint.class.getSimpleName()));
         }
+        Constraint[] otherConstraints = null;
+        if (constraintsToOverride != null) {
+            otherConstraints = Arrays.stream(constraintsToOverride)
+                    .map(c -> c.apply(this))
+                    .toArray(Constraint[]::new);
+        }
+        if (otherConstraints != null && Arrays.stream(otherConstraints).anyMatch(Objects::isNull)) {
+            throw new IllegalStateException("""
+                    The (%s)'s constraintsToOverride must not contain an element that is null.
+                    Maybe don't include any null elements in the %s array."""
+                    .formatted(constraintProvider.getClass(), Constraint.class.getSimpleName()));
+        }
         // Fail fast on duplicate constraint IDs.
-        Map<ConstraintRef, List<Constraint>> constraintsPerIdMap =
-                Arrays.stream(constraints).collect(groupingBy(Constraint::getConstraintRef));
+        var constraintsPerIdMap = Arrays.stream(constraints).collect(groupingBy(Constraint::getConstraintRef));
         constraintsPerIdMap.forEach((constraintRef, duplicateConstraintList) -> {
             if (duplicateConstraintList.size() > 1) {
                 throw new IllegalStateException("There are multiple constraints with the same ID (%s)."
                         .formatted(constraintRef));
             }
         });
-        return Arrays.stream(constraints)
+        if (otherConstraints != null) {
+            var constraintsToOverridePerIdMap =
+                    Arrays.stream(otherConstraints).collect(groupingBy(Constraint::getConstraintRef));
+            constraintsToOverridePerIdMap.forEach((constraintRef, duplicateConstraintList) -> {
+                if (duplicateConstraintList.size() > 1) {
+                    throw new IllegalStateException("The constraintsToOverride have multiple constraints with the same ID (%s)."
+                            .formatted(constraintRef));
+                }
+            });
+        }
+        var allConstraints = new ArrayList<>(Arrays.asList(constraints));
+        if (constraintsToOverride != null) {
+            for (var constraint : otherConstraints) {
+                var idx = IntStream.range(0, constraints.length)
+                        .filter(i -> constraints[i].getConstraintRef().equals(constraint.getConstraintRef()))
+                        .findFirst()
+                        .orElse(-1);
+                if (idx != -1) {
+                    allConstraints.set(idx, constraint);
+                } else {
+                    allConstraints.add(constraint);
+                }
+            }
+        }
+        return allConstraints.stream()
                 .map(c -> (Constraint_) c)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     /**

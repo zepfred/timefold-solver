@@ -7,6 +7,8 @@ import java.util.concurrent.Future;
 
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
 import ai.timefold.solver.core.api.score.Score;
+import ai.timefold.solver.core.api.score.stream.Constraint;
+import ai.timefold.solver.core.api.score.stream.ConstraintMetaModel;
 import ai.timefold.solver.core.api.solver.change.ProblemChange;
 import ai.timefold.solver.core.api.solver.event.SolverEventListener;
 import ai.timefold.solver.core.impl.solver.termination.Termination;
@@ -170,4 +172,15 @@ public interface Solver<Solution_> {
 
     void removeEventListener(@NonNull SolverEventListener<Solution_> eventListener);
 
+    /**
+     * Retrieve the constraint metamodel of the current {@link Solver} instance.
+     * The solver instance may contain distinct constraint models,
+     * as the constraints can be overridden during the solver's creation process.
+     *
+     * @return never null, the solver constraint model
+     * 
+     * @see SolverConfigOverride#withConstraints(Constraint[])
+     */
+    @NonNull
+    ConstraintMetaModel getConstraintMetaModel();
 }

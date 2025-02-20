@@ -6,9 +6,12 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.OptionalInt;
+import java.util.function.Function;
 
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
 import ai.timefold.solver.core.api.score.Score;
+import ai.timefold.solver.core.api.score.stream.Constraint;
+import ai.timefold.solver.core.api.score.stream.ConstraintFactory;
 import ai.timefold.solver.core.api.solver.Solver;
 import ai.timefold.solver.core.api.solver.SolverConfigOverride;
 import ai.timefold.solver.core.api.solver.SolverFactory;
@@ -68,7 +71,7 @@ public final class DefaultSolverFactory<Solution_> implements SolverFactory<Solu
         this.solverConfig = Objects.requireNonNull(solverConfig, "The solverConfig (" + solverConfig + ") cannot be null.");
         this.solutionDescriptor = buildSolutionDescriptor();
         // Caching score director factory as it potentially does expensive things.
-        this.scoreDirectorFactory = buildScoreDirectorFactory();
+        this.scoreDirectorFactory = buildScoreDirectorFactory(null);
     }
 
     public SolutionDescriptor<Solution_> getSolutionDescriptor() {
@@ -107,7 +110,16 @@ public final class DefaultSolverFactory<Solution_> implements SolverFactory<Solu
                     metricsRequiringConstraintMatchSet);
         }
 
-        var castScoreDirector = scoreDirectorFactory.buildScoreDirector(true,
+        var scoreDirectorFactoryUpdated = scoreDirectorFactory;
+        if (configOverride.getConstraints() != null) {
+            // When constraints must be overridden,
+            // a new factory instance is created
+            // to ensure a consistent and updated reference throughout all layers of the solving process.
+            // A downside is the need to reprocess the factory initialization,
+            // which can involve repeating some costly operations.
+            scoreDirectorFactoryUpdated = buildScoreDirectorFactory(configOverride.getConstraints());
+        }
+        var castScoreDirector = scoreDirectorFactoryUpdated.buildScoreDirector(true,
                 constraintMatchEnabled ? ConstraintMatchPolicy.ENABLED : ConstraintMatchPolicy.DISABLED);
         solverScope.setScoreDirector(castScoreDirector);
         solverScope.setProblemChangeDirector(new DefaultProblemChangeDirector<>(castScoreDirector));
@@ -125,7 +137,7 @@ public final class DefaultSolverFactory<Solution_> implements SolverFactory<Solu
                 .withThreadFactoryClass(solverConfig.getThreadFactoryClass())
                 .withNearbyDistanceMeterClass(solverConfig.getNearbyDistanceMeterClass())
                 .withRandom(randomFactory.createRandom())
-                .withInitializingScoreTrend(scoreDirectorFactory.getInitializingScoreTrend())
+                .withInitializingScoreTrend(scoreDirectorFactoryUpdated.getInitializingScoreTrend())
                 .withSolutionDescriptor(solutionDescriptor)
                 .withClassInstanceCache(ClassInstanceCache.create())
                 .build();
@@ -185,14 +197,15 @@ public final class DefaultSolverFactory<Solution_> implements SolverFactory<Solu
         return solutionDescriptor;
     }
 
-    private InnerScoreDirectorFactory<Solution_, ?> buildScoreDirectorFactory() {
+    private InnerScoreDirectorFactory<Solution_, ?> buildScoreDirectorFactory(Function<ConstraintFactory, Constraint>[] constraintsToOverride) {
         EnvironmentMode environmentMode = solverConfig.determineEnvironmentMode();
         ScoreDirectorFactoryConfig scoreDirectorFactoryConfig_ =
                 Objects.requireNonNullElseGet(solverConfig.getScoreDirectorFactoryConfig(),
                         ScoreDirectorFactoryConfig::new);
         ScoreDirectorFactoryFactory<Solution_, ?> scoreDirectorFactoryFactory =
                 new ScoreDirectorFactoryFactory<>(scoreDirectorFactoryConfig_);
-        return scoreDirectorFactoryFactory.buildScoreDirectorFactory(environmentMode, solutionDescriptor);
+        return scoreDirectorFactoryFactory.buildScoreDirectorFactory(environmentMode, solutionDescriptor,
+                constraintsToOverride);
     }
 
     public RandomFactory buildRandomFactory(EnvironmentMode environmentMode_) {

@@ -8,6 +8,7 @@ import java.util.function.Function;
 
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
 import ai.timefold.solver.core.api.score.Score;
+import ai.timefold.solver.core.api.score.stream.ConstraintMetaModel;
 import ai.timefold.solver.core.api.solver.change.ProblemChange;
 import ai.timefold.solver.core.api.solver.event.BestSolutionChangedEvent;
 import ai.timefold.solver.core.config.solver.SolverConfig;
@@ -380,6 +381,15 @@ public interface SolverManager<Solution_, ProblemId_> extends AutoCloseable {
      */
     @NonNull
     SolverStatus getSolverStatus(@NonNull ProblemId_ problemId);
+
+    /**
+     * Returns the constraint model of a given job.
+     *
+     * @param problemId a value given to {@link #solve(Object, Object, Consumer)}
+     *        or {@link #solveAndListen(Object, Object, Consumer)}
+     */
+    @Nullable
+    ConstraintMetaModel getConstraintMetaModel(@NonNull ProblemId_ problemId);
 
     // TODO Future features
     //    void reloadProblem(ProblemId_ problemId, Function<? super ProblemId_, Solution_> problemFinder);

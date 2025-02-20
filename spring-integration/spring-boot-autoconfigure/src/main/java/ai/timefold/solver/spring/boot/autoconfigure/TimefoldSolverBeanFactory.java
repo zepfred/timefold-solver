@@ -130,6 +130,7 @@ public class TimefoldSolverBeanFactory implements ApplicationContextAware, Envir
         return SolutionManager.create(solverFactory);
     }
 
+    // TODO - Should we keep this or use the one from SolverManager#getConstraintMetaModel?
     @Bean
     @Lazy
     @ConditionalOnMissingBean

@@ -2,9 +2,7 @@ package ai.timefold.solver.core.impl.testdata.util;
 
 import static java.util.Arrays.stream;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -20,10 +18,12 @@ import java.util.stream.IntStream;
 
 import ai.timefold.solver.core.api.score.Score;
 import ai.timefold.solver.core.api.score.buildin.simple.SimpleScore;
+import ai.timefold.solver.core.api.score.calculator.IncrementalScoreCalculator;
 import ai.timefold.solver.core.api.solver.Solver;
 import ai.timefold.solver.core.api.solver.SolverFactory;
 import ai.timefold.solver.core.config.constructionheuristic.ConstructionHeuristicPhaseConfig;
 import ai.timefold.solver.core.config.localsearch.LocalSearchPhaseConfig;
+import ai.timefold.solver.core.config.score.director.ScoreDirectorFactoryConfig;
 import ai.timefold.solver.core.config.score.trend.InitializingScoreTrendLevel;
 import ai.timefold.solver.core.config.solver.SolverConfig;
 import ai.timefold.solver.core.config.solver.termination.TerminationConfig;
@@ -68,6 +68,21 @@ public final class PlannerTestUtils {
                 .withPhases(new ConstructionHeuristicPhaseConfig(),
                         new LocalSearchPhaseConfig().withTerminationConfig(
                                 new TerminationConfig().withStepCountLimit(TERMINATION_STEP_COUNT_LIMIT)));
+    }
+
+    public static <Solution_> SolverConfig buildIncrementalCalculatorSolverConfig(
+            Class<? extends IncrementalScoreCalculator> incrementalScoreCalculatorClass, Class<Solution_> solutionClass,
+            Class<?>... entityClasses) {
+        var config = new SolverConfig()
+                .withSolutionClass(solutionClass)
+                .withEntityClasses(entityClasses)
+                .withPhases(new ConstructionHeuristicPhaseConfig(),
+                        new LocalSearchPhaseConfig().withTerminationConfig(
+                                new TerminationConfig().withStepCountLimit(TERMINATION_STEP_COUNT_LIMIT)));
+        var scoreDirectorFactoryConfig = new ScoreDirectorFactoryConfig();
+        scoreDirectorFactoryConfig.setIncrementalScoreCalculatorClass(incrementalScoreCalculatorClass);
+        config.setScoreDirectorFactoryConfig(scoreDirectorFactoryConfig);
+        return config;
     }
 
     public static <Solution_> Solution_ solve(SolverConfig solverConfig, Solution_ problem) {

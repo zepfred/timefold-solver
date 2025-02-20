@@ -58,6 +58,7 @@ public class DefaultTimefoldBeanProvider {
         return (SolverFactory<Solution_>) solverFactory;
     }
 
+    // TODO - Should we keep this or use the one from SolverManager#getConstraintMetaModel?
     @DefaultBean
     @Dependent
     @Produces
