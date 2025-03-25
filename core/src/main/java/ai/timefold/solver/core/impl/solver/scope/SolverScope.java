@@ -35,8 +35,8 @@ import io.micrometer.core.instrument.Tags;
  * @param <Solution_> the solution type, the class with the {@link PlanningSolution} annotation
  */
 public class SolverScope<Solution_> {
-    protected final transient Logger logger = LoggerFactory.getLogger(getClass());
 
+    protected final transient Logger logger = LoggerFactory.getLogger(getClass());
     // Solution-derived fields have the potential for race conditions.
     private final AtomicReference<ProblemSizeStatistics> problemSizeStatistics = new AtomicReference<>();
     private final AtomicReference<Solution_> bestSolution = new AtomicReference<>();
@@ -227,6 +227,7 @@ public class SolverScope<Solution_> {
 
     public void setBestScore(Score bestScore) {
         this.bestScore.set(bestScore);
+        logger.info("New best score is {}", bestScore);
     }
 
     public Long getBestSolutionTimeMillis() {

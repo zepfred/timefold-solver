@@ -13,12 +13,11 @@ import ai.timefold.solver.core.config.solver.PreviewFeature;
 import ai.timefold.solver.core.impl.heuristic.HeuristicConfigPolicy;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.greatdeluge.GreatDelugeAcceptor;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.hillclimbing.HillClimbingAcceptor;
-import ai.timefold.solver.core.impl.localsearch.decider.acceptor.iteratedlocalsearch.AdaptiveLateAcceptanceAcceptor;
+import ai.timefold.solver.core.impl.localsearch.decider.acceptor.lateacceptance.AdaptiveLateAcceptanceAcceptor;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.lateacceptance.DiversifiedLateAcceptanceAcceptor;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.lateacceptance.LateAcceptanceAcceptor;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.simulatedannealing.SimulatedAnnealingAcceptor;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.stepcountinghillclimbing.StepCountingHillClimbingAcceptor;
-import ai.timefold.solver.core.impl.localsearch.decider.acceptor.stuckcriterion.DiminishedReturnsStuckCriterion;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.stuckcriterion.StuckCriterion;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.stuckcriterion.UnimprovedMoveCountStuckCriterion;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.tabu.EntityTabuAcceptor;
@@ -220,13 +219,12 @@ public class AcceptorFactory<Solution_> {
         return Optional.empty();
     }
 
-    private Optional<LateAcceptanceAcceptor<Solution_>>
-            buildLateAcceptanceAcceptor() {
+    private Optional<LateAcceptanceAcceptor<Solution_>> buildLateAcceptanceAcceptor() {
         if (acceptorTypeListsContainsAcceptorType(AcceptorType.LATE_ACCEPTANCE)
                 || (!acceptorTypeListsContainsAcceptorType(AcceptorType.DIVERSIFIED_LATE_ACCEPTANCE)
+                        && !acceptorTypeListsContainsAcceptorType(AcceptorType.ADAPTIVE_LATE_ACCEPTANCE)
                         && acceptorConfig.getLateAcceptanceSize() != null)) {
-            StuckCriterion<Solution_> strategy = new DiminishedReturnsStuckCriterion<>();
-            var acceptor = new LateAcceptanceAcceptor<>(true, strategy);
+            var acceptor = new LateAcceptanceAcceptor<Solution_>();
             acceptor.setLateAcceptanceSize(Objects.requireNonNullElse(acceptorConfig.getLateAcceptanceSize(), 400));
             return Optional.of(acceptor);
         }

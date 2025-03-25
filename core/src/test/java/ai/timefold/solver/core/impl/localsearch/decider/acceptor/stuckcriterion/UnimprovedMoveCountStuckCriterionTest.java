@@ -1,6 +1,5 @@
 package ai.timefold.solver.core.impl.localsearch.decider.acceptor.stuckcriterion;
 
-import static ai.timefold.solver.core.impl.localsearch.decider.acceptor.stuckcriterion.DiminishedReturnsStuckCriterion.TIME_WINDOW_MILLIS;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
@@ -16,36 +15,43 @@ import ai.timefold.solver.core.impl.solver.termination.DiminishedReturnsTerminat
 
 import org.junit.jupiter.api.Test;
 
-class DiminishedReturnsStuckCriterionTest {
+class UnimprovedMoveCountStuckCriterionTest {
 
     @Test
     void isSolverStuck() {
         var solverScope = mock(SolverScope.class);
         var phaseScope = mock(LocalSearchPhaseScope.class);
         var stepScope = mock(LocalSearchStepScope.class);
+        var lastStepScope = mock(LocalSearchStepScope.class);
         var moveScope = mock(LocalSearchMoveScope.class);
         var termination = mock(DiminishedReturnsTermination.class);
 
         when(moveScope.getStepScope()).thenReturn(stepScope);
         when(stepScope.getPhaseScope()).thenReturn(phaseScope);
         when(phaseScope.getSolverScope()).thenReturn(solverScope);
-        when(stepScope.getScore()).thenReturn(SimpleScore.of(1));
+        when(moveScope.getScore()).thenReturn(SimpleScore.of(1));
+        when(lastStepScope.getScore()).thenReturn(SimpleScore.of(1));
+        when(stepScope.getScore()).thenReturn(SimpleScore.of(2));
         when(phaseScope.getBestScore()).thenReturn(SimpleScore.of(1));
+        when(phaseScope.getLastCompletedStepScope()).thenReturn(lastStepScope);
         when(termination.isTerminated(anyLong(), any())).thenReturn(false, true);
 
         // No restart
-        var strategy = new DiminishedReturnsStuckCriterion<>(termination);
-        strategy.solvingStarted(null);
+        var strategy = new UnimprovedMoveCountStuckCriterion<>();
+        strategy.setMaxRejected(1);
         strategy.phaseStarted(phaseScope);
-        assertThat(strategy.isSolverStuck(stepScope)).isFalse();
+        assertThat(strategy.isSolverStuck(moveScope)).isFalse();
 
-        // First restart
-        assertThat(strategy.isSolverStuck(stepScope)).isTrue();
-        assertThat(strategy.nextRestart).isEqualTo(2L * TIME_WINDOW_MILLIS);
+        // Wait for the first best score
+        strategy.stepStarted(stepScope);
+        assertThat(strategy.isSolverStuck(moveScope)).isFalse();
+        strategy.stepEnded(stepScope);
 
-        // Second restart
-        assertThat(strategy.isSolverStuck(stepScope)).isTrue();
-        assertThat(strategy.nextRestart).isEqualTo(3L * TIME_WINDOW_MILLIS);
+        // Trigger Restart
+        // First iter without improvement
+        assertThat(strategy.isSolverStuck(moveScope)).isFalse();
+        // Second iter without improvement
+        assertThat(strategy.isSolverStuck(moveScope)).isTrue();
     }
 
     @Test
@@ -53,28 +59,32 @@ class DiminishedReturnsStuckCriterionTest {
         var solverScope = mock(SolverScope.class);
         var phaseScope = mock(LocalSearchPhaseScope.class);
         var stepScope = mock(LocalSearchStepScope.class);
+        var lastStepScope = mock(LocalSearchStepScope.class);
         var moveScope = mock(LocalSearchMoveScope.class);
         var termination = mock(DiminishedReturnsTermination.class);
 
         when(moveScope.getStepScope()).thenReturn(stepScope);
         when(stepScope.getPhaseScope()).thenReturn(phaseScope);
         when(phaseScope.getSolverScope()).thenReturn(solverScope);
-        when(stepScope.getScore()).thenReturn(SimpleScore.of(1));
+        when(moveScope.getScore()).thenReturn(SimpleScore.of(1));
+        when(lastStepScope.getScore()).thenReturn(SimpleScore.of(1));
+        when(stepScope.getScore()).thenReturn(SimpleScore.of(2));
         when(phaseScope.getBestScore()).thenReturn(SimpleScore.of(1));
-        when(termination.isTerminated(anyLong(), any())).thenReturn(true);
+        when(phaseScope.getLastCompletedStepScope()).thenReturn(lastStepScope);
+        when(termination.isTerminated(anyLong(), any())).thenReturn(false, true);
 
-        // Restart
-        var strategy = new DiminishedReturnsStuckCriterion<>(termination);
-        strategy.solvingStarted(null);
+        var strategy = new UnimprovedMoveCountStuckCriterion<>();
+        strategy.setMaxRejected(1);
         strategy.phaseStarted(phaseScope);
-        assertThat(strategy.isSolverStuck(stepScope)).isTrue();
-        assertThat(strategy.nextRestart).isEqualTo(2L * TIME_WINDOW_MILLIS);
-        assertThat(strategy.triggered).isTrue();
+        strategy.stepStarted(stepScope);
+        strategy.stepEnded(stepScope);
+
+        // Trigger Restart
+        assertThat(strategy.isSolverStuck(moveScope)).isFalse();
+        assertThat(strategy.isSolverStuck(moveScope)).isTrue();
 
         // Reset
-        strategy.stepStarted(stepScope);
-        when(phaseScope.getBestScore()).thenReturn(SimpleScore.of(2));
-        strategy.reset(phaseScope);
-        assertThat(strategy.triggered).isFalse();
+        when(moveScope.getScore()).thenReturn(SimpleScore.of(3));
+        assertThat(strategy.isSolverStuck(moveScope)).isFalse();
     }
 }

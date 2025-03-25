@@ -12,6 +12,7 @@ public final class LocalSearchPhaseScope<Solution_> extends AbstractPhaseScope<S
 
     private LocalSearchDecider<Solution_> decider;
     private LocalSearchStepScope<Solution_> lastCompletedStepScope;
+    private boolean restoreCurrentBestSolution;
 
     public LocalSearchPhaseScope(SolverScope<Solution_> solverScope, int phaseIndex) {
         super(solverScope, phaseIndex);
@@ -34,6 +35,14 @@ public final class LocalSearchPhaseScope<Solution_> extends AbstractPhaseScope<S
 
     public LocalSearchDecider<Solution_> getDecider() {
         return decider;
+    }
+
+    public boolean isRestoreCurrentBestSolution() {
+        return restoreCurrentBestSolution;
+    }
+
+    public void setRestoreCurrentBestSolution(boolean restoreCurrentBestSolution) {
+        this.restoreCurrentBestSolution = restoreCurrentBestSolution;
     }
 
     // ************************************************************************

@@ -201,6 +201,7 @@ public class LocalSearchDecider<Solution_> {
         // such as changing the scores of all late elements in LA and DLAS.
         // 1 - The move selector will reset all cached lists using old solution entity references
         moveSelector.phaseStarted(stepScope.getPhaseScope());
+        stepScope.getPhaseScope().setRestoreCurrentBestSolution(true);
     }
 
     public void solvingError(SolverScope<Solution_> solverScope, Exception exception) {
