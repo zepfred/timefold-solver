@@ -29,15 +29,15 @@ import ai.timefold.solver.test.api.score.stream.SingleConstraintAssertion;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-public final class DefaultSingleConstraintAssertion<Solution_, Score_ extends Score<Score_>>
-        implements SingleConstraintAssertion {
+public sealed class DefaultSingleConstraintAssertion<Solution_, Score_ extends Score<Score_>>
+        implements SingleConstraintAssertion permits DefaultSingleConstraintListener {
 
     private final AbstractConstraint<Solution_, ?, ?> constraint;
     private final ScoreDefinition<Score_> scoreDefinition;
-    private final Score_ score;
-    private final Collection<ConstraintMatchTotal<Score_>> constraintMatchTotalCollection;
-    private final Collection<ConstraintJustification> justificationCollection;
-    private final Collection<Indictment<Score_>> indictmentCollection;
+    private Score_ score;
+    private Collection<ConstraintMatchTotal<Score_>> constraintMatchTotalCollection;
+    private Collection<ConstraintJustification> justificationCollection;
+    private Collection<Indictment<Score_>> indictmentCollection;
 
     @SuppressWarnings("unchecked")
     DefaultSingleConstraintAssertion(AbstractConstraintStreamScoreDirectorFactory<Solution_, Score_> scoreDirectorFactory,
@@ -49,6 +49,11 @@ public final class DefaultSingleConstraintAssertion<Solution_, Score_ extends Sc
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Impossible state: no constraint found."));
         this.scoreDefinition = scoreDirectorFactory.getScoreDefinition();
+        update(score, constraintMatchTotalMap, indictmentMap);
+    }
+
+    final void update(Score_ score, Map<String, ConstraintMatchTotal<Score_>> constraintMatchTotalMap,
+                      Map<Object, Indictment<Score_>> indictmentMap) {
         this.score = requireNonNull(score);
         this.constraintMatchTotalCollection = new ArrayList<>(requireNonNull(constraintMatchTotalMap).values());
         this.indictmentCollection = new ArrayList<>(requireNonNull(indictmentMap).values());

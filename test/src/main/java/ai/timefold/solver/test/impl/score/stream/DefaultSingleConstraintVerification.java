@@ -24,10 +24,10 @@ public final class DefaultSingleConstraintVerification<Solution_, Score_ extends
     }
 
     @Override
-    public @NonNull DefaultSingleConstraintAssertion<Solution_, Score_> givenSolution(@NonNull Solution_ solution) {
+    public @NonNull DefaultSingleConstraintListener<Solution_, Score_> givenSolution(@NonNull Solution_ solution) {
         try (var scoreDirector = scoreDirectorFactory.buildDerivedScoreDirector(true, ConstraintMatchPolicy.ENABLED)) {
             scoreDirector.setWorkingSolution(Objects.requireNonNull(solution));
-            return new DefaultSingleConstraintAssertion<>(scoreDirectorFactory, scoreDirector.calculateScore(),
+            return new DefaultSingleConstraintListener<>(scoreDirectorFactory, solution, scoreDirector.calculateScore(),
                     scoreDirector.getConstraintMatchTotalMap(), scoreDirector.getIndictmentMap());
         }
     }
