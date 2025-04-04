@@ -34,11 +34,11 @@ import ai.timefold.solver.core.impl.localsearch.scope.LocalSearchStepScope;
 public class AdaptiveLateAcceptanceAcceptor<Solution_> extends RestartableAcceptor<Solution_> {
 
     protected static final int MAX_BEST_SCORES_SIZE = 50;
-    protected static final int MAX_RESTART_WITHOUT_IMPROVEMENT_COUNT = 5; // All sizes tested in a row
+    protected static final int MAX_RESTART_WITHOUT_IMPROVEMENT_COUNT = 4; // All sizes tested in a row
     protected static final int[] LATE_ELEMENTS_SIZE =
-            new int[] { 500, 5_000, 12_500, 25_000, 25_000 }; // Extracted from the second article
+            new int[] { 1_250, 5_000, 12_500, 25_000, 25_000 }; // Extracted from the second article
     private static final int[] LATE_ELEMENTS_MAX_REJECTIONS =
-            new int[] { 5_000, 5_000, 12_500, 25_000, 50_000 };
+            new int[] { 1_250, 5_000, 12_500, 25_000, 50_000 };
     protected final LateAcceptanceAcceptor<Solution_> lateAcceptanceAcceptor;
     private int restartWithoutImprovementCount;
     private int lateIndex;
@@ -48,7 +48,7 @@ public class AdaptiveLateAcceptanceAcceptor<Solution_> extends RestartableAccept
 
     public AdaptiveLateAcceptanceAcceptor(StuckCriterion<Solution_> stuckCriterion) {
         super(true, stuckCriterion);
-        this.lateAcceptanceAcceptor = new LateAcceptanceAcceptor<>(false);
+        this.lateAcceptanceAcceptor = new LateAcceptanceAcceptor<>(true);
     }
 
     @Override
@@ -85,6 +85,7 @@ public class AdaptiveLateAcceptanceAcceptor<Solution_> extends RestartableAccept
         super.stepEnded(stepScope);
         lateAcceptanceAcceptor.stepEnded(stepScope);
         if (lastBestScoreIndex != stepScope.getPhaseScope().getBestSolutionStepIndex()) {
+            logger.info("New best score is {} - {}", stepScope.getScore(), stepScope.getStep());
             if (lastBestScoreQueue.size() < MAX_RESTART_WITHOUT_IMPROVEMENT_COUNT) {
                 lastBestScoreQueue.addLast(stepScope.getScore());
             } else {
