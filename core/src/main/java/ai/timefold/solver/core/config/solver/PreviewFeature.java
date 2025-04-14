@@ -32,6 +32,6 @@ public enum PreviewFeature {
      * As such, it is an exception to the rule;
      * this preview feature is not finished, and it is not yet ready for feedback.
      */
-    MOVE_STREAMS
-
+    MOVE_STREAMS,
+    HYBRID_LOCAL_SEARCH
 }

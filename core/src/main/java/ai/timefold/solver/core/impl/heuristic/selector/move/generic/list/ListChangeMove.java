@@ -162,10 +162,14 @@ public class ListChangeMove<Solution_> extends AbstractMove<Solution_> {
 
     @Override
     public ListChangeMove<Solution_> rebase(ScoreDirector<Solution_> destinationScoreDirector) {
+        var sourceEntityRebased = destinationScoreDirector.lookUpWorkingObject(sourceEntity);
+        var sourceIndexRebased = Math.min(sourceIndex, variableDescriptor.getListSize(sourceEntityRebased) - 1);
+        var destinationEntityRebased = destinationScoreDirector.lookUpWorkingObject(destinationEntity);
+        var destinationIndexRebased = Math.min(destinationIndex, variableDescriptor.getListSize(destinationEntityRebased) - 1);
         return new ListChangeMove<>(
                 variableDescriptor,
-                destinationScoreDirector.lookUpWorkingObject(sourceEntity), sourceIndex,
-                destinationScoreDirector.lookUpWorkingObject(destinationEntity), destinationIndex);
+                sourceEntityRebased, Math.max(sourceIndexRebased, 0),
+                destinationEntityRebased, Math.max(destinationIndexRebased, 0));
     }
 
     // ************************************************************************

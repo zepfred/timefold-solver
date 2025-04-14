@@ -13,6 +13,7 @@ import ai.timefold.solver.core.config.solver.PreviewFeature;
 import ai.timefold.solver.core.impl.heuristic.HeuristicConfigPolicy;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.greatdeluge.GreatDelugeAcceptor;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.hillclimbing.HillClimbingAcceptor;
+import ai.timefold.solver.core.impl.localsearch.decider.acceptor.hybrid.HybridAcceptor;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.lateacceptance.DiversifiedLateAcceptanceAcceptor;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.lateacceptance.LateAcceptanceAcceptor;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.simulatedannealing.SimulatedAnnealingAcceptor;
@@ -48,6 +49,7 @@ public class AcceptorFactory<Solution_> {
                 buildSimulatedAnnealingAcceptor(configPolicy),
                 buildLateAcceptanceAcceptor(),
                 buildDiversifiedLateAcceptanceAcceptor(configPolicy),
+                buildHybridAcceptor(configPolicy),
                 buildGreatDelugeAcceptor(configPolicy))
                 .filter(Optional::isPresent)
                 .map(Optional::get)
@@ -218,6 +220,7 @@ public class AcceptorFactory<Solution_> {
     private Optional<LateAcceptanceAcceptor<Solution_>> buildLateAcceptanceAcceptor() {
         if (acceptorTypeListsContainsAcceptorType(AcceptorType.LATE_ACCEPTANCE)
                 || (!acceptorTypeListsContainsAcceptorType(AcceptorType.DIVERSIFIED_LATE_ACCEPTANCE)
+                        && !acceptorTypeListsContainsAcceptorType(AcceptorType.HYBRID_LOCAL_SEARCH)
                         && acceptorConfig.getLateAcceptanceSize() != null)) {
             var acceptor = new LateAcceptanceAcceptor<Solution_>();
             acceptor.setLateAcceptanceSize(Objects.requireNonNullElse(acceptorConfig.getLateAcceptanceSize(), 400));
@@ -232,6 +235,17 @@ public class AcceptorFactory<Solution_> {
             configPolicy.ensurePreviewFeature(PreviewFeature.DIVERSIFIED_LATE_ACCEPTANCE);
             var acceptor = new DiversifiedLateAcceptanceAcceptor<Solution_>();
             acceptor.setLateAcceptanceSize(Objects.requireNonNullElse(acceptorConfig.getLateAcceptanceSize(), 5));
+            return Optional.of(acceptor);
+        }
+        return Optional.empty();
+    }
+
+    private Optional<HybridAcceptor<Solution_>>
+            buildHybridAcceptor(HeuristicConfigPolicy<Solution_> configPolicy) {
+        if (acceptorTypeListsContainsAcceptorType(AcceptorType.HYBRID_LOCAL_SEARCH)) {
+            configPolicy.ensurePreviewFeature(PreviewFeature.HYBRID_LOCAL_SEARCH);
+            var lateAcceptanceSize = Objects.requireNonNullElse(acceptorConfig.getLateAcceptanceSize(), 400);
+            var acceptor = new HybridAcceptor<Solution_>(lateAcceptanceSize, 5, DEFAULT_WATER_LEVEL_INCREMENT_RATIO);
             return Optional.of(acceptor);
         }
         return Optional.empty();

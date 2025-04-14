@@ -234,11 +234,15 @@ public final class TwoOptListMove<Solution_> extends AbstractMove<Solution_> {
 
     @Override
     public TwoOptListMove<Solution_> rebase(ScoreDirector<Solution_> destinationScoreDirector) {
+        var firstEntityRebased = destinationScoreDirector.lookUpWorkingObject(firstEntity);
+        var firstIndexRebased = Math.min(firstEdgeEndpoint, variableDescriptor.getListSize(firstEntityRebased) - 1);
+        var secondEntityRebased = destinationScoreDirector.lookUpWorkingObject(secondEntity);
+        var secondIndexRebased = Math.min(secondEdgeEndpoint, variableDescriptor.getListSize(secondEntityRebased) - 1);
         return new TwoOptListMove<>(variableDescriptor,
-                destinationScoreDirector.lookUpWorkingObject(firstEntity),
-                destinationScoreDirector.lookUpWorkingObject(secondEntity),
-                firstEdgeEndpoint,
-                secondEdgeEndpoint,
+                firstEntityRebased,
+                secondEntityRebased,
+                Math.max(firstIndexRebased, 0),
+                Math.max(secondIndexRebased, 0),
                 entityFirstUnpinnedIndex,
                 shift);
     }

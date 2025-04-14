@@ -11,6 +11,7 @@ import ai.timefold.solver.core.impl.localsearch.scope.LocalSearchPhaseScope;
 import ai.timefold.solver.core.impl.localsearch.scope.LocalSearchStepScope;
 import ai.timefold.solver.core.impl.move.MoveRepository;
 import ai.timefold.solver.core.impl.phase.scope.SolverLifecyclePoint;
+import ai.timefold.solver.core.impl.score.director.InnerScore;
 import ai.timefold.solver.core.impl.solver.scope.SolverScope;
 import ai.timefold.solver.core.impl.solver.termination.PhaseTermination;
 import ai.timefold.solver.core.impl.solver.termination.Termination;
@@ -75,6 +76,7 @@ public class LocalSearchDecider<Solution_> {
     }
 
     public void phaseStarted(LocalSearchPhaseScope<Solution_> phaseScope) {
+        phaseScope.setDecider(this);
         moveRepository.phaseStarted(phaseScope);
         acceptor.phaseStarted(phaseScope);
         forager.phaseStarted(phaseScope);
@@ -138,6 +140,20 @@ public class LocalSearchDecider<Solution_> {
             }
             stepScope.setScore(pickedMoveScope.getScore());
         }
+    }
+
+    public void setWorkingSolution(LocalSearchStepScope<Solution_> stepScope, Solution_ solution,
+            InnerScore<?> score) {
+        var solverScope = stepScope.getPhaseScope().getSolverScope();
+        solverScope.setWorkingSolution(solution);
+        stepScope.getPhaseScope().setLastCompletedStepScope(stepScope);
+        solverScope.getSolver().getBestSolutionRecaller().processWorkingSolutionDuringStep(stepScope);
+        // Changing the working solution requires reinitializing the move selector.
+        // The acceptor should not be restarted, as this may lead to an inconsistent state,
+        // such as changing the scores of all late elements in LA and DLAS.
+        // 1 - The move selector will reset all cached lists using old solution entity references
+        moveRepository.phaseStarted(stepScope.getPhaseScope());
+        stepScope.getPhaseScope().setWorkingSolutionChanged(true);
     }
 
     public void stepEnded(LocalSearchStepScope<Solution_> stepScope) {

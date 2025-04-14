@@ -1,6 +1,7 @@
 package ai.timefold.solver.core.impl.localsearch.scope;
 
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
+import ai.timefold.solver.core.impl.localsearch.decider.LocalSearchDecider;
 import ai.timefold.solver.core.impl.phase.scope.AbstractPhaseScope;
 import ai.timefold.solver.core.impl.solver.scope.SolverScope;
 
@@ -9,6 +10,8 @@ import ai.timefold.solver.core.impl.solver.scope.SolverScope;
  */
 public final class LocalSearchPhaseScope<Solution_> extends AbstractPhaseScope<Solution_> {
 
+    private LocalSearchDecider<Solution_> decider;
+    private boolean workingSolutionChanged;
     private LocalSearchStepScope<Solution_> lastCompletedStepScope;
 
     public LocalSearchPhaseScope(SolverScope<Solution_> solverScope, int phaseIndex) {
@@ -24,6 +27,22 @@ public final class LocalSearchPhaseScope<Solution_> extends AbstractPhaseScope<S
 
     public void setLastCompletedStepScope(LocalSearchStepScope<Solution_> lastCompletedStepScope) {
         this.lastCompletedStepScope = lastCompletedStepScope;
+    }
+
+    public LocalSearchDecider<Solution_> getDecider() {
+        return decider;
+    }
+
+    public void setDecider(LocalSearchDecider<Solution_> decider) {
+        this.decider = decider;
+    }
+
+    public void setWorkingSolutionChanged(boolean workingSolutionChanged) {
+        this.workingSolutionChanged = workingSolutionChanged;
+    }
+
+    public boolean isWorkingSolutionChanged() {
+        return workingSolutionChanged;
     }
 
     // ************************************************************************

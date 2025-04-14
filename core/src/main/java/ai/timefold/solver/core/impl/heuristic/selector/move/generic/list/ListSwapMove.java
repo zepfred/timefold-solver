@@ -144,10 +144,16 @@ public class ListSwapMove<Solution_> extends AbstractMove<Solution_> {
 
     @Override
     public ListSwapMove<Solution_> rebase(ScoreDirector<Solution_> destinationScoreDirector) {
+        var leftEntityRebased = destinationScoreDirector.lookUpWorkingObject(leftEntity);
+        var leftIndexRebased = Math.min(leftIndex, variableDescriptor.getListSize(leftEntityRebased) - 1);
+        var rightEntityRebased = destinationScoreDirector.lookUpWorkingObject(rightEntity);
+        var rightIndexRebased = Math.min(rightIndex, variableDescriptor.getListSize(rightEntityRebased) - 1);
         return new ListSwapMove<>(
                 variableDescriptor,
-                destinationScoreDirector.lookUpWorkingObject(leftEntity), leftIndex,
-                destinationScoreDirector.lookUpWorkingObject(rightEntity), rightIndex);
+                leftEntityRebased,
+                Math.max(leftIndexRebased, 0),
+                rightEntityRebased,
+                Math.max(rightIndexRebased, 0));
     }
 
     // ************************************************************************

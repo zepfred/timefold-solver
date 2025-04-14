@@ -335,6 +335,10 @@ public class SolverScope<Solution_> {
         scoreDirector.setWorkingSolution(scoreDirector.cloneSolution(getBestSolution()));
     }
 
+    public void setWorkingSolution(Solution_ solution) {
+        scoreDirector.setWorkingSolution(scoreDirector.cloneSolution(solution));
+    }
+
     public SolverScope<Solution_> createChildThreadSolverScope(ChildThreadType childThreadType) {
         SolverScope<Solution_> childThreadSolverScope = new SolverScope<>(clock);
         childThreadSolverScope.bestSolution.set(null);

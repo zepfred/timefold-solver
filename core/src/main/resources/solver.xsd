@@ -1592,6 +1592,8 @@
       <xs:enumeration value="PLANNING_SOLUTION_DIFF"/>
             
       <xs:enumeration value="MOVE_STREAMS"/>
+            
+      <xs:enumeration value="HYBRID_LOCAL_SEARCH"/>
           
     </xs:restriction>
       
@@ -1926,6 +1928,8 @@
       <xs:enumeration value="LATE_ACCEPTANCE"/>
             
       <xs:enumeration value="DIVERSIFIED_LATE_ACCEPTANCE"/>
+            
+      <xs:enumeration value="HYBRID_LOCAL_SEARCH"/>
             
       <xs:enumeration value="GREAT_DELUGE"/>
             
