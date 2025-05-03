@@ -1,5 +1,7 @@
 package ai.timefold.solver.core.impl.heuristic.selector.move.generic.list;
 
+import static ai.timefold.solver.core.config.heuristic.selector.move.generic.list.ReversingType.BOTH_SEQUENTIAL_REVERSING;
+import static ai.timefold.solver.core.config.heuristic.selector.move.generic.list.ReversingType.ONLY_SEQUENTIAL;
 import static ai.timefold.solver.core.impl.heuristic.selector.SelectorTestUtils.phaseStarted;
 import static ai.timefold.solver.core.impl.heuristic.selector.SelectorTestUtils.solvingStarted;
 import static ai.timefold.solver.core.impl.heuristic.selector.SelectorTestUtils.stepStarted;
@@ -60,7 +62,7 @@ class RandomSubListSwapMoveSelectorTest {
                         valueSelector,
                         minimumSubListSize,
                         maximumSubListSize),
-                false);
+                ONLY_SEQUENTIAL);
 
         // Alternating left and right subList indexes.
         //      L, R
@@ -145,7 +147,7 @@ class RandomSubListSwapMoveSelectorTest {
                         mockNeverEndingEntityIndependentValueSelector(listVariableDescriptor, v5),
                         minimumSubListSize,
                         maximumSubListSize),
-                true);
+                BOTH_SEQUENTIAL_REVERSING);
 
         // Each row is consumed by 1 createUpcomingSelection() call.
         // Columns are: left subList index, right subList index, reversing flag.
@@ -200,7 +202,7 @@ class RandomSubListSwapMoveSelectorTest {
                         valueSelector,
                         minimumSubListSize,
                         maximumSubListSize),
-                false);
+                ONLY_SEQUENTIAL);
 
         // Alternating left and right subList indexes.
         //      L, R
@@ -257,7 +259,7 @@ class RandomSubListSwapMoveSelectorTest {
                         valueSelector,
                         minimumSubListSize,
                         maximumSubListSize),
-                false);
+                ONLY_SEQUENTIAL);
 
         solvingStarted(moveSelector, scoreDirector);
 
@@ -297,7 +299,7 @@ class RandomSubListSwapMoveSelectorTest {
                         mockNeverEndingEntityIndependentValueSelector(listVariableDescriptor, v4, v1),
                         minimumSubListSize,
                         maximumSubListSize),
-                false);
+                ONLY_SEQUENTIAL);
 
         // Alternating left and right subList indexes.
         //      L, R
@@ -357,7 +359,7 @@ class RandomSubListSwapMoveSelectorTest {
                                 v1, v1, v1, v3),
                         minimumSubListSize,
                         maximumSubListSize),
-                false);
+                ONLY_SEQUENTIAL);
 
         var random = new TestRandom(
                 0, 0, 0, 1, 0, 2, 0, 0,
@@ -421,7 +423,7 @@ class RandomSubListSwapMoveSelectorTest {
                         valueSelector,
                         minimumSubListSize,
                         maximumSubListSize),
-                false);
+                ONLY_SEQUENTIAL);
 
         var random = new TestRandom(0, 0);
 
@@ -475,7 +477,7 @@ class RandomSubListSwapMoveSelectorTest {
                         valueSelector,
                         minimumSubListSize,
                         maximumSubListSize),
-                false);
+                ONLY_SEQUENTIAL);
 
         var random = new TestRandom(0, 0);
 
@@ -507,7 +509,7 @@ class RandomSubListSwapMoveSelectorTest {
                         rightValueSelector,
                         minimumSubListSize,
                         maximumSubListSize),
-                false);
+                ONLY_SEQUENTIAL);
 
         var solverScope = solvingStarted(moveSelector, scoreDirector);
         var phaseScope = phaseStarted(moveSelector, solverScope);

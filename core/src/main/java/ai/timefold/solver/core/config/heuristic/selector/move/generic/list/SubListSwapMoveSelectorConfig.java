@@ -16,6 +16,7 @@ import org.jspecify.annotations.Nullable;
         "minimumSubListSize",
         "maximumSubListSize",
         "selectReversingMoveToo",
+        "reversingType",
         "subListSelectorConfig",
         "secondarySubListSelectorConfig"
 })
@@ -35,7 +36,9 @@ public class SubListSwapMoveSelectorConfig extends MoveSelectorConfig<SubListSwa
      */
     @Deprecated(forRemoval = true)
     protected Integer maximumSubListSize = null;
+    @Deprecated(forRemoval = true)
     private Boolean selectReversingMoveToo = null;
+    private ReversingType reversingType = null;
     @XmlElement(name = "subListSelector")
     private SubListSelectorConfig subListSelectorConfig = null;
     @XmlElement(name = "secondarySubListSelector")
@@ -77,16 +80,27 @@ public class SubListSwapMoveSelectorConfig extends MoveSelectorConfig<SubListSwa
         this.maximumSubListSize = maximumSubListSize;
     }
 
+    @Deprecated(forRemoval = true)
     public @Nullable Boolean getSelectReversingMoveToo() {
         return selectReversingMoveToo;
     }
 
+    @Deprecated(forRemoval = true)
     public void setSelectReversingMoveToo(@Nullable Boolean selectReversingMoveToo) {
         this.selectReversingMoveToo = selectReversingMoveToo;
     }
 
+    @Deprecated(forRemoval = true)
     public @Nullable SubListSelectorConfig getSubListSelectorConfig() {
         return subListSelectorConfig;
+    }
+
+    public @Nullable ReversingType getReversingType() {
+        return reversingType;
+    }
+
+    public void setReversingType(@Nullable ReversingType reversingType) {
+        this.reversingType = reversingType;
     }
 
     public void setSubListSelectorConfig(@Nullable SubListSelectorConfig subListSelectorConfig) {
@@ -122,6 +136,11 @@ public class SubListSwapMoveSelectorConfig extends MoveSelectorConfig<SubListSwa
         return this;
     }
 
+    public @NonNull SubListSwapMoveSelectorConfig withReversingType(@NonNull ReversingType reversingType) {
+        this.setReversingType(reversingType);
+        return this;
+    }
+
     @Override
     public @NonNull SubListSwapMoveSelectorConfig inherit(@NonNull SubListSwapMoveSelectorConfig inheritedConfig) {
         super.inherit(inheritedConfig);
@@ -131,6 +150,8 @@ public class SubListSwapMoveSelectorConfig extends MoveSelectorConfig<SubListSwa
                 ConfigUtils.inheritOverwritableProperty(maximumSubListSize, inheritedConfig.maximumSubListSize);
         this.selectReversingMoveToo =
                 ConfigUtils.inheritOverwritableProperty(selectReversingMoveToo, inheritedConfig.selectReversingMoveToo);
+        this.reversingType =
+                ConfigUtils.inheritOverwritableProperty(reversingType, inheritedConfig.reversingType);
         this.subListSelectorConfig =
                 ConfigUtils.inheritOverwritableProperty(subListSelectorConfig, inheritedConfig.subListSelectorConfig);
         this.secondarySubListSelectorConfig =

@@ -1017,6 +1017,8 @@
                     
           <xs:element minOccurs="0" name="selectReversingMoveToo" type="xs:boolean"/>
                     
+          <xs:element minOccurs="0" name="reversingType" type="tns:reversingType"/>
+                    
           <xs:element minOccurs="0" name="subListSelector" type="tns:subListSelectorConfig"/>
                     
           <xs:element minOccurs="0" name="destinationSelector" type="tns:destinationSelectorConfig"/>
@@ -1042,6 +1044,8 @@
           <xs:element minOccurs="0" name="maximumSubListSize" type="xs:int"/>
                     
           <xs:element minOccurs="0" name="selectReversingMoveToo" type="xs:boolean"/>
+                    
+          <xs:element minOccurs="0" name="reversingType" type="tns:reversingType"/>
                     
           <xs:element minOccurs="0" name="subListSelector" type="tns:subListSelectorConfig"/>
                     
@@ -1836,6 +1840,20 @@
       <xs:enumeration value="SEQUENCE"/>
             
       <xs:enumeration value="ALL"/>
+          
+    </xs:restriction>
+      
+  </xs:simpleType>
+    
+  <xs:simpleType name="reversingType">
+        
+    <xs:restriction base="xs:string">
+            
+      <xs:enumeration value="ONLY_SEQUENTIAL"/>
+            
+      <xs:enumeration value="ONLY_REVERSING"/>
+            
+      <xs:enumeration value="BOTH_SEQUENTIAL_REVERSING"/>
           
     </xs:restriction>
       

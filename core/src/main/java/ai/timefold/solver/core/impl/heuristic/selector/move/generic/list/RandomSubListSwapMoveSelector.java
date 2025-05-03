@@ -2,6 +2,7 @@ package ai.timefold.solver.core.impl.heuristic.selector.move.generic.list;
 
 import java.util.Iterator;
 
+import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.ReversingType;
 import ai.timefold.solver.core.impl.domain.variable.descriptor.ListVariableDescriptor;
 import ai.timefold.solver.core.impl.heuristic.move.Move;
 import ai.timefold.solver.core.impl.heuristic.selector.common.iterator.AbstractRandomSwapIterator;
@@ -14,12 +15,10 @@ public class RandomSubListSwapMoveSelector<Solution_> extends GenericMoveSelecto
     private final SubListSelector<Solution_> leftSubListSelector;
     private final SubListSelector<Solution_> rightSubListSelector;
     private final ListVariableDescriptor<Solution_> listVariableDescriptor;
-    private final boolean selectReversingMoveToo;
+    private final ReversingType reversingType;
 
-    public RandomSubListSwapMoveSelector(
-            SubListSelector<Solution_> leftSubListSelector,
-            SubListSelector<Solution_> rightSubListSelector,
-            boolean selectReversingMoveToo) {
+    public RandomSubListSwapMoveSelector(SubListSelector<Solution_> leftSubListSelector,
+            SubListSelector<Solution_> rightSubListSelector, ReversingType reversingType) {
         this.leftSubListSelector = leftSubListSelector;
         this.rightSubListSelector = rightSubListSelector;
         this.listVariableDescriptor = leftSubListSelector.getVariableDescriptor();
@@ -30,8 +29,7 @@ public class RandomSubListSwapMoveSelector<Solution_> extends GenericMoveSelecto
                     + ") which is not equal to the rightSubListSelector's variableDescriptor ("
                     + rightSubListSelector.getVariableDescriptor() + ").");
         }
-        this.selectReversingMoveToo = selectReversingMoveToo;
-
+        this.reversingType = reversingType;
         phaseLifecycleSupport.addEventListener(leftSubListSelector);
         phaseLifecycleSupport.addEventListener(rightSubListSelector);
     }
@@ -41,7 +39,10 @@ public class RandomSubListSwapMoveSelector<Solution_> extends GenericMoveSelecto
         return new AbstractRandomSwapIterator<>(leftSubListSelector, rightSubListSelector) {
             @Override
             protected Move<Solution_> newSwapSelection(SubList leftSubSelection, SubList rightSubSelection) {
-                boolean reversing = selectReversingMoveToo && workingRandom.nextBoolean();
+                var reversing = reversingType.hasReversingType();
+                if (reversingType.hasSequentialType() && reversing) {
+                    reversing = workingRandom.nextBoolean();
+                }
                 return new SubListSwapMove<>(listVariableDescriptor, leftSubSelection, rightSubSelection, reversing);
             }
         };
@@ -61,11 +62,12 @@ public class RandomSubListSwapMoveSelector<Solution_> extends GenericMoveSelecto
     public long getSize() {
         long leftSubListCount = leftSubListSelector.getSize();
         long rightSubListCount = rightSubListSelector.getSize();
-        return leftSubListCount * rightSubListCount * (selectReversingMoveToo ? 2 : 1);
+        return leftSubListCount * rightSubListCount
+                * (reversingType.hasSequentialType() && reversingType.hasReversingType() ? 2 : 1);
     }
 
     boolean isSelectReversingMoveToo() {
-        return selectReversingMoveToo;
+        return reversingType.hasReversingType();
     }
 
     SubListSelector<Solution_> getLeftSubListSelector() {

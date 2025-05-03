@@ -12,6 +12,7 @@ import ai.timefold.solver.core.config.heuristic.selector.entity.EntitySelectorCo
 import ai.timefold.solver.core.config.heuristic.selector.list.DestinationSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.list.SubListSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.MoveSelectorConfig;
+import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.ReversingType;
 import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.SubListChangeMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.value.ValueSelectorConfig;
 import ai.timefold.solver.core.impl.domain.entity.descriptor.EntityDescriptor;
@@ -51,8 +52,16 @@ public class SubListChangeMoveSelectorFactory<Solution_>
         var destinationSelector = DestinationSelectorFactory
                 .<Solution_> create(destinationSelectorConfig)
                 .buildDestinationSelector(configPolicy, minimumCacheType, randomSelection);
-        var selectReversingMoveToo = Objects.requireNonNullElse(config.getSelectReversingMoveToo(), true);
-        return new RandomSubListChangeMoveSelector<>(subListSelector, destinationSelector, selectReversingMoveToo);
+        if (config.getReversingType() != null && config.getSelectReversingMoveToo() != null) {
+            throw new IllegalArgumentException("""
+                    The settings reversingType and selectingReversingMoveToo cannot be specified in both.
+                    Maybe specify only one of reversingType and selectingReversingMoveToo.""");
+        }
+        var reversingType = Objects.requireNonNullElse(config.getReversingType(), ReversingType.BOTH_SEQUENTIAL_REVERSING);
+        if (config.getSelectReversingMoveToo() != null && !config.getSelectReversingMoveToo()) {
+            reversingType = ReversingType.ONLY_SEQUENTIAL;
+        }
+        return new RandomSubListChangeMoveSelector<>(subListSelector, destinationSelector, reversingType);
     }
 
     @Override

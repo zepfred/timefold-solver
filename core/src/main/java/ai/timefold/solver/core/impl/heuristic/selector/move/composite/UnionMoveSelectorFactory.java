@@ -1,7 +1,7 @@
 package ai.timefold.solver.core.impl.heuristic.selector.move.composite;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -24,7 +24,10 @@ public class UnionMoveSelectorFactory<Solution_>
     @Override
     protected MoveSelector<Solution_> buildBaseMoveSelector(HeuristicConfigPolicy<Solution_> configPolicy,
             SelectionCacheType minimumCacheType, boolean randomSelection) {
-        var moveSelectorConfigList = new LinkedList<>(config.getMoveSelectorList());
+        var moveSelectorConfigList = new ArrayList<MoveSelectorConfig>();
+        if (config.getMoveSelectorList() != null) {
+            moveSelectorConfigList.addAll(config.getMoveSelectorList());
+        }
         if (configPolicy.getNearbyDistanceMeterClass() != null) {
             for (var selectorConfig : config.getMoveSelectorList()) {
                 if (selectorConfig instanceof NearbyAutoConfigurationEnabled nearbySelectorConfig) {

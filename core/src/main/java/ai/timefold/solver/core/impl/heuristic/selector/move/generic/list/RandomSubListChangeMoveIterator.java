@@ -3,6 +3,7 @@ package ai.timefold.solver.core.impl.heuristic.selector.move.generic.list;
 import java.util.Iterator;
 import java.util.Random;
 
+import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.ReversingType;
 import ai.timefold.solver.core.impl.domain.variable.descriptor.ListVariableDescriptor;
 import ai.timefold.solver.core.impl.heuristic.move.Move;
 import ai.timefold.solver.core.impl.heuristic.selector.common.iterator.UpcomingSelectionIterator;
@@ -18,18 +19,18 @@ class RandomSubListChangeMoveIterator<Solution_> extends UpcomingSelectionIterat
     private final Iterator<ElementPosition> destinationIterator;
     private final ListVariableDescriptor<Solution_> listVariableDescriptor;
     private final Random workingRandom;
-    private final boolean selectReversingMoveToo;
+    private final ReversingType reversingType;
 
     RandomSubListChangeMoveIterator(
             SubListSelector<Solution_> subListSelector,
             DestinationSelector<Solution_> destinationSelector,
             Random workingRandom,
-            boolean selectReversingMoveToo) {
+            ReversingType reversingType) {
         this.subListIterator = subListSelector.iterator();
         this.destinationIterator = destinationSelector.iterator();
         this.listVariableDescriptor = subListSelector.getVariableDescriptor();
         this.workingRandom = workingRandom;
-        this.selectReversingMoveToo = selectReversingMoveToo;
+        this.reversingType = reversingType;
     }
 
     @Override
@@ -43,7 +44,10 @@ class RandomSubListChangeMoveIterator<Solution_> extends UpcomingSelectionIterat
         if (destination == null) {
             return noUpcomingSelection();
         } else if (destination instanceof PositionInList destinationElement) {
-            var reversing = selectReversingMoveToo && workingRandom.nextBoolean();
+            var reversing = reversingType.hasReversingType();
+            if (reversingType.hasSequentialType() && reversing) {
+                reversing = workingRandom.nextBoolean();
+            }
             return new SubListChangeMove<>(listVariableDescriptor, subList, destinationElement.entity(),
                     destinationElement.index(), reversing);
         } else {

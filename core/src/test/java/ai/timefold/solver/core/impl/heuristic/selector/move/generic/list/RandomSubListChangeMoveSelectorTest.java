@@ -1,5 +1,7 @@
 package ai.timefold.solver.core.impl.heuristic.selector.move.generic.list;
 
+import static ai.timefold.solver.core.config.heuristic.selector.move.generic.list.ReversingType.BOTH_SEQUENTIAL_REVERSING;
+import static ai.timefold.solver.core.config.heuristic.selector.move.generic.list.ReversingType.ONLY_SEQUENTIAL;
 import static ai.timefold.solver.core.impl.heuristic.selector.SelectorTestUtils.phaseStarted;
 import static ai.timefold.solver.core.impl.heuristic.selector.SelectorTestUtils.solvingStarted;
 import static ai.timefold.solver.core.impl.heuristic.selector.SelectorTestUtils.stepStarted;
@@ -62,7 +64,7 @@ class RandomSubListChangeMoveSelectorTest {
                         minimumSubListSize,
                         maximumSubListSize),
                 mockNeverEndingDestinationSelector(destinationSize, ElementPosition.of(b, 0)),
-                false);
+                ONLY_SEQUENTIAL);
 
         var random = new TestRandom(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, -1);
 
@@ -127,7 +129,7 @@ class RandomSubListChangeMoveSelectorTest {
                         ElementPosition.of(b, 0),
                         ElementPosition.of(b, 1),
                         ElementPosition.unassigned()),
-                false);
+                ONLY_SEQUENTIAL);
 
         var random = new TestRandom(
                 0, 0, 0, 0, 0, 0,
@@ -197,7 +199,7 @@ class RandomSubListChangeMoveSelectorTest {
                         minimumSubListSize,
                         maximumSubListSize),
                 mockNeverEndingDestinationSelector(destinationSize, ElementPosition.of(b, 0)),
-                true);
+                BOTH_SEQUENTIAL_REVERSING);
 
         // Each row is consumed by 1 createUpcomingSelection() call.
         // Columns are: subList index, reversing flag.
@@ -257,7 +259,7 @@ class RandomSubListChangeMoveSelectorTest {
                         minimumSubListSize,
                         maximumSubListSize),
                 mockNeverEndingDestinationSelector(destinationSize, ElementPosition.of(b, 0)),
-                false);
+                ONLY_SEQUENTIAL);
 
         var random = new TestRandom(0, 1, 2, 3, 4, -1);
 
@@ -293,7 +295,7 @@ class RandomSubListChangeMoveSelectorTest {
                         minimumSubListSize,
                         maximumSubListSize),
                 mockNeverEndingDestinationSelector(),
-                false);
+                ONLY_SEQUENTIAL);
 
         solvingStarted(moveSelector, scoreDirector);
 
@@ -328,7 +330,7 @@ class RandomSubListChangeMoveSelectorTest {
                         minimumSubListSize,
                         maximumSubListSize),
                 mockNeverEndingDestinationSelector(destinationSize, ElementPosition.of(b, 0)),
-                false);
+                ONLY_SEQUENTIAL);
 
         var random = new TestRandom(0, 1, -1);
 
@@ -374,7 +376,7 @@ class RandomSubListChangeMoveSelectorTest {
                         minimumSubListSize,
                         maximumSubListSize),
                 mockNeverEndingDestinationSelector(destinationSize, ElementPosition.unassigned()),
-                false);
+                ONLY_SEQUENTIAL);
 
         var random = new TestRandom(0, 0);
 
@@ -422,7 +424,7 @@ class RandomSubListChangeMoveSelectorTest {
                         minimumSubListSize,
                         maximumSubListSize),
                 mockNeverEndingDestinationSelector(destinationSize, ElementPosition.of(b, 0)),
-                false);
+                ONLY_SEQUENTIAL);
 
         var random = new TestRandom(0);
 
@@ -450,7 +452,7 @@ class RandomSubListChangeMoveSelectorTest {
                         minimumSubListSize,
                         maximumSubListSize),
                 destinationSelector,
-                false);
+                ONLY_SEQUENTIAL);
 
         var solverScope = solvingStarted(moveSelector, scoreDirector);
         var phaseScope = phaseStarted(moveSelector, solverScope);

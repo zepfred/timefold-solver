@@ -2,6 +2,7 @@ package ai.timefold.solver.core.impl.heuristic.selector.move.generic.list;
 
 import java.util.Iterator;
 
+import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.ReversingType;
 import ai.timefold.solver.core.impl.heuristic.move.Move;
 import ai.timefold.solver.core.impl.heuristic.selector.list.DestinationSelector;
 import ai.timefold.solver.core.impl.heuristic.selector.list.SubListSelector;
@@ -11,27 +12,20 @@ public class RandomSubListChangeMoveSelector<Solution_> extends GenericMoveSelec
 
     private final SubListSelector<Solution_> subListSelector;
     private final DestinationSelector<Solution_> destinationSelector;
-    private final boolean selectReversingMoveToo;
+    private final ReversingType reversingType;
 
-    public RandomSubListChangeMoveSelector(
-            SubListSelector<Solution_> subListSelector,
-            DestinationSelector<Solution_> destinationSelector,
-            boolean selectReversingMoveToo) {
+    public RandomSubListChangeMoveSelector(SubListSelector<Solution_> subListSelector,
+            DestinationSelector<Solution_> destinationSelector, ReversingType reversingType) {
         this.subListSelector = subListSelector;
         this.destinationSelector = destinationSelector;
-        this.selectReversingMoveToo = selectReversingMoveToo;
-
+        this.reversingType = reversingType;
         phaseLifecycleSupport.addEventListener(subListSelector);
         phaseLifecycleSupport.addEventListener(destinationSelector);
     }
 
     @Override
     public Iterator<Move<Solution_>> iterator() {
-        return new RandomSubListChangeMoveIterator<>(
-                subListSelector,
-                destinationSelector,
-                workingRandom,
-                selectReversingMoveToo);
+        return new RandomSubListChangeMoveIterator<>(subListSelector, destinationSelector, workingRandom, reversingType);
     }
 
     @Override
@@ -48,11 +42,12 @@ public class RandomSubListChangeMoveSelector<Solution_> extends GenericMoveSelec
     public long getSize() {
         long subListCount = subListSelector.getSize();
         long destinationCount = destinationSelector.getSize();
-        return subListCount * destinationCount * (selectReversingMoveToo ? 2 : 1);
+        return subListCount * destinationCount
+                * (reversingType.hasSequentialType() && reversingType.hasReversingType() ? 2 : 1);
     }
 
     boolean isSelectReversingMoveToo() {
-        return selectReversingMoveToo;
+        return reversingType.hasReversingType();
     }
 
     SubListSelector<Solution_> getSubListSelector() {
