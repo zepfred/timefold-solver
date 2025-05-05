@@ -363,7 +363,10 @@
                               
           
           <xs:element minOccurs="0" name="nearbyDistanceMeterClass" type="xs:string"/>
-
+                              
+          
+          <xs:element minOccurs="0" name="enableGranularNeighborhood" type="xs:boolean"/>
+                              
           
           <xs:choice maxOccurs="unbounded" minOccurs="0">
                                     
@@ -1245,10 +1248,13 @@
                               
           
           <xs:element minOccurs="0" name="fixedProbabilityWeight" type="xs:double"/>
+                              
+          
+          <xs:element minOccurs="0" name="enableGranularNeighborhood" type="xs:boolean"/>
                             
         
         </xs:sequence>
-
+                      
       
       </xs:extension>
                 

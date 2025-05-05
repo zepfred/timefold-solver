@@ -1,5 +1,6 @@
 package ai.timefold.solver.core.config.heuristic.selector.move.generic.list;
 
+import java.util.Random;
 import java.util.function.Consumer;
 
 import jakarta.xml.bind.annotation.XmlElement;
@@ -8,7 +9,10 @@ import jakarta.xml.bind.annotation.XmlType;
 import ai.timefold.solver.core.config.heuristic.selector.list.DestinationSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.list.SubListSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.MoveSelectorConfig;
+import ai.timefold.solver.core.config.heuristic.selector.move.NearbyAutoConfigurationEnabled;
+import ai.timefold.solver.core.config.heuristic.selector.move.NearbyUtil;
 import ai.timefold.solver.core.config.util.ConfigUtils;
+import ai.timefold.solver.core.impl.heuristic.selector.common.nearby.NearbyDistanceMeter;
 
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -21,7 +25,8 @@ import org.jspecify.annotations.Nullable;
         "subListSelectorConfig",
         "destinationSelectorConfig"
 })
-public class SubListChangeMoveSelectorConfig extends MoveSelectorConfig<SubListChangeMoveSelectorConfig> {
+public class SubListChangeMoveSelectorConfig extends MoveSelectorConfig<SubListChangeMoveSelectorConfig>
+        implements NearbyAutoConfigurationEnabled<SubListChangeMoveSelectorConfig> {
 
     public static final String XML_ELEMENT_NAME = "subListChangeMoveSelector";
 
@@ -178,6 +183,12 @@ public class SubListChangeMoveSelectorConfig extends MoveSelectorConfig<SubListC
         if (destinationSelectorConfig != null) {
             destinationSelectorConfig.visitReferencedClasses(classVisitor);
         }
+    }
+
+    @Override
+    public @NonNull SubListChangeMoveSelectorConfig
+            enableNearbySelection(@NonNull Class<? extends NearbyDistanceMeter<?, ?>> distanceMeter, @NonNull Random random) {
+        return NearbyUtil.enable(this, distanceMeter, random);
     }
 
     @Override

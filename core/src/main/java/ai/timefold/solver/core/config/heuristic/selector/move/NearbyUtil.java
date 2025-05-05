@@ -5,16 +5,19 @@ import java.util.Random;
 import ai.timefold.solver.core.config.heuristic.selector.common.nearby.NearbySelectionConfig;
 import ai.timefold.solver.core.config.heuristic.selector.entity.EntitySelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.list.DestinationSelectorConfig;
+import ai.timefold.solver.core.config.heuristic.selector.list.SubListSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.generic.ChangeMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.generic.SwapMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.generic.chained.TailChainSwapMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.ListChangeMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.ListSwapMoveSelectorConfig;
+import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.SubListChangeMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.kopt.KOptListMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.value.ValueSelectorConfig;
 import ai.timefold.solver.core.impl.heuristic.selector.common.nearby.NearbyDistanceMeter;
 
 import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
 
 public final class NearbyUtil {
 
@@ -160,6 +163,30 @@ public final class NearbyUtil {
         var valueConfig = configureSecondaryValueSelector(nearbyConfig.getValueSelectorConfig(), originConfig, distanceMeter);
         return nearbyConfig.withOriginSelectorConfig(originConfig)
                 .withValueSelectorConfig(valueConfig);
+    }
+
+    public static @NonNull SubListChangeMoveSelectorConfig enable(
+            @NonNull SubListChangeMoveSelectorConfig subListChangeMoveSelectorConfig,
+            @NonNull Class<? extends NearbyDistanceMeter<?, ?>> distanceMeter, @NonNull Random random) {
+        var nearbyConfig = subListChangeMoveSelectorConfig.copyConfig();
+        var subListSelectorConfig = configureSubListSelector(nearbyConfig.getSubListSelectorConfig(), random);
+        var destinationConfig = nearbyConfig.getDestinationSelectorConfig();
+        if (destinationConfig == null) {
+            destinationConfig = new DestinationSelectorConfig();
+        }
+        destinationConfig
+                .withNearbySelectionConfig(configureNearbySelectionWithValue(subListSelectorConfig.getId(), distanceMeter));
+        return nearbyConfig.withSubListSelectorConfig(subListSelectorConfig)
+                .withDestinationSelectorConfig(destinationConfig);
+    }
+
+    private static SubListSelectorConfig configureSubListSelector(SubListSelectorConfig subListSelectorConfig, Random random) {
+        if (subListSelectorConfig == null) {
+            subListSelectorConfig = new SubListSelectorConfig();
+        }
+        var sublistSelectorId = addRandomSuffix("sublistSelector", random);
+        subListSelectorConfig.withId(sublistSelectorId);
+        return subListSelectorConfig;
     }
 
     private static String addRandomSuffix(String name, Random random) {

@@ -8,6 +8,7 @@ import ai.timefold.solver.core.api.domain.entity.PlanningPin;
 import ai.timefold.solver.core.api.domain.variable.PlanningListVariable;
 import ai.timefold.solver.core.config.heuristic.selector.common.SelectionCacheType;
 import ai.timefold.solver.core.config.heuristic.selector.common.SelectionOrder;
+import ai.timefold.solver.core.config.heuristic.selector.list.SubListSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.MoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.NearbyAutoConfigurationEnabled;
 import ai.timefold.solver.core.config.heuristic.selector.move.composite.UnionMoveSelectorConfig;
@@ -16,6 +17,9 @@ import ai.timefold.solver.core.config.heuristic.selector.move.generic.SwapMoveSe
 import ai.timefold.solver.core.config.heuristic.selector.move.generic.chained.TailChainSwapMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.ListChangeMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.ListSwapMoveSelectorConfig;
+import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.ReversingType;
+import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.SubListChangeMoveSelectorConfig;
+import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.SubListSwapMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.generic.list.kopt.KOptListMoveSelectorConfig;
 import ai.timefold.solver.core.config.localsearch.LocalSearchPhaseConfig;
 import ai.timefold.solver.core.config.localsearch.LocalSearchType;
@@ -290,9 +294,79 @@ public class DefaultLocalSearchPhaseFactory<Solution_> extends AbstractPhaseFact
                 .anyMatch(v -> ((BasicVariableDescriptor<?>) v).isChained());
         var listVariableDescriptor = solutionDescriptor.getListVariableDescriptor();
         if (basicVariableDescriptorList.isEmpty()) { // We only have the one list variable.
-            return new UnionMoveSelectorConfig()
-                    .withMoveSelectors(new ListChangeMoveSelectorConfig(), new ListSwapMoveSelectorConfig(),
-                            new KOptListMoveSelectorConfig());
+            if (configPolicy.getNearbyDistanceMeterClass() != null) {
+                return new UnionMoveSelectorConfig()
+                        .withMoveSelectors(new ListChangeMoveSelectorConfig(),
+                                new ListSwapMoveSelectorConfig(),
+                                new KOptListMoveSelectorConfig(),
+                                new SubListChangeMoveSelectorConfig().withReversingType(ReversingType.ONLY_SEQUENTIAL)
+                                        .withSubListSelectorConfig(new SubListSelectorConfig().withMinimumSubListSize(2)
+                                                .withMaximumSubListSize(2))
+                        //                                new SubListSwapMoveSelectorConfig().withReversingType(ReversingType.ONLY_SEQUENTIAL)
+                        //                                        .withSubListSelectorConfig(
+                        //                                                new SubListSelectorConfig().withMinimumSubListSize(2).withMaximumSubListSize(2))
+                        //                                        .withSecondarySubListSelectorConfig(new SubListSelectorConfig()
+                        //                                                .withMinimumSubListSize(1).withMaximumSubListSize(1)),
+                        //                                new SubListSwapMoveSelectorConfig().withReversingType(ReversingType.ONLY_SEQUENTIAL)
+                        //                                        .withSubListSelectorConfig(
+                        //                                                new SubListSelectorConfig().withMinimumSubListSize(2).withMaximumSubListSize(2))
+                        //                                        .withSecondarySubListSelectorConfig(new SubListSelectorConfig()
+                        //                                                .withMinimumSubListSize(2).withMaximumSubListSize(2)),
+                        //                                new SubListChangeMoveSelectorConfig().withReversingType(ReversingType.ONLY_REVERSING)
+                        //                                        .withSubListSelectorConfig(new SubListSelectorConfig().withMinimumSubListSize(2)
+                        //                                                .withMaximumSubListSize(2)),
+                        //                                new SubListSwapMoveSelectorConfig().withReversingType(ReversingType.ONLY_REVERSING)
+                        //                                        .withSubListSelectorConfig(
+                        //                                                new SubListSelectorConfig().withMinimumSubListSize(2).withMaximumSubListSize(2))
+                        //                                        .withSecondarySubListSelectorConfig(new SubListSelectorConfig()
+                        //                                                .withMinimumSubListSize(1).withMaximumSubListSize(1)),
+                        //                                new SubListSwapMoveSelectorConfig().withReversingType(ReversingType.ONLY_REVERSING)
+                        //                                        .withSubListSelectorConfig(
+                        //                                                new SubListSelectorConfig().withMinimumSubListSize(2).withMaximumSubListSize(2))
+                        //                                        .withSecondarySubListSelectorConfig(new SubListSelectorConfig()
+                        //                                                .withMinimumSubListSize(2).withMaximumSubListSize(2)),
+                        //                                new SubListChangeMoveSelectorConfig().withReversingType(ReversingType.ONLY_SEQUENTIAL)
+                        //                                        .withSubListSelectorConfig(new SubListSelectorConfig().withMinimumSubListSize(3)
+                        //                                                .withMaximumSubListSize(3)),
+                        //                                new SubListSwapMoveSelectorConfig().withReversingType(ReversingType.ONLY_SEQUENTIAL)
+                        //                                        .withSubListSelectorConfig(
+                        //                                                new SubListSelectorConfig().withMinimumSubListSize(3).withMaximumSubListSize(3))
+                        //                                        .withSecondarySubListSelectorConfig(new SubListSelectorConfig()
+                        //                                                .withMinimumSubListSize(1).withMaximumSubListSize(1)),
+                        //                                new SubListSwapMoveSelectorConfig().withReversingType(ReversingType.ONLY_SEQUENTIAL)
+                        //                                        .withSubListSelectorConfig(
+                        //                                                new SubListSelectorConfig().withMinimumSubListSize(3).withMaximumSubListSize(3))
+                        //                                        .withSecondarySubListSelectorConfig(new SubListSelectorConfig()
+                        //                                                .withMinimumSubListSize(2).withMaximumSubListSize(2)),
+                        //                                new SubListSwapMoveSelectorConfig().withReversingType(ReversingType.ONLY_SEQUENTIAL)
+                        //                                        .withSubListSelectorConfig(
+                        //                                                new SubListSelectorConfig().withMinimumSubListSize(3).withMaximumSubListSize(3))
+                        //                                        .withSecondarySubListSelectorConfig(new SubListSelectorConfig()
+                        //                                                .withMinimumSubListSize(3).withMaximumSubListSize(3)),
+                        //                                new SubListChangeMoveSelectorConfig().withReversingType(ReversingType.ONLY_REVERSING)
+                        //                                        .withSubListSelectorConfig(new SubListSelectorConfig().withMinimumSubListSize(3)
+                        //                                                .withMaximumSubListSize(3)),
+                        //                                new SubListSwapMoveSelectorConfig().withReversingType(ReversingType.ONLY_REVERSING)
+                        //                                        .withSubListSelectorConfig(
+                        //                                                new SubListSelectorConfig().withMinimumSubListSize(3).withMaximumSubListSize(3))
+                        //                                        .withSecondarySubListSelectorConfig(new SubListSelectorConfig()
+                        //                                                .withMinimumSubListSize(1).withMaximumSubListSize(1)),
+                        //                                new SubListSwapMoveSelectorConfig().withReversingType(ReversingType.ONLY_REVERSING)
+                        //                                        .withSubListSelectorConfig(
+                        //                                                new SubListSelectorConfig().withMinimumSubListSize(3).withMaximumSubListSize(3))
+                        //                                        .withSecondarySubListSelectorConfig(new SubListSelectorConfig()
+                        //                                                .withMinimumSubListSize(2).withMaximumSubListSize(2)),
+                        //                                new SubListSwapMoveSelectorConfig().withReversingType(ReversingType.ONLY_REVERSING)
+                        //                                        .withSubListSelectorConfig(
+                        //                                                new SubListSelectorConfig().withMinimumSubListSize(3).withMaximumSubListSize(3))
+                        //                                        .withSecondarySubListSelectorConfig(new SubListSelectorConfig()
+                        //                                                .withMinimumSubListSize(3).withMaximumSubListSize(3))
+                        );
+            } else {
+                return new UnionMoveSelectorConfig()
+                        .withMoveSelectors(new ListChangeMoveSelectorConfig(), new ListSwapMoveSelectorConfig(),
+                                new KOptListMoveSelectorConfig());
+            }
         } else if (listVariableDescriptor == null) { // We only have basic variables.
             if (hasChainedVariable && basicVariableDescriptorList.size() == 1) {
                 return new UnionMoveSelectorConfig()
