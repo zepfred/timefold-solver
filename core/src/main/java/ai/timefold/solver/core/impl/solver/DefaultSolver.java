@@ -348,4 +348,8 @@ public class DefaultSolver<Solution_> extends AbstractSolver<Solution_> {
             return true;
         }
     }
+
+    protected Solution_ cloneSolution(Solution_ solution) {
+        return solverScope.getScoreDirector().cloneSolution(solution);
+    }
 }

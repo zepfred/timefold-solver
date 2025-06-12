@@ -114,7 +114,7 @@ public final class DefaultSolverJob<Solution_, ProblemId_> implements SolverJob<
         try {
             solverStatus = SolverStatus.SOLVING_ACTIVE;
             // Create the consumer thread pool only when this solver job is active.
-            consumerSupport = new ConsumerSupport<>(getProblemId(), bestSolutionConsumer, finalBestSolutionConsumer,
+            consumerSupport = new ConsumerSupport<>(solver, getProblemId(), bestSolutionConsumer, finalBestSolutionConsumer,
                     firstInitializedSolutionConsumer, solverJobStartedConsumer, exceptionHandler, bestSolutionHolder);
 
             Solution_ problem = problemFinder.apply(problemId);

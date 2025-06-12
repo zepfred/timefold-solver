@@ -13,6 +13,7 @@ import ai.timefold.solver.core.api.solver.SolverJobBuilder.FirstInitializedSolut
 final class ConsumerSupport<Solution_, ProblemId_> implements AutoCloseable {
 
     private final ProblemId_ problemId;
+    private final Consumer<? super Solution_> userBestSolutionConsumer;
     private final Consumer<? super Solution_> bestSolutionConsumer;
     private final Consumer<? super Solution_> finalBestSolutionConsumer;
     private final FirstInitializedSolutionConsumer<? super Solution_> firstInitializedSolutionConsumer;
@@ -26,14 +27,23 @@ final class ConsumerSupport<Solution_, ProblemId_> implements AutoCloseable {
     private Solution_ firstInitializedSolution;
     private Solution_ initialSolution;
 
-    public ConsumerSupport(ProblemId_ problemId, Consumer<? super Solution_> bestSolutionConsumer,
+    public ConsumerSupport(DefaultSolver<Solution_> solver, ProblemId_ problemId,
+            Consumer<? super Solution_> bestSolutionConsumer,
             Consumer<? super Solution_> finalBestSolutionConsumer,
             FirstInitializedSolutionConsumer<? super Solution_> firstInitializedSolutionConsumer,
             Consumer<? super Solution_> solverJobStartedConsumer,
             BiConsumer<? super ProblemId_, ? super Throwable> exceptionHandler,
             BestSolutionHolder<Solution_> bestSolutionHolder) {
         this.problemId = problemId;
-        this.bestSolutionConsumer = bestSolutionConsumer;
+        this.userBestSolutionConsumer = bestSolutionConsumer;
+        if (bestSolutionConsumer != null) {
+            this.bestSolutionConsumer = solution -> {
+                var cloned = solver.cloneSolution(solution);
+                userBestSolutionConsumer.accept(cloned);
+            };
+        } else {
+            this.bestSolutionConsumer = null;
+        }
         this.finalBestSolutionConsumer = finalBestSolutionConsumer == null ? finalBestSolution -> {
         } : finalBestSolutionConsumer;
         this.firstInitializedSolutionConsumer = firstInitializedSolutionConsumer == null ? (solution, isTerminatedEarly) -> {
