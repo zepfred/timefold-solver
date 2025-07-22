@@ -36,7 +36,6 @@ import ai.timefold.solver.core.testdomain.valuerange.entityproviding.unassignedv
 import ai.timefold.solver.core.testdomain.valuerange.entityproviding.unassignedvar.composite.TestdataAllowsUnassignedCompositeEntityProvidingEntity;
 import ai.timefold.solver.core.testdomain.valuerange.entityproviding.unassignedvar.composite.TestdataAllowsUnassignedCompositeEntityProvidingSolution;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class ValueRangeManagerTest {
@@ -314,7 +313,6 @@ class ValueRangeManagerTest {
         assertThat(otherValueRange.getSize()).isEqualTo(4);
     }
 
-    @Disabled("Temporarily disabled")
     @Test
     void extractValueFromEntityUnassignedListVariable() {
         var solution = TestdataListUnassignedEntityProvidingSolution.generateSolution();
@@ -344,7 +342,6 @@ class ValueRangeManagerTest {
         assertThat(otherEntityValueRange.getSize()).isEqualTo(2);
     }
 
-    @Disabled("Temporarily disabled")
     @Test
     void extractValueFromEntityCompositeUnassignedListVariable() {
         var solution = TestdataListUnassignedCompositeEntityProvidingSolution.generateSolution();
@@ -377,7 +374,6 @@ class ValueRangeManagerTest {
         assertThat(otherEntityValueRange.getSize()).isEqualTo(4);
     }
 
-    @Disabled("Temporarily disabled")
     @Test
     void extractValueFromEntityAssignedListVariable() {
         var solution = TestdataListEntityProvidingSolution.generateSolution();
@@ -407,7 +403,6 @@ class ValueRangeManagerTest {
         assertThat(otherEntityValueRange.getSize()).isEqualTo(2);
     }
 
-    @Disabled("Temporarily disabled")
     @Test
     void extractValueFromEntityCompositeAssignedListVariable() {
         var solution = TestdataListCompositeEntityProvidingSolution.generateSolution();

@@ -75,7 +75,6 @@ import ai.timefold.solver.core.testutil.CodeAssertableArrayList;
 import ai.timefold.solver.core.testutil.PlannerTestUtils;
 
 import org.assertj.core.data.Percentage;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class SolutionDescriptorTest {
@@ -521,7 +520,6 @@ class SolutionDescriptorTest {
         });
     }
 
-    @Disabled("Temporarily disabled")
     @Test
     void listVariableProblemScaleEntityProvidingValueRange() {
         var solutionDescriptor = TestdataListEntityProvidingSolution.buildSolutionDescriptor();
@@ -532,6 +530,7 @@ class SolutionDescriptorTest {
         solution.setEntityList(List.of(
                 new TestdataListEntityProvidingEntity("e1", List.of(v1, v2)),
                 new TestdataListEntityProvidingEntity("e2", List.of(v1, v2, new TestdataListEntityProvidingValue("3")))));
+        valueRangeManager.reset(solution);
         assertSoftly(softly -> {
             softly.assertThat(solutionDescriptor.getGenuineEntityCount(solution)).isEqualTo(2L);
             softly.assertThat(solutionDescriptor.getGenuineVariableCount(solution)).isEqualTo(2L);
