@@ -13,6 +13,7 @@ public enum RandomType {
      * This is the default.
      */
     JDK,
+    RESUMABLE,
     MERSENNE_TWISTER,
     WELL512A,
     WELL1024A,

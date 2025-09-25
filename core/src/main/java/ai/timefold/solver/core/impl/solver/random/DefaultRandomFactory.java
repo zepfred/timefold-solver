@@ -32,6 +32,8 @@ public class DefaultRandomFactory implements RandomFactory {
         switch (randomType) {
             case JDK:
                 return randomSeed == null ? new Random() : new Random(randomSeed);
+            case RESUMABLE:
+                return randomSeed == null ? new ResumableRandomGenerator() : new ResumableRandomGenerator(randomSeed);
             case MERSENNE_TWISTER:
                 return new RandomAdaptor(randomSeed == null ? new MersenneTwister() : new MersenneTwister(randomSeed));
             case WELL512A:

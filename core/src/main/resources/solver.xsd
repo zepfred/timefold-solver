@@ -1607,6 +1607,8 @@
             
       <xs:enumeration value="JDK"/>
             
+      <xs:enumeration value="RESUMABLE"/>
+            
       <xs:enumeration value="MERSENNE_TWISTER"/>
             
       <xs:enumeration value="WELL512A"/>
