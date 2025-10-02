@@ -4,6 +4,7 @@ import static ai.timefold.solver.core.impl.heuristic.selector.move.generic.list.
 
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.Spliterators;
 import java.util.stream.Stream;
@@ -14,6 +15,7 @@ import ai.timefold.solver.core.impl.domain.entity.descriptor.EntityDescriptor;
 import ai.timefold.solver.core.impl.domain.variable.ListVariableStateSupply;
 import ai.timefold.solver.core.impl.domain.variable.descriptor.ListVariableDescriptor;
 import ai.timefold.solver.core.impl.heuristic.selector.AbstractSelector;
+import ai.timefold.solver.core.impl.heuristic.selector.common.iterator.UpcomingSelectionIterator;
 import ai.timefold.solver.core.impl.heuristic.selector.entity.EntitySelector;
 import ai.timefold.solver.core.impl.heuristic.selector.value.IterableValueSelector;
 import ai.timefold.solver.core.impl.heuristic.selector.value.decorator.FilteringValueSelector;
@@ -42,6 +44,9 @@ public class ElementDestinationSelector<Solution_> extends AbstractSelector<Solu
     private final EntitySelector<Solution_> entitySelector;
     private final IterableValueSelector<Solution_> valueSelector;
     private final boolean randomSelection;
+    private final boolean granularEvaluation = true;
+    private final double elementCountRate = 0.2;
+    private final int maxElementsSize = 400;
 
     private ListVariableStateSupply<Solution_, Object, Object> listVariableStateSupply;
 
@@ -119,22 +124,31 @@ public class ElementDestinationSelector<Solution_> extends AbstractSelector<Solu
             if (entitySelector.getSize() == 0) {
                 return Collections.emptyIterator();
             }
-            // Start with the first unpinned value of each entity, or zero if no pinning.
-            // Entity selector is guaranteed to return only unpinned entities.
-            Stream<ElementPosition> stream = StreamSupport.stream(entitySelector.spliterator(), false)
-                    .map(entity -> ElementPosition.of(entity, listVariableDescriptor.getFirstUnpinnedIndex(entity)));
-            // Filter guarantees that we only get values that are actually in one of the lists.
-            // Value selector guarantees only unpinned values.
-            // Simplify tests.
-            stream = Stream.concat(stream,
-                    StreamSupport.stream(valueSelector.spliterator(), false)
-                            .map(v -> listVariableStateSupply.getElementPosition(v).ensureAssigned())
-                            .map(positionInList -> ElementPosition.of(positionInList.entity(), positionInList.index() + 1)));
-            // If the list variable allows unassigned values, add the option of unassigning.
-            if (listVariableDescriptor.allowsUnassignedValues()) {
-                stream = Stream.concat(stream, Stream.of(ElementPosition.unassigned()));
+            if (granularEvaluation) {
+                var positions = StreamSupport.stream(entitySelector.spliterator(), false)
+                        .map(entity -> new FasterElementPosition(entity, listVariableDescriptor.getFirstUnpinnedIndex(entity),
+                                listVariableDescriptor.getListSize(entity)))
+                        .toList();
+                return new GranularElementPositionIterator(maxElementsSize, elementCountRate, positions);
+            } else {
+                // Start with the first unpinned value of each entity, or zero if no pinning.
+                // Entity selector is guaranteed to return only unpinned entities.
+                Stream<ElementPosition> stream = StreamSupport.stream(entitySelector.spliterator(), false)
+                        .map(entity -> ElementPosition.of(entity, listVariableDescriptor.getFirstUnpinnedIndex(entity)));
+                // Filter guarantees that we only get values that are actually in one of the lists.
+                // Value selector guarantees only unpinned values.
+                // Simplify tests.
+                stream = Stream.concat(stream,
+                        StreamSupport.stream(valueSelector.spliterator(), false)
+                                .map(v -> listVariableStateSupply.getElementPosition(v).ensureAssigned())
+                                .map(positionInList -> ElementPosition.of(positionInList.entity(),
+                                        positionInList.index() + 1)));
+                // If the list variable allows unassigned values, add the option of unassigning.
+                if (listVariableDescriptor.allowsUnassignedValues()) {
+                    stream = Stream.concat(stream, Stream.of(ElementPosition.unassigned()));
+                }
+                return stream.iterator();
             }
-            return stream.iterator();
         }
     }
 
@@ -181,6 +195,65 @@ public class ElementDestinationSelector<Solution_> extends AbstractSelector<Solu
     @Override
     public String toString() {
         return getClass().getSimpleName() + "(" + entitySelector + ", " + valueSelector + ")";
+    }
+
+    private record FasterElementPosition(Object entity, int index, int size) {
+    }
+
+    private static class GranularElementPositionIterator extends UpcomingSelectionIterator<ElementPosition> {
+        private final int maxElementSize;
+        private final double elementCountRate;
+        private final List<FasterElementPosition> elementPositions;
+
+        private int currentElementIndex = 0;
+        private FasterElementPosition currentElementPosition;
+        private int currentIndex;
+        private int indexIncrement;
+
+        private GranularElementPositionIterator(int maxElementSize, double elementCountRate,
+                List<FasterElementPosition> elementPositions) {
+            this.maxElementSize = maxElementSize;
+            this.elementCountRate = elementCountRate;
+            this.elementPositions = elementPositions;
+            loadNextElementPosition();
+        }
+
+        private void loadNextElementPosition() {
+            if (currentElementIndex >= elementPositions.size()) {
+                this.currentElementPosition = null;
+                return;
+            }
+            this.currentElementPosition = elementPositions.get(currentElementIndex++);
+            this.currentIndex = 0;
+            if (currentElementPosition.size() > maxElementSize) {
+                var countElements = Math.floor(elementCountRate * currentElementPosition.size());
+                this.indexIncrement = (int) Math.max(1, currentElementPosition.size() / countElements);
+            } else {
+                this.indexIncrement = 1;
+            }
+        }
+
+        private int pickNextIndex() {
+            while (currentElementPosition != null) {
+                if (currentIndex <= currentElementPosition.size()) {
+                    var index = currentIndex;
+                    currentIndex += indexIncrement;
+                    return index;
+                } else {
+                    loadNextElementPosition();
+                }
+            }
+            return -1;
+        }
+
+        @Override
+        protected ElementPosition createUpcomingSelection() {
+            var nextIndex = pickNextIndex();
+            if (nextIndex == -1) {
+                return noUpcomingSelection();
+            }
+            return ElementPosition.of(currentElementPosition.entity(), nextIndex);
+        }
     }
 
 }
