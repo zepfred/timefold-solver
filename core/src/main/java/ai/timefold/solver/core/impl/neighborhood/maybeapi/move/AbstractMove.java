@@ -17,7 +17,7 @@ import ai.timefold.solver.core.preview.api.move.Move;
 import org.jspecify.annotations.NullMarked;
 
 @NullMarked
-abstract class AbstractMove<Solution_> implements Move<Solution_> {
+public abstract class AbstractMove<Solution_> implements Move<Solution_> {
 
     private static final char OPENING_PARENTHESES = '(';
     private static final char CLOSING_PARENTHESES = ')';
