@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.Objects;
 
 import ai.timefold.solver.core.config.constructionheuristic.ConstructionHeuristicPhaseConfig;
+import ai.timefold.solver.core.config.evolutionaryalgorithm.EvolutionaryAlgorithmPhaseConfig;
 import ai.timefold.solver.core.config.exhaustivesearch.ExhaustiveSearchPhaseConfig;
 import ai.timefold.solver.core.config.localsearch.LocalSearchPhaseConfig;
 import ai.timefold.solver.core.config.partitionedsearch.PartitionedSearchPhaseConfig;
@@ -89,6 +90,19 @@ public abstract class AbstractPhaseFactory<Solution_, PhaseConfig_ extends Phase
                         Make sure Timefold Solver Enterprise Edition is on the classpath, or disable partitioned search.
                         """
                         .formatted("ai.timefold.solver.enterprise.core.partitioned.PartitionedSearchPhaseScope"));
+            }
+        } else if (phaseConfig instanceof EvolutionaryAlgorithmPhaseConfig) {
+            try {
+                return (Class<? extends AbstractPhaseScope>) Class
+                        .forName(
+                                "ai.timefold.solver.enterprise.core.evolutionaryalgorithm.scope.EvolutionaryAlgorithmPhaseScope");
+            } catch (ClassNotFoundException e) {
+                throw new IllegalStateException("""
+                        The class (%s) is not found.
+                        Make sure Timefold Solver Enterprise Edition is on the classpath, or disable evolutionary algorithm.
+                        """
+                        .formatted(
+                                "ai.timefold.solver.enterprise.core.evolutionaryalgorithm.scope.EvolutionaryAlgorithmPhaseScope"));
             }
         } else {
             throw new IllegalStateException("Unsupported phaseConfig class: %s".formatted(phaseConfig.getClass()));

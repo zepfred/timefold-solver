@@ -488,6 +488,28 @@
           "oldValue": "{\"easyScoreCalculatorClass\", \"easyScoreCalculatorCustomProperties\", \"constraintProviderClass\", \"constraintProviderCustomProperties\", \"constraintStreamImplType\", \"incrementalScoreCalculatorClass\", \"incrementalScoreCalculatorCustomProperties\", \"scoreDrlList\", \"initializingScoreTrend\", \"assertionScoreDirectorFactory\"}",
           "newValue": "{\"easyScoreCalculatorClass\", \"easyScoreCalculatorCustomProperties\", \"constraintProviderClass\", \"constraintProviderCustomProperties\", \"constraintStreamImplType\", \"constraintStreamAutomaticNodeSharing\", \"constraintStreamProfilingEnabled\", \"incrementalScoreCalculatorClass\", \"incrementalScoreCalculatorCustomProperties\", \"scoreDrlList\", \"initializingScoreTrend\", \"assertionScoreDirectorFactory\"}",
           "justification": "Add constraint profiling to config"
+        },
+        {
+          "ignore": true,
+          "code": "java.annotation.attributeValueChanged",
+          "old": "class ai.timefold.solver.core.config.phase.PhaseConfig<Config_ extends ai.timefold.solver.core.config.phase.PhaseConfig<Config_>>",
+          "new": "class ai.timefold.solver.core.config.phase.PhaseConfig<Config_ extends ai.timefold.solver.core.config.phase.PhaseConfig<Config_>>",
+          "annotationType": "jakarta.xml.bind.annotation.XmlSeeAlso",
+          "attribute": "value",
+          "oldValue": "{ai.timefold.solver.core.config.constructionheuristic.ConstructionHeuristicPhaseConfig.class, ai.timefold.solver.core.config.phase.custom.CustomPhaseConfig.class, ai.timefold.solver.core.config.exhaustivesearch.ExhaustiveSearchPhaseConfig.class, ai.timefold.solver.core.config.localsearch.LocalSearchPhaseConfig.class, ai.timefold.solver.core.config.phase.NoChangePhaseConfig.class, ai.timefold.solver.core.config.partitionedsearch.PartitionedSearchPhaseConfig.class}",
+          "newValue": "{ai.timefold.solver.core.config.constructionheuristic.ConstructionHeuristicPhaseConfig.class, ai.timefold.solver.core.config.phase.custom.CustomPhaseConfig.class, ai.timefold.solver.core.config.exhaustivesearch.ExhaustiveSearchPhaseConfig.class, ai.timefold.solver.core.config.localsearch.LocalSearchPhaseConfig.class, ai.timefold.solver.core.config.evolutionaryalgorithm.EvolutionaryAlgorithmPhaseConfig.class, ai.timefold.solver.core.config.phase.NoChangePhaseConfig.class, ai.timefold.solver.core.config.partitionedsearch.PartitionedSearchPhaseConfig.class}",
+          "justification": "Add new evolutionary phase"
+        },
+        {
+          "ignore": true,
+          "code": "java.annotation.attributeValueChanged",
+          "old": "field ai.timefold.solver.core.config.solver.SolverConfig.phaseConfigList",
+          "new": "field ai.timefold.solver.core.config.solver.SolverConfig.phaseConfigList",
+          "annotationType": "jakarta.xml.bind.annotation.XmlElements",
+          "attribute": "value",
+          "oldValue": "{@jakarta.xml.bind.annotation.XmlElement(name = \"constructionHeuristic\", type = ai.timefold.solver.core.config.constructionheuristic.ConstructionHeuristicPhaseConfig.class), @jakarta.xml.bind.annotation.XmlElement(name = \"customPhase\", type = ai.timefold.solver.core.config.phase.custom.CustomPhaseConfig.class), @jakarta.xml.bind.annotation.XmlElement(name = \"exhaustiveSearch\", type = ai.timefold.solver.core.config.exhaustivesearch.ExhaustiveSearchPhaseConfig.class), @jakarta.xml.bind.annotation.XmlElement(name = \"localSearch\", type = ai.timefold.solver.core.config.localsearch.LocalSearchPhaseConfig.class), @jakarta.xml.bind.annotation.XmlElement(name = \"noChangePhase\", type = ai.timefold.solver.core.config.phase.NoChangePhaseConfig.class), @jakarta.xml.bind.annotation.XmlElement(name = \"partitionedSearch\", type = ai.timefold.solver.core.config.partitionedsearch.PartitionedSearchPhaseConfig.class)}",
+          "newValue": "{@jakarta.xml.bind.annotation.XmlElement(name = \"constructionHeuristic\", type = ai.timefold.solver.core.config.constructionheuristic.ConstructionHeuristicPhaseConfig.class), @jakarta.xml.bind.annotation.XmlElement(name = \"customPhase\", type = ai.timefold.solver.core.config.phase.custom.CustomPhaseConfig.class), @jakarta.xml.bind.annotation.XmlElement(name = \"exhaustiveSearch\", type = ai.timefold.solver.core.config.exhaustivesearch.ExhaustiveSearchPhaseConfig.class), @jakarta.xml.bind.annotation.XmlElement(name = \"localSearch\", type = ai.timefold.solver.core.config.localsearch.LocalSearchPhaseConfig.class), @jakarta.xml.bind.annotation.XmlElement(name = \"evolutionaryAlgorithm\", type = ai.timefold.solver.core.config.evolutionaryalgorithm.EvolutionaryAlgorithmPhaseConfig.class), @jakarta.xml.bind.annotation.XmlElement(name = \"noChangePhase\", type = ai.timefold.solver.core.config.phase.NoChangePhaseConfig.class), @jakarta.xml.bind.annotation.XmlElement(name = \"partitionedSearch\", type = ai.timefold.solver.core.config.partitionedsearch.PartitionedSearchPhaseConfig.class)}",
+          "justification": "Add new evolutionary phase"
         }
       ]
     }
