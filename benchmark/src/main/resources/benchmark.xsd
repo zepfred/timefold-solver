@@ -380,6 +380,9 @@
             <xs:element name="localSearch" type="tns:localSearchPhaseConfig"/>
                                     
             
+            <xs:element name="evolutionaryAlgorithm" type="tns:evolutionaryAlgorithmPhaseConfig"/>
+                                    
+            
             <xs:element name="noChangePhase" type="tns:noChangePhaseConfig"/>
                                     
             
@@ -2624,6 +2627,36 @@
   </xs:complexType>
       
   
+  <xs:complexType name="evolutionaryAlgorithmPhaseConfig">
+            
+    
+    <xs:complexContent>
+                  
+      
+      <xs:extension base="tns:phaseConfig">
+                        
+        
+        <xs:sequence>
+                              
+          
+          <xs:element minOccurs="0" name="initialPopulationSize" type="xs:int"/>
+                              
+          
+          <xs:element minOccurs="0" name="newPopulationSize" type="xs:int"/>
+                            
+        
+        </xs:sequence>
+                      
+      
+      </xs:extension>
+                
+    
+    </xs:complexContent>
+          
+  
+  </xs:complexType>
+      
+  
   <xs:complexType name="noChangePhaseConfig">
             
     
@@ -2715,6 +2748,9 @@
                   
       
       <xs:enumeration value="NEIGHBORHOODS"/>
+                  
+      
+      <xs:enumeration value="EVOLUTIONARY_ALGORITHM"/>
                 
     
     </xs:restriction>
