@@ -91,7 +91,7 @@ class QueuedEntityPlacerFactoryTest {
                 QueuedEntityPlacerFactory.unfoldNew(configPolicy, List.of(primaryMoveSelectorConfig));
         var entityPlacer =
                 new QueuedEntityPlacerFactory<TestdataDifficultyWeightSolution>(placerConfig);
-        var entitySelectorConfig = entityPlacer.buildEntitySelectorConfig(configPolicy);
+        var entitySelectorConfig = entityPlacer.buildEntitySelectorConfig(configPolicy, placerConfig);
         assertThat(entitySelectorConfig.getSelectionOrder()).isEqualTo(SelectionOrder.SORTED);
         assertThat(entitySelectorConfig.getSorterManner()).isEqualTo(EntitySorterManner.DECREASING_DIFFICULTY_IF_AVAILABLE);
     }
