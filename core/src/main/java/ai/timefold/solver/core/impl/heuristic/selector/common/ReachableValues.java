@@ -82,6 +82,24 @@ public final class ReachableValues<Entity_, Value_> {
         return entityList;
     }
 
+    /**
+     * This method returns a combined list of entities that are common to both evaluated values.
+     *
+     * @param firstValue the first value
+     * @param secondValue the second value
+     * @return A merged list with unique entities reachable by both values.
+     */
+    public List<Entity_> matchAndExtractEntitiesAsList(Object firstValue, Object secondValue) {
+        extractEntitiesAsList(firstValue);
+        var firstItemValue = firstCachedObject;
+        extractEntitiesAsList(secondValue);
+        var secondItemValue = firstCachedObject;
+        var mergedBitSet = new BitSet(firstItemValue.entityBitSet.cardinality());
+        mergedBitSet.or(firstItemValue.entityBitSet);
+        mergedBitSet.and(secondItemValue.entityBitSet);
+        return new BitSetIndexedList<>(entitiesIndex.allItems(), mergedBitSet);
+    }
+
     public List<Value_> extractValuesAsList(Object value) {
         var itemValue = fetchItemValue(value);
         if (itemValue == null) {
