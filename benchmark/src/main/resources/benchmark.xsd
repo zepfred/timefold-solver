@@ -1041,6 +1041,9 @@
                               
           
           <xs:element minOccurs="0" name="maximumSubListSize" type="xs:int"/>
+                              
+          
+          <xs:element minOccurs="0" name="onlyConsecutive" type="xs:boolean"/>
                             
         
         </xs:sequence>
