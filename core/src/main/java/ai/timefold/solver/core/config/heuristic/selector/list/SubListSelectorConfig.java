@@ -21,6 +21,7 @@ import org.jspecify.annotations.Nullable;
         "nearbySelectionConfig",
         "minimumSubListSize",
         "maximumSubListSize",
+        "onlyConsecutive"
 })
 public class SubListSelectorConfig extends SelectorConfig<SubListSelectorConfig> {
 
@@ -36,6 +37,8 @@ public class SubListSelectorConfig extends SelectorConfig<SubListSelectorConfig>
 
     private Integer minimumSubListSize = null;
     private Integer maximumSubListSize = null;
+
+    private Boolean onlyConsecutive = null;
 
     public SubListSelectorConfig() {
     }
@@ -94,6 +97,14 @@ public class SubListSelectorConfig extends SelectorConfig<SubListSelectorConfig>
         this.maximumSubListSize = maximumSubListSize;
     }
 
+    public Boolean getOnlyConsecutive() {
+        return onlyConsecutive;
+    }
+
+    public void setOnlyConsecutive(Boolean onlyConsecutive) {
+        this.onlyConsecutive = onlyConsecutive;
+    }
+
     // ************************************************************************
     // With methods
     // ************************************************************************
@@ -128,6 +139,11 @@ public class SubListSelectorConfig extends SelectorConfig<SubListSelectorConfig>
         return this;
     }
 
+    public @NonNull SubListSelectorConfig withOnlyConsecutive(@NonNull Boolean onlyConsecutive) {
+        this.setOnlyConsecutive(onlyConsecutive);
+        return this;
+    }
+
     // ************************************************************************
     // Builder methods
     // ************************************************************************
@@ -140,6 +156,7 @@ public class SubListSelectorConfig extends SelectorConfig<SubListSelectorConfig>
         nearbySelectionConfig = ConfigUtils.inheritConfig(nearbySelectionConfig, inheritedConfig.nearbySelectionConfig);
         minimumSubListSize = ConfigUtils.inheritOverwritableProperty(minimumSubListSize, inheritedConfig.minimumSubListSize);
         maximumSubListSize = ConfigUtils.inheritOverwritableProperty(maximumSubListSize, inheritedConfig.maximumSubListSize);
+        onlyConsecutive = ConfigUtils.inheritOverwritableProperty(onlyConsecutive, inheritedConfig.onlyConsecutive);
         return this;
     }
 

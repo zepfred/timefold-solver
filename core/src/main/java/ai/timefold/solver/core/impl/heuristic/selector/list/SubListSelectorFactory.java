@@ -21,7 +21,7 @@ import ai.timefold.solver.core.impl.heuristic.selector.value.ValueSelectorFactor
 
 public final class SubListSelectorFactory<Solution_> extends AbstractFromConfigFactory<Solution_, SubListSelectorConfig> {
 
-    private static final int DEFAULT_MINIMUM_SUB_LIST_SIZE = 1; // TODO Bump this to 2 in Timefold Solver 2.0
+    private static final int DEFAULT_MINIMUM_SUB_LIST_SIZE = 2;
     private static final int DEFAULT_MAXIMUM_SUB_LIST_SIZE = Integer.MAX_VALUE;
 
     private SubListSelectorFactory(SubListSelectorConfig config) {
@@ -38,19 +38,23 @@ public final class SubListSelectorFactory<Solution_> extends AbstractFromConfigF
         if (config.getMimicSelectorRef() != null) {
             return buildMimicReplaying(configPolicy);
         }
-        if (inheritedSelectionOrder != SelectionOrder.RANDOM) {
-            throw new IllegalArgumentException(
-                    "The subListSelector (%s) has an inheritedSelectionOrder(%s) which is not supported. SubListSelector only supports random selection order."
-                            .formatted(config, inheritedSelectionOrder));
-        }
 
         var valueSelector = buildIterableValueSelector(configPolicy, entitySelector.getEntityDescriptor(),
                 minimumCacheType, inheritedSelectionOrder);
 
+        var randomMoveSelection = inheritedSelectionOrder == SelectionOrder.RANDOM;
         var minimumSubListSize = Objects.requireNonNullElse(config.getMinimumSubListSize(), DEFAULT_MINIMUM_SUB_LIST_SIZE);
-        var maximumSubListSize = Objects.requireNonNullElse(config.getMaximumSubListSize(), DEFAULT_MAXIMUM_SUB_LIST_SIZE);
-        var baseSubListSelector =
-                new RandomSubListSelector<>(entitySelector, valueSelector, minimumSubListSize, maximumSubListSize);
+        var maximumSubListSize = Objects.requireNonNullElse(config.getMaximumSubListSize(),
+                randomMoveSelection ? DEFAULT_MAXIMUM_SUB_LIST_SIZE : minimumSubListSize);
+        var onlyConsecutive = Objects.requireNonNullElse(config.getOnlyConsecutive(), !randomMoveSelection);
+        if (!randomMoveSelection && !onlyConsecutive) {
+            throw new IllegalArgumentException(
+                    "The subListSelector (%s) has an inherited selection order (%s) that is not supported. SubListSelector only supports the original selection order with consecutive values.."
+                            .formatted(config, inheritedSelectionOrder));
+        }
+        var baseSubListSelector = randomMoveSelection
+                ? new RandomSubListSelector<>(entitySelector, valueSelector, minimumSubListSize, maximumSubListSize)
+                : new OriginalSubListSelector<>(entitySelector, valueSelector, minimumSubListSize, maximumSubListSize);
 
         var subListSelector =
                 applyNearbySelection(configPolicy, minimumCacheType, inheritedSelectionOrder, baseSubListSelector);
@@ -97,7 +101,7 @@ public final class SubListSelectorFactory<Solution_> extends AbstractFromConfigF
 
     private SubListSelector<Solution_> applyNearbySelection(HeuristicConfigPolicy<Solution_> configPolicy,
             SelectionCacheType minimumCacheType, SelectionOrder resolvedSelectionOrder,
-            RandomSubListSelector<Solution_> subListSelector) {
+            SubListSelector<Solution_> subListSelector) {
         NearbySelectionConfig nearbySelectionConfig = config.getNearbySelectionConfig();
         if (nearbySelectionConfig == null) {
             return subListSelector;

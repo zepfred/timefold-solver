@@ -7,19 +7,19 @@ import ai.timefold.solver.core.impl.heuristic.selector.list.DestinationSelector;
 import ai.timefold.solver.core.impl.heuristic.selector.list.SubListSelector;
 import ai.timefold.solver.core.impl.heuristic.selector.move.generic.GenericMoveSelector;
 
-public class RandomSubListChangeMoveSelector<Solution_> extends GenericMoveSelector<Solution_> {
+public class SubListChangeMoveSelector<Solution_> extends GenericMoveSelector<Solution_> {
 
     private final SubListSelector<Solution_> subListSelector;
     private final DestinationSelector<Solution_> destinationSelector;
     private final boolean selectReversingMoveToo;
+    private final boolean randomSelection;
 
-    public RandomSubListChangeMoveSelector(
-            SubListSelector<Solution_> subListSelector,
-            DestinationSelector<Solution_> destinationSelector,
-            boolean selectReversingMoveToo) {
+    public SubListChangeMoveSelector(SubListSelector<Solution_> subListSelector,
+            DestinationSelector<Solution_> destinationSelector, boolean selectReversingMoveToo, boolean randomSelection) {
         this.subListSelector = subListSelector;
         this.destinationSelector = destinationSelector;
         this.selectReversingMoveToo = selectReversingMoveToo;
+        this.randomSelection = randomSelection;
 
         phaseLifecycleSupport.addEventListener(subListSelector);
         phaseLifecycleSupport.addEventListener(destinationSelector);
@@ -27,11 +27,18 @@ public class RandomSubListChangeMoveSelector<Solution_> extends GenericMoveSelec
 
     @Override
     public Iterator<Move<Solution_>> iterator() {
-        return new RandomSubListChangeMoveIterator<>(
-                subListSelector,
-                destinationSelector,
-                workingRandom,
-                selectReversingMoveToo);
+        if (randomSelection) {
+            return new RandomSubListChangeMoveIterator<>(
+                    subListSelector,
+                    destinationSelector,
+                    workingRandom,
+                    selectReversingMoveToo);
+        } else {
+            return new OriginalConsecutiveSubListChangeMoveIterator<>(
+                    subListSelector,
+                    destinationSelector,
+                    selectReversingMoveToo);
+        }
     }
 
     @Override
@@ -41,14 +48,18 @@ public class RandomSubListChangeMoveSelector<Solution_> extends GenericMoveSelec
 
     @Override
     public boolean isNeverEnding() {
-        return true;
+        return randomSelection;
     }
 
     @Override
     public long getSize() {
         long subListCount = subListSelector.getSize();
         long destinationCount = destinationSelector.getSize();
-        return subListCount * destinationCount * (selectReversingMoveToo ? 2 : 1);
+        var size = subListCount + destinationCount;
+        if (randomSelection && selectReversingMoveToo) {
+            size *= 2;
+        }
+        return size;
     }
 
     boolean isSelectReversingMoveToo() {
