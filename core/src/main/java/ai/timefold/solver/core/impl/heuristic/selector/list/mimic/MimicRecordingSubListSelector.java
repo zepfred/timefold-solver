@@ -3,6 +3,7 @@ package ai.timefold.solver.core.impl.heuristic.selector.list.mimic;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Objects;
 
 import ai.timefold.solver.core.impl.domain.variable.descriptor.ListVariableDescriptor;
@@ -58,6 +59,16 @@ public class MimicRecordingSubListSelector<Solution_> extends AbstractSelector<S
         return new RecordingSubListIterator(childSubListSelector.iterator());
     }
 
+    @Override
+    public ListIterator<SubList> listIterator() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ListIterator<SubList> listIterator(int index) {
+        throw new UnsupportedOperationException();
+    }
+
     private class RecordingSubListIterator extends SelectionIterator<SubList> {
 
         private final Iterator<SubList> childSubListIterator;
@@ -95,6 +106,16 @@ public class MimicRecordingSubListSelector<Solution_> extends AbstractSelector<S
     @Override
     public long getValueCount() {
         return childSubListSelector.getValueCount();
+    }
+
+    @Override
+    public int getMinimumSubListSize() {
+        return childSubListSelector.getMinimumSubListSize();
+    }
+
+    @Override
+    public int getMaximumSubListSize() {
+        return childSubListSelector.getMaximumSubListSize();
     }
 
     @Override

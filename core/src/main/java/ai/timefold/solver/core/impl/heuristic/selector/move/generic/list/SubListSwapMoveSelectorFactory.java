@@ -23,11 +23,6 @@ public class SubListSwapMoveSelectorFactory<Solution_>
     @Override
     protected MoveSelector<Solution_> buildBaseMoveSelector(HeuristicConfigPolicy<Solution_> configPolicy,
             SelectionCacheType minimumCacheType, boolean randomSelection) {
-        if (!randomSelection) {
-            throw new IllegalArgumentException("The subListSwapMoveSelector (" + config
-                    + ") only supports random selection order.");
-        }
-
         var selectionOrder = SelectionOrder.fromRandomSelectionBoolean(randomSelection);
 
         var onlyEntityDescriptor = getTheOnlyEntityDescriptorWithListVariable(configPolicy.getSolutionDescriptor());
@@ -70,8 +65,9 @@ public class SubListSwapMoveSelectorFactory<Solution_>
                 .<Solution_> create(secondarySubListSelectorConfig)
                 .buildSubListSelector(configPolicy, entitySelector, minimumCacheType, selectionOrder);
 
-        var selectReversingMoveToo = Objects.requireNonNullElse(config.getSelectReversingMoveToo(), true);
+        var selectReversingMoveToo = Objects.requireNonNullElse(config.getSelectReversingMoveToo(), randomSelection);
 
-        return new RandomSubListSwapMoveSelector<>(leftSubListSelector, rightSubListSelector, selectReversingMoveToo);
+        return new SubListSwapMoveSelector<>(leftSubListSelector, rightSubListSelector, selectReversingMoveToo,
+                randomSelection);
     }
 }

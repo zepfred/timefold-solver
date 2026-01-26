@@ -32,7 +32,7 @@ class SubListSwapMoveSelectorFactoryTest {
                 buildHeuristicConfigPolicy(TestdataListSolution.buildSolutionDescriptor());
 
         var selector =
-                (RandomSubListSwapMoveSelector<TestdataListSolution>) factory.buildBaseMoveSelector(heuristicConfigPolicy,
+                (SubListSwapMoveSelector<TestdataListSolution>) factory.buildBaseMoveSelector(heuristicConfigPolicy,
                         SelectionCacheType.JUST_IN_TIME, true);
 
         assertThat(selector.isCountable()).isTrue();
@@ -48,7 +48,7 @@ class SubListSwapMoveSelectorFactoryTest {
         var heuristicConfigPolicy = buildHeuristicConfigPolicy(TestdataMixedMultiEntitySolution.buildSolutionDescriptor());
 
         var selector =
-                (RandomSubListSwapMoveSelector<TestdataMixedMultiEntitySolution>) factory.buildBaseMoveSelector(
+                (SubListSwapMoveSelector<TestdataMixedMultiEntitySolution>) factory.buildBaseMoveSelector(
                         heuristicConfigPolicy,
                         SelectionCacheType.JUST_IN_TIME, true);
 
@@ -79,7 +79,7 @@ class SubListSwapMoveSelectorFactoryTest {
         var heuristicConfigPolicy = buildHeuristicConfigPolicy(TestdataListSolution.buildSolutionDescriptor());
 
         var selector =
-                (RandomSubListSwapMoveSelector<TestdataListSolution>) factory.buildBaseMoveSelector(heuristicConfigPolicy,
+                (SubListSwapMoveSelector<TestdataListSolution>) factory.buildBaseMoveSelector(heuristicConfigPolicy,
                         SelectionCacheType.JUST_IN_TIME, true);
 
         assertThat(selector.isSelectReversingMoveToo()).isFalse();
@@ -146,7 +146,7 @@ class SubListSwapMoveSelectorFactoryTest {
 
         var heuristicConfigPolicy = buildHeuristicConfigPolicy(TestdataListSolution.buildSolutionDescriptor());
 
-        var moveSelector = (RandomSubListSwapMoveSelector<?>) factory.buildBaseMoveSelector(heuristicConfigPolicy,
+        var moveSelector = (SubListSwapMoveSelector<?>) factory.buildBaseMoveSelector(heuristicConfigPolicy,
                 SelectionCacheType.JUST_IN_TIME, true);
         assertThat(((RandomSubListSelector<?>) moveSelector.getLeftSubListSelector()).getMinimumSubListSize())
                 .isEqualTo(minimumSubListSize);
