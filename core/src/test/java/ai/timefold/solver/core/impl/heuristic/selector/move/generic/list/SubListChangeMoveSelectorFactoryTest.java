@@ -28,13 +28,29 @@ import org.junit.jupiter.params.provider.MethodSource;
 class SubListChangeMoveSelectorFactoryTest {
 
     @Test
-    void buildMoveSelector() {
+    void buildOriginalMoveSelector() {
         var config = new SubListChangeMoveSelectorConfig();
         var moveSelectorFactory = new SubListChangeMoveSelectorFactory<TestdataListSolution>(config);
 
         var heuristicConfigPolicy = buildHeuristicConfigPolicy(TestdataListSolution.buildSolutionDescriptor());
 
-        var selector = (RandomSubListChangeMoveSelector<TestdataListSolution>) moveSelectorFactory
+        var selector = (SubListChangeMoveSelector<TestdataListSolution>) moveSelectorFactory
+                .buildMoveSelector(heuristicConfigPolicy, SelectionCacheType.JUST_IN_TIME, SelectionOrder.ORIGINAL,
+                        false);
+
+        assertThat(selector.isCountable()).isTrue();
+        assertThat(selector.isNeverEnding()).isFalse();
+        assertThat(selector.isSelectReversingMoveToo()).isFalse();
+    }
+
+    @Test
+    void buildRandomMoveSelector() {
+        var config = new SubListChangeMoveSelectorConfig();
+        var moveSelectorFactory = new SubListChangeMoveSelectorFactory<TestdataListSolution>(config);
+
+        var heuristicConfigPolicy = buildHeuristicConfigPolicy(TestdataListSolution.buildSolutionDescriptor());
+
+        var selector = (SubListChangeMoveSelector<TestdataListSolution>) moveSelectorFactory
                 .buildMoveSelector(heuristicConfigPolicy, SelectionCacheType.JUST_IN_TIME, SelectionOrder.RANDOM,
                         false);
 
@@ -50,7 +66,7 @@ class SubListChangeMoveSelectorFactoryTest {
 
         var heuristicConfigPolicy = buildHeuristicConfigPolicy(TestdataMixedMultiEntitySolution.buildSolutionDescriptor());
 
-        var selector = (RandomSubListChangeMoveSelector<TestdataMixedMultiEntitySolution>) moveSelectorFactory
+        var selector = (SubListChangeMoveSelector<TestdataMixedMultiEntitySolution>) moveSelectorFactory
                 .buildMoveSelector(heuristicConfigPolicy, SelectionCacheType.JUST_IN_TIME, SelectionOrder.RANDOM,
                         false);
 
@@ -67,7 +83,7 @@ class SubListChangeMoveSelectorFactoryTest {
 
         var heuristicConfigPolicy = buildHeuristicConfigPolicy(TestdataListSolution.buildSolutionDescriptor());
 
-        var selector = (RandomSubListChangeMoveSelector<TestdataListSolution>) moveSelectorFactory
+        var selector = (SubListChangeMoveSelector<TestdataListSolution>) moveSelectorFactory
                 .buildMoveSelector(heuristicConfigPolicy, SelectionCacheType.JUST_IN_TIME, SelectionOrder.RANDOM,
                         false);
 
@@ -153,7 +169,7 @@ class SubListChangeMoveSelectorFactoryTest {
 
         var heuristicConfigPolicy = buildHeuristicConfigPolicy(TestdataListSolution.buildSolutionDescriptor());
 
-        var moveSelector = (RandomSubListChangeMoveSelector<TestdataListSolution>) factory
+        var moveSelector = (SubListChangeMoveSelector<TestdataListSolution>) factory
                 .buildMoveSelector(heuristicConfigPolicy, SelectionCacheType.JUST_IN_TIME, SelectionOrder.RANDOM,
                         false);
 

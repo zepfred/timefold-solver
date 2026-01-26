@@ -30,7 +30,6 @@ import ai.timefold.solver.core.impl.heuristic.HeuristicConfigPolicy;
 import ai.timefold.solver.core.impl.heuristic.selector.entity.EntitySelector;
 import ai.timefold.solver.core.impl.heuristic.selector.list.DestinationSelector;
 import ai.timefold.solver.core.impl.heuristic.selector.list.ElementDestinationSelector;
-import ai.timefold.solver.core.impl.heuristic.selector.list.RandomSubListSelector;
 import ai.timefold.solver.core.impl.heuristic.selector.list.SubListSelector;
 import ai.timefold.solver.core.impl.heuristic.selector.move.AbstractMoveSelectorFactory;
 import ai.timefold.solver.core.impl.heuristic.selector.value.ValueSelector;
@@ -147,7 +146,7 @@ public interface TimefoldSolverEnterpriseService {
 
     <Solution_> SubListSelector<Solution_> applyNearbySelection(SubListSelectorConfig subListSelectorConfig,
             HeuristicConfigPolicy<Solution_> configPolicy, SelectionCacheType minimumCacheType,
-            SelectionOrder resolvedSelectionOrder, RandomSubListSelector<Solution_> subListSelector);
+            SelectionOrder resolvedSelectionOrder, SubListSelector<Solution_> subListSelector);
 
     <Solution_> DestinationSelector<Solution_> applyNearbySelection(DestinationSelectorConfig destinationSelectorConfig,
             HeuristicConfigPolicy<Solution_> configPolicy, SelectionCacheType minimumCacheType,

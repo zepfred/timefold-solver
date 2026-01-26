@@ -37,10 +37,6 @@ public class SubListChangeMoveSelectorFactory<Solution_>
             SelectionCacheType minimumCacheType, boolean randomSelection) {
         var subListSelectorConfig = checkUnfolded("subListSelectorConfig", config.getSubListSelectorConfig());
         var destinationSelectorConfig = checkUnfolded("destinationSelectorConfig", config.getDestinationSelectorConfig());
-        if (!randomSelection) {
-            throw new IllegalArgumentException("The subListChangeMoveSelector (%s) only supports random selection order."
-                    .formatted(config));
-        }
         var selectionOrder = SelectionOrder.fromRandomSelectionBoolean(randomSelection);
         var entitySelector = EntitySelectorFactory
                 .<Solution_> create(destinationSelectorConfig.getEntitySelectorConfig())
@@ -51,8 +47,8 @@ public class SubListChangeMoveSelectorFactory<Solution_>
         var destinationSelector = DestinationSelectorFactory
                 .<Solution_> create(destinationSelectorConfig)
                 .buildDestinationSelector(configPolicy, minimumCacheType, randomSelection);
-        var selectReversingMoveToo = Objects.requireNonNullElse(config.getSelectReversingMoveToo(), true);
-        return new RandomSubListChangeMoveSelector<>(subListSelector, destinationSelector, selectReversingMoveToo);
+        var selectReversingMoveToo = Objects.requireNonNullElse(config.getSelectReversingMoveToo(), randomSelection);
+        return new SubListChangeMoveSelector<>(subListSelector, destinationSelector, selectReversingMoveToo, randomSelection);
     }
 
     @Override
