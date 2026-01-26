@@ -55,7 +55,7 @@ public class SubListChangeMoveSelector<Solution_> extends GenericMoveSelector<So
     public long getSize() {
         long subListCount = subListSelector.getSize();
         long destinationCount = destinationSelector.getSize();
-        var size = subListCount + destinationCount;
+        var size = subListCount * destinationCount;
         if (randomSelection && selectReversingMoveToo) {
             size *= 2;
         }

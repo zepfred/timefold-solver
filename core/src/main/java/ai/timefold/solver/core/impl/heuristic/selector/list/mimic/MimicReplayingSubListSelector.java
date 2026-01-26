@@ -1,6 +1,7 @@
 package ai.timefold.solver.core.impl.heuristic.selector.list.mimic;
 
 import java.util.Iterator;
+import java.util.ListIterator;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
@@ -82,6 +83,16 @@ public class MimicReplayingSubListSelector<Solution_> extends AbstractSelector<S
     }
 
     @Override
+    public int getMinimumSubListSize() {
+        return subListMimicRecorder.getMinimumSubListSize();
+    }
+
+    @Override
+    public int getMaximumSubListSize() {
+        return subListMimicRecorder.getMaximumSubListSize();
+    }
+
+    @Override
     public Iterator<SubList> iterator() {
         return new ReplayingSubListIterator();
     }
@@ -100,6 +111,16 @@ public class MimicReplayingSubListSelector<Solution_> extends AbstractSelector<S
         recordingCreated = true;
         recording = next;
         recordingAlreadyReturned = false;
+    }
+
+    @Override
+    public ListIterator<SubList> listIterator() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ListIterator<SubList> listIterator(int index) {
+        throw new UnsupportedOperationException();
     }
 
     private class ReplayingSubListIterator extends SelectionIterator<SubList> {

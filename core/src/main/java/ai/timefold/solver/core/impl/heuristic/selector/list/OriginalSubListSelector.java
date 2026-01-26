@@ -3,12 +3,13 @@ package ai.timefold.solver.core.impl.heuristic.selector.list;
 import static ai.timefold.solver.core.impl.heuristic.selector.move.generic.list.ListChangeMoveSelector.filterPinnedListPlanningVariableValuesWithIndex;
 
 import java.util.Iterator;
+import java.util.ListIterator;
 import java.util.Objects;
 
 import ai.timefold.solver.core.impl.domain.variable.ListVariableStateSupply;
 import ai.timefold.solver.core.impl.domain.variable.descriptor.ListVariableDescriptor;
 import ai.timefold.solver.core.impl.heuristic.selector.AbstractSelector;
-import ai.timefold.solver.core.impl.heuristic.selector.common.iterator.UpcomingSelectionIterator;
+import ai.timefold.solver.core.impl.heuristic.selector.common.iterator.UpcomingSelectionListIterator;
 import ai.timefold.solver.core.impl.heuristic.selector.entity.EntitySelector;
 import ai.timefold.solver.core.impl.heuristic.selector.value.IterableValueSelector;
 import ai.timefold.solver.core.impl.solver.scope.SolverScope;
@@ -30,8 +31,9 @@ public class OriginalSubListSelector<Solution_> extends AbstractSelector<Solutio
         this.entitySelector = entitySelector;
         this.valueSelector = filterPinnedListPlanningVariableValuesWithIndex(valueSelector, this::getListVariableStateSupply);
         this.listVariableDescriptor = (ListVariableDescriptor<Solution_>) valueSelector.getVariableDescriptor();
-        if (minimumSubListSize < 2) {
-            minimumSubListSize = 2;
+        if (minimumSubListSize < 1) {
+            throw new IllegalArgumentException(
+                    "The minimumSubListSize (%d) must be greater than 0.".formatted(minimumSubListSize));
         }
         if (minimumSubListSize != maximumSubListSize) {
             throw new IllegalArgumentException(
@@ -105,10 +107,22 @@ public class OriginalSubListSelector<Solution_> extends AbstractSelector<Solutio
         return new OriginalSubListIterator(entitySelector.iterator(), minimumSubListSize);
     }
 
+    @Override
+    public ListIterator<SubList> listIterator() {
+        return new OriginalSubListIterator(entitySelector.iterator(), minimumSubListSize);
+    }
+
+    @Override
+    public ListIterator<SubList> listIterator(int index) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public int getMinimumSubListSize() {
         return minimumSubListSize;
     }
 
+    @Override
     public int getMaximumSubListSize() {
         return maximumSubListSize;
     }
@@ -118,7 +132,7 @@ public class OriginalSubListSelector<Solution_> extends AbstractSelector<Solutio
         return getClass().getSimpleName() + "(" + valueSelector + ")";
     }
 
-    private final class OriginalSubListIterator extends UpcomingSelectionIterator<SubList> {
+    private final class OriginalSubListIterator extends UpcomingSelectionListIterator<SubList> {
 
         private final Iterator<Object> entityIterator;
         private final int sublistSize;
@@ -158,6 +172,11 @@ public class OriginalSubListSelector<Solution_> extends AbstractSelector<Solutio
             var idx = selectedEntityIndex;
             selectedEntityIndex++;
             return new SubList(selectedEntity, idx, sublistSize);
+        }
+
+        @Override
+        protected SubList createPreviousSelection() {
+            throw new UnsupportedOperationException();
         }
     }
 

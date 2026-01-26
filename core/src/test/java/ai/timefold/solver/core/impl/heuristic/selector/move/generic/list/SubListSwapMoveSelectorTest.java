@@ -8,6 +8,7 @@ import static ai.timefold.solver.core.testdomain.list.TestdataListUtils.getAllow
 import static ai.timefold.solver.core.testdomain.list.TestdataListUtils.getListVariableDescriptor;
 import static ai.timefold.solver.core.testdomain.list.TestdataListUtils.listSize;
 import static ai.timefold.solver.core.testdomain.list.TestdataListUtils.mockEntitySelector;
+import static ai.timefold.solver.core.testutil.PlannerAssert.assertAllCodesOfIterator;
 import static ai.timefold.solver.core.testutil.PlannerAssert.assertCodesOfNeverEndingMoveSelector;
 import static ai.timefold.solver.core.testutil.PlannerAssert.assertEmptyNeverEndingMoveSelector;
 import static ai.timefold.solver.core.testutil.PlannerAssert.verifyPhaseLifecycle;
@@ -16,6 +17,7 @@ import static ai.timefold.solver.core.testutil.PlannerTestUtils.mockScoreDirecto
 import java.util.List;
 
 import ai.timefold.solver.core.api.solver.SolutionManager;
+import ai.timefold.solver.core.impl.heuristic.selector.list.OriginalSubListSelector;
 import ai.timefold.solver.core.impl.heuristic.selector.list.RandomSubListSelector;
 import ai.timefold.solver.core.testdomain.list.TestdataListEntity;
 import ai.timefold.solver.core.testdomain.list.TestdataListSolution;
@@ -28,7 +30,7 @@ import ai.timefold.solver.core.testutil.TestRandom;
 
 import org.junit.jupiter.api.Test;
 
-class RandomSubListSwapMoveSelectorTest {
+class SubListSwapMoveSelectorTest {
 
     @Test
     void sameEntityUnrestricted() {
@@ -52,7 +54,7 @@ class RandomSubListSwapMoveSelectorTest {
         var entitySelector = mockEntitySelector(a);
         var valueSelector =
                 TestdataListUtils.mockNeverEndingIterableValueSelector(getListVariableDescriptor(scoreDirector), v1);
-        var moveSelector = new RandomSubListSwapMoveSelector<>(
+        var moveSelector = new SubListSwapMoveSelector<>(
                 new RandomSubListSelector<>(
                         entitySelector,
                         valueSelector,
@@ -63,7 +65,7 @@ class RandomSubListSwapMoveSelectorTest {
                         valueSelector,
                         minimumSubListSize,
                         maximumSubListSize),
-                false);
+                false, true);
 
         // Alternating left and right subList indexes.
         //      L, R
@@ -116,6 +118,51 @@ class RandomSubListSwapMoveSelectorTest {
     }
 
     @Test
+    void originalUnrestricted() {
+        var v1 = new TestdataListValue("1");
+        var v2 = new TestdataListValue("2");
+        var v3 = new TestdataListValue("3");
+        var v4 = new TestdataListValue("4");
+        var v5 = new TestdataListValue("5");
+        var a = new TestdataListEntity("A", v1, v2, v3, v4);
+        var b = new TestdataListEntity("B", v5);
+        var solution = new TestdataListSolution();
+        solution.setEntityList(List.of(a, b));
+        solution.setValueList(List.of(v1, v2, v3, v4, v5));
+        SolutionManager.updateShadowVariables(solution);
+
+        var scoreDirector = mockScoreDirector(TestdataListSolution.buildSolutionDescriptor());
+        scoreDirector.setWorkingSolution(solution);
+
+        var minimumLeftSubListSize = 2;
+        var minimumRightSubListSize = 1;
+
+        var entitySelector = mockEntitySelector(a);
+        var valueSelector =
+                TestdataListUtils.mockNeverEndingIterableValueSelector(getListVariableDescriptor(scoreDirector), v1);
+        var moveSelector = new SubListSwapMoveSelector<>(
+                new OriginalSubListSelector<>(entitySelector, valueSelector, minimumLeftSubListSize, minimumLeftSubListSize),
+                new OriginalSubListSelector<>(entitySelector, valueSelector, minimumRightSubListSize, minimumRightSubListSize),
+                false, false);
+
+        solvingStarted(moveSelector, scoreDirector);
+
+        assertAllCodesOfIterator(moveSelector.iterator(),
+                "{A[0+2]} <-> {A[0+1]}",
+                "{A[0+2]} <-> {A[1+1]}",
+                "{A[0+2]} <-> {A[2+1]}",
+                "{A[0+2]} <-> {A[3+1]}",
+                "{A[0+1]} <-> {A[1+2]}",
+                "{A[1+2]} <-> {A[1+1]}",
+                "{A[1+2]} <-> {A[2+1]}",
+                "{A[1+2]} <-> {A[3+1]}",
+                "{A[0+1]} <-> {A[2+2]}",
+                "{A[1+1]} <-> {A[2+2]}",
+                "{A[2+2]} <-> {A[2+1]}",
+                "{A[2+2]} <-> {A[3+1]}");
+    }
+
+    @Test
     void reversing() {
         var v1 = new TestdataListValue("1");
         var v2 = new TestdataListValue("2");
@@ -138,7 +185,7 @@ class RandomSubListSwapMoveSelectorTest {
 
         var listVariableDescriptor = getListVariableDescriptor(scoreDirector);
         var entitySelector = mockEntitySelector(a, b);
-        var moveSelector = new RandomSubListSwapMoveSelector<>(
+        var moveSelector = new SubListSwapMoveSelector<>(
                 new RandomSubListSelector<>(
                         entitySelector,
                         TestdataListUtils.mockNeverEndingIterableValueSelector(listVariableDescriptor, v1),
@@ -149,7 +196,7 @@ class RandomSubListSwapMoveSelectorTest {
                         TestdataListUtils.mockNeverEndingIterableValueSelector(listVariableDescriptor, v5),
                         minimumSubListSize,
                         maximumSubListSize),
-                true);
+                true, true);
 
         // Each row is consumed by 1 createUpcomingSelection() call.
         // Columns are: left subList index, right subList index, reversing flag.
@@ -195,7 +242,7 @@ class RandomSubListSwapMoveSelectorTest {
         var entitySelector = mockEntitySelector(a);
         var valueSelector =
                 TestdataListUtils.mockNeverEndingIterableValueSelector(getListVariableDescriptor(scoreDirector), v1);
-        var moveSelector = new RandomSubListSwapMoveSelector<>(
+        var moveSelector = new SubListSwapMoveSelector<>(
                 new RandomSubListSelector<>(
                         entitySelector,
                         valueSelector,
@@ -206,7 +253,7 @@ class RandomSubListSwapMoveSelectorTest {
                         valueSelector,
                         minimumSubListSize,
                         maximumSubListSize),
-                false);
+                false, true);
 
         // Alternating left and right subList indexes.
         //      L, R
@@ -253,7 +300,7 @@ class RandomSubListSwapMoveSelectorTest {
         var entitySelector = mockEntitySelector(a);
         var valueSelector =
                 TestdataListUtils.mockNeverEndingIterableValueSelector(getListVariableDescriptor(scoreDirector), v1);
-        var moveSelector = new RandomSubListSwapMoveSelector<>(
+        var moveSelector = new SubListSwapMoveSelector<>(
                 new RandomSubListSelector<>(
                         entitySelector,
                         valueSelector,
@@ -264,7 +311,7 @@ class RandomSubListSwapMoveSelectorTest {
                         valueSelector,
                         minimumSubListSize,
                         maximumSubListSize),
-                false);
+                false, true);
 
         solvingStarted(moveSelector, scoreDirector);
 
@@ -294,7 +341,7 @@ class RandomSubListSwapMoveSelectorTest {
 
         var listVariableDescriptor = getListVariableDescriptor(scoreDirector);
         var entitySelector = mockEntitySelector(a, b, c);
-        var moveSelector = new RandomSubListSwapMoveSelector<>(
+        var moveSelector = new SubListSwapMoveSelector<>(
                 new RandomSubListSelector<>(
                         entitySelector,
                         TestdataListUtils.mockNeverEndingIterableValueSelector(listVariableDescriptor, v1, v4),
@@ -305,7 +352,7 @@ class RandomSubListSwapMoveSelectorTest {
                         TestdataListUtils.mockNeverEndingIterableValueSelector(listVariableDescriptor, v4, v1),
                         minimumSubListSize,
                         maximumSubListSize),
-                false);
+                false, true);
 
         // Alternating left and right subList indexes.
         //      L, R
@@ -351,7 +398,7 @@ class RandomSubListSwapMoveSelectorTest {
 
         // The entity selector must be complete; it affects subList calculation and the move selector size.
         var entitySelector = mockEntitySelector(a, b);
-        var moveSelector = new RandomSubListSwapMoveSelector<>(
+        var moveSelector = new SubListSwapMoveSelector<>(
                 new RandomSubListSelector<>(
                         entitySelector,
                         TestdataListUtils.mockNeverEndingIterableValueSelector(
@@ -366,7 +413,7 @@ class RandomSubListSwapMoveSelectorTest {
                                 v1, v1, v1, v3),
                         minimumSubListSize,
                         maximumSubListSize),
-                false);
+                false, true);
 
         var random = new TestRandom(
                 0, 0, 0, 1, 0, 2, 0, 0,
@@ -421,7 +468,7 @@ class RandomSubListSwapMoveSelectorTest {
         var entitySelector = mockEntitySelector(a, b, c);
         var valueSelector =
                 TestdataListUtils.mockNeverEndingIterableValueSelector(getListVariableDescriptor(scoreDirector), v1);
-        var moveSelector = new RandomSubListSwapMoveSelector<>(
+        var moveSelector = new SubListSwapMoveSelector<>(
                 new RandomSubListSelector<>(
                         entitySelector,
                         valueSelector,
@@ -432,7 +479,7 @@ class RandomSubListSwapMoveSelectorTest {
                         valueSelector,
                         minimumSubListSize,
                         maximumSubListSize),
-                false);
+                false, true);
 
         var random = new TestRandom(0, 0);
 
@@ -477,7 +524,7 @@ class RandomSubListSwapMoveSelectorTest {
         var entitySelector = mockEntitySelector(a, b, c, d);
         var valueSelector =
                 TestdataListUtils.mockNeverEndingIterableValueSelector(getListVariableDescriptor(scoreDirector), v1);
-        var moveSelector = new RandomSubListSwapMoveSelector<>(
+        var moveSelector = new SubListSwapMoveSelector<>(
                 new RandomSubListSelector<>(
                         entitySelector,
                         valueSelector,
@@ -488,7 +535,7 @@ class RandomSubListSwapMoveSelectorTest {
                         valueSelector,
                         minimumSubListSize,
                         maximumSubListSize),
-                false);
+                false, true);
 
         var random = new TestRandom(0, 0);
 
@@ -509,7 +556,7 @@ class RandomSubListSwapMoveSelectorTest {
         var minimumSubListSize = 1;
         var maximumSubListSize = Integer.MAX_VALUE;
 
-        var moveSelector = new RandomSubListSwapMoveSelector<>(
+        var moveSelector = new SubListSwapMoveSelector<>(
                 new RandomSubListSelector<>(
                         entitySelector,
                         leftValueSelector,
@@ -520,7 +567,7 @@ class RandomSubListSwapMoveSelectorTest {
                         rightValueSelector,
                         minimumSubListSize,
                         maximumSubListSize),
-                false);
+                false, true);
 
         var solverScope = solvingStarted(moveSelector, scoreDirector);
         var phaseScope = phaseStarted(moveSelector, solverScope);

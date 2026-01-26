@@ -3,6 +3,7 @@ package ai.timefold.solver.core.impl.heuristic.selector.list;
 import static ai.timefold.solver.core.impl.heuristic.selector.move.generic.list.ListChangeMoveSelector.filterPinnedListPlanningVariableValuesWithIndex;
 
 import java.util.Iterator;
+import java.util.ListIterator;
 import java.util.Objects;
 
 import ai.timefold.solver.core.impl.domain.variable.ListVariableStateSupply;
@@ -127,6 +128,16 @@ public class RandomSubListSelector<Solution_> extends AbstractSelector<Solution_
         return new RandomSubListIterator(valueSelector.iterator());
     }
 
+    @Override
+    public ListIterator<SubList> listIterator() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ListIterator<SubList> listIterator(int index) {
+        throw new UnsupportedOperationException();
+    }
+
     private final class RandomSubListIterator extends UpcomingSelectionIterator<SubList> {
 
         private final Iterator<Object> valueIterator;
@@ -167,10 +178,12 @@ public class RandomSubListSelector<Solution_> extends AbstractSelector<Solution_
         }
     }
 
+    @Override
     public int getMinimumSubListSize() {
         return minimumSubListSize;
     }
 
+    @Override
     public int getMaximumSubListSize() {
         return maximumSubListSize;
     }
