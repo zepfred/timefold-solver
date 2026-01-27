@@ -27,17 +27,20 @@ final class KOptListMoveSelector<Solution_> extends GenericMoveSelector<Solution
 
     private final int[] pickedKDistribution;
 
+    private final boolean randomSelection;
+
     private ListVariableStateSupply<Solution_, Object, Object> listVariableStateSupply;
 
     public KOptListMoveSelector(ListVariableDescriptor<Solution_> listVariableDescriptor,
             IterableValueSelector<Solution_> originSelector, IterableValueSelector<Solution_> valueSelector,
-            int minK, int maxK, int[] pickedKDistribution) {
+            int minK, int maxK, int[] pickedKDistribution, boolean randomSelection) {
         this.listVariableDescriptor = listVariableDescriptor;
         this.originSelector = createEffectiveValueSelector(originSelector, this::getListVariableStateSupply);
         this.valueSelector = createEffectiveValueSelector(valueSelector, this::getListVariableStateSupply);
         this.minK = minK;
         this.maxK = maxK;
         this.pickedKDistribution = pickedKDistribution;
+        this.randomSelection = randomSelection;
 
         phaseLifecycleSupport.addEventListener(this.originSelector);
         phaseLifecycleSupport.addEventListener(this.valueSelector);
@@ -93,8 +96,13 @@ final class KOptListMoveSelector<Solution_> extends GenericMoveSelector<Solution
 
     @Override
     public Iterator<Move<Solution_>> iterator() {
-        return new KOptListMoveIterator<>(workingRandom, listVariableDescriptor, listVariableStateSupply,
-                originSelector, valueSelector, minK, maxK, pickedKDistribution);
+        if (randomSelection) {
+            return new KOptListRandomMoveIterator<>(workingRandom, listVariableDescriptor, listVariableStateSupply,
+                    originSelector, valueSelector, minK, maxK, pickedKDistribution);
+        } else {
+            return new TwoOptListOriginalMoveIterator<>(listVariableDescriptor, listVariableStateSupply,
+                    originSelector, valueSelector);
+        }
     }
 
     @Override
@@ -104,6 +112,6 @@ final class KOptListMoveSelector<Solution_> extends GenericMoveSelector<Solution
 
     @Override
     public boolean isNeverEnding() {
-        return true;
+        return randomSelection;
     }
 }
