@@ -15,7 +15,7 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 @NullMarked
-final class KOptListMoveIterator<Solution_, Node_> extends UpcomingSelectionIterator<Move<Solution_>> {
+final class KOptListRandomMoveIterator<Solution_, Node_> extends UpcomingSelectionIterator<Move<Solution_>> {
 
     private final Random workingRandom;
     private final ListVariableDescriptor<Solution_> listVariableDescriptor;
@@ -27,7 +27,7 @@ final class KOptListMoveIterator<Solution_, Node_> extends UpcomingSelectionIter
     private final int pickedKDistributionSum;
     private final int maxCyclesPatchedInInfeasibleMove;
 
-    public KOptListMoveIterator(Random workingRandom, ListVariableDescriptor<Solution_> listVariableDescriptor,
+    public KOptListRandomMoveIterator(Random workingRandom, ListVariableDescriptor<Solution_> listVariableDescriptor,
             ListVariableStateSupply<Solution_, Object, Object> listVariableStateSupply,
             IterableValueSelector<Node_> originSelector,
             IterableValueSelector<Node_> valueSelector, int minK, int maxK, int[] pickedKDistribution) {

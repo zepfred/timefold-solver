@@ -26,7 +26,7 @@ import ai.timefold.solver.core.preview.api.domain.metamodel.ElementPosition;
 
 import org.junit.jupiter.api.Test;
 
-public class KOptListMoveIteratorTest {
+class KOptListRandomMoveIteratorTest {
 
     private static class KOptListMoveIteratorMockData {
         int minK;
@@ -35,7 +35,7 @@ public class KOptListMoveIteratorTest {
 
         int distributionSum;
 
-        KOptListMoveIterator<Object, Object> kOptListMoveIterator;
+        KOptListRandomMoveIterator<Object, Object> kOptListRandomMoveIterator;
         Random workingRandom;
         ListVariableDescriptor<Object> listVariableDescriptor;
         EntityDescriptor<Object> entityDescriptor;
@@ -60,7 +60,7 @@ public class KOptListMoveIteratorTest {
         result.listVariableStateSupply = mock(ListVariableStateSupply.class);
         result.originSelector = mock(IterableValueSelector.class);
         result.valueSelector = mock(IterableValueSelector.class);
-        result.kOptListMoveIterator = new KOptListMoveIterator<>(
+        result.kOptListRandomMoveIterator = new KOptListRandomMoveIterator<>(
                 result.workingRandom,
                 result.listVariableDescriptor,
                 result.listVariableStateSupply,
@@ -180,7 +180,7 @@ public class KOptListMoveIteratorTest {
         KOptMoveInfo out = new KOptMoveInfo();
 
         out.removedEdgeList = new ArrayList<>(2 * k);
-        out.entityList = Arrays.stream(entities).distinct().collect(Collectors.toList());
+        out.entityList = Arrays.stream(entities).distinct().toList();
         out.removedEdgeList.add(firstPicked);
         out.removedEdgeList.add(firstSuccessor);
 
@@ -287,7 +287,7 @@ public class KOptListMoveIteratorTest {
         }
 
         int finalValueIndex = entityToOffset.get(entities[k]);
-        List<Object> distinctEntityList = Arrays.stream(entities).distinct().collect(Collectors.toList());
+        List<Object> distinctEntityList = Arrays.stream(entities).distinct().toList();
         int entityListIndex = distinctEntityList.indexOf(entities[k]);
         when(mocks.workingRandom.ints(0, distinctEntityList.size()))
                 .thenReturn(IntStream.iterate(entityListIndex, value -> value));
@@ -298,7 +298,7 @@ public class KOptListMoveIteratorTest {
         KOptMoveInfo out = new KOptMoveInfo();
 
         out.removedEdgeList = new ArrayList<>(2 * k);
-        out.entityList = Arrays.stream(entities).distinct().collect(Collectors.toList());
+        out.entityList = Arrays.stream(entities).distinct().toList();
 
         out.removedEdgeList.add(firstPicked);
         out.removedEdgeList.add(firstSuccessor);
@@ -339,11 +339,11 @@ public class KOptListMoveIteratorTest {
         KOptListMoveIteratorMockData mocks = createMockKOptListMoveIterator(2, 5, new int[] { 1, 1, 1, 1 });
 
         KOptMoveInfo kOptMoveInfo = setupValidOddSequentialKOptMove(mocks, 3, "e1", "e1", "e1");
-        KOptListMove<?> kOptListMove = (KOptListMove<?>) mocks.kOptListMoveIterator.createUpcomingSelection();
+        KOptListMove<?> kOptListMove = (KOptListMove<?>) mocks.kOptListRandomMoveIterator.createUpcomingSelection();
         kOptMoveInfo.verify(kOptListMove);
 
         kOptMoveInfo = setupValidOddSequentialKOptMove(mocks, 5, "e1", "e1", "e1", "e1", "e1");
-        kOptListMove = (KOptListMove<?>) mocks.kOptListMoveIterator.createUpcomingSelection();
+        kOptListMove = (KOptListMove<?>) mocks.kOptListRandomMoveIterator.createUpcomingSelection();
         kOptMoveInfo.verify(kOptListMove);
     }
 
@@ -352,7 +352,7 @@ public class KOptListMoveIteratorTest {
         KOptListMoveIteratorMockData mocks = createMockKOptListMoveIterator(2, 5, new int[] { 1, 1, 1, 1 });
 
         KOptMoveInfo kOptMoveInfo = setupValidOddSequentialKOptMove(mocks, 5, "e1", "e2", "e1", "e2", "e1");
-        KOptListMove<?> kOptListMove = (KOptListMove<?>) mocks.kOptListMoveIterator.createUpcomingSelection();
+        KOptListMove<?> kOptListMove = (KOptListMove<?>) mocks.kOptListRandomMoveIterator.createUpcomingSelection();
         kOptMoveInfo.verify(kOptListMove);
     }
 
@@ -361,7 +361,7 @@ public class KOptListMoveIteratorTest {
         KOptListMoveIteratorMockData mocks = createMockKOptListMoveIterator(2, 6, new int[] { 1, 1, 1, 1 });
 
         KOptMoveInfo kOptMoveInfo = setupValidNonsequential4OptMove(mocks, "e1", "e1", "e1", "e1", "e1");
-        KOptListMove<?> kOptListMove = (KOptListMove<?>) mocks.kOptListMoveIterator.createUpcomingSelection();
+        KOptListMove<?> kOptListMove = (KOptListMove<?>) mocks.kOptListRandomMoveIterator.createUpcomingSelection();
         kOptMoveInfo.verify(kOptListMove);
     }
 
@@ -370,7 +370,7 @@ public class KOptListMoveIteratorTest {
         KOptListMoveIteratorMockData mocks = createMockKOptListMoveIterator(2, 6, new int[] { 1, 1, 1, 1 });
 
         KOptMoveInfo kOptMoveInfo = setupValidNonsequential4OptMove(mocks, "e1", "e2", "e1", "e2", "e1");
-        KOptListMove<?> kOptListMove = (KOptListMove<?>) mocks.kOptListMoveIterator.createUpcomingSelection();
+        KOptListMove<?> kOptListMove = (KOptListMove<?>) mocks.kOptListRandomMoveIterator.createUpcomingSelection();
         kOptMoveInfo.verify(kOptListMove);
     }
 

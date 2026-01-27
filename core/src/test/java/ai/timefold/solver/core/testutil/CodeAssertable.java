@@ -17,6 +17,7 @@ import ai.timefold.solver.core.impl.heuristic.selector.move.generic.list.ListUna
 import ai.timefold.solver.core.impl.heuristic.selector.move.generic.list.SubListChangeMove;
 import ai.timefold.solver.core.impl.heuristic.selector.move.generic.list.SubListSwapMove;
 import ai.timefold.solver.core.impl.heuristic.selector.move.generic.list.SubListUnassignMove;
+import ai.timefold.solver.core.impl.heuristic.selector.move.generic.list.kopt.TwoOptListMove;
 import ai.timefold.solver.core.impl.heuristic.selector.value.chained.SubChain;
 import ai.timefold.solver.core.preview.api.domain.metamodel.PositionInList;
 import ai.timefold.solver.core.preview.api.domain.metamodel.UnassignedElement;
@@ -90,6 +91,13 @@ public interface CodeAssertable {
             return () -> "{" + convert(subListSwapMove.getLeftSubList()).getCode()
                     + "} <-" + (subListSwapMove.isReversing() ? "reversing-" : "")
                     + "> {" + convert(subListSwapMove.getRightSubList()).getCode() + "}";
+        } else if (o instanceof TwoOptListMove<?> twoOptListMove) {
+            return () -> "{" + convert(twoOptListMove.getFirstEntity()).getCode()
+                    + "[" + twoOptListMove.getFirstEdgeEndpoint() + "]"
+                    + "," + convert(twoOptListMove.getSecondEntity()).getCode()
+                    + "[" + twoOptListMove.getSecondEdgeEndpoint() + "]"
+                    + (twoOptListMove.isReverseTail() ? " reversingTail" : "")
+                    + "}";
         } else if (o instanceof List<?> list) {
             StringBuilder codeBuilder = new StringBuilder("[");
             boolean firstElement = true;

@@ -62,6 +62,11 @@ public final class KOptListMoveSelectorFactory<Solution_>
             throw new IllegalArgumentException("maximumK (%d) must be at least minimumK (%d)."
                     .formatted(maximumK, minimumK));
         }
+        if (!randomSelection && (minimumK > 2 || maximumK > 2)) {
+            throw new IllegalArgumentException(
+                    "The minimumK (%d) and maximumK (%d) values must be equal to two for original iterators."
+                            .formatted(minimumK, maximumK));
+        }
 
         var pickedKDistribution = new int[maximumK - minimumK + 1];
         // Each prior k is 8 times more likely to be picked than the subsequent k
@@ -76,7 +81,7 @@ public final class KOptListMoveSelectorFactory<Solution_>
         }
         pickedKDistribution[pickedKDistribution.length - 1] = total;
         return new KOptListMoveSelector<>(listVariableDescriptor, originSelector, valueSelector, minimumK, maximumK,
-                pickedKDistribution);
+                pickedKDistribution, randomSelection);
     }
 
     private IterableValueSelector<Solution_> buildIterableValueSelector(
