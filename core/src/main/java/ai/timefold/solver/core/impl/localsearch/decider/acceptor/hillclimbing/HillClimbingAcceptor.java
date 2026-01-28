@@ -11,7 +11,8 @@ public class HillClimbingAcceptor<Solution_> extends AbstractAcceptor<Solution_>
     public boolean isAccepted(LocalSearchMoveScope<Solution_> moveScope) {
         InnerScore moveScore = moveScope.getScore();
         InnerScore lastStepScore = moveScope.getStepScope().getPhaseScope().getLastCompletedStepScope().getScore();
-        return moveScore.compareTo(lastStepScore) >= 0;
+        // Only improvements are accepted
+        return moveScore.compareTo(lastStepScore) > 0;
     }
 
 }
