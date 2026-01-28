@@ -32,7 +32,7 @@ class HillClimbingAcceptorTest extends AbstractAcceptorTest {
         assertThat(acceptor.isAccepted(moveScope0)).isTrue();
         assertThat(acceptor.isAccepted(buildMoveScope(stepScope0, -800))).isTrue();
         assertThat(acceptor.isAccepted(buildMoveScope(stepScope0, -2000))).isFalse();
-        assertThat(acceptor.isAccepted(buildMoveScope(stepScope0, -1000))).isTrue();
+        assertThat(acceptor.isAccepted(buildMoveScope(stepScope0, -1000))).isFalse();
         // Repeated call
         assertThat(acceptor.isAccepted(buildMoveScope(stepScope0, -900))).isTrue();
         stepScope0.setStep(moveScope0.getMove());
@@ -49,7 +49,7 @@ class HillClimbingAcceptorTest extends AbstractAcceptorTest {
         assertThat(acceptor.isAccepted(buildMoveScope(stepScope1, -700))).isFalse();
         assertThat(acceptor.isAccepted(buildMoveScope(stepScope1, -1000))).isFalse();
         assertThat(acceptor.isAccepted(moveScope1)).isTrue();
-        assertThat(acceptor.isAccepted(buildMoveScope(stepScope1, -500))).isTrue();
+        assertThat(acceptor.isAccepted(buildMoveScope(stepScope1, -500))).isFalse();
         assertThat(acceptor.isAccepted(buildMoveScope(stepScope1, -501))).isFalse();
         // Repeated call
         assertThat(acceptor.isAccepted(buildMoveScope(stepScope0, -900))).isFalse();

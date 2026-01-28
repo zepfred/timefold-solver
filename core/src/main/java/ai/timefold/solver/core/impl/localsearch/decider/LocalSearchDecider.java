@@ -130,7 +130,8 @@ public class LocalSearchDecider<Solution_> {
 
     protected void pickMove(LocalSearchStepScope<Solution_> stepScope) {
         var pickedMoveScope = forager.pickMove(stepScope);
-        if (pickedMoveScope != null) {
+        // Only accepted moves are applied
+        if (pickedMoveScope != null && pickedMoveScope.getAccepted()) {
             var step = pickedMoveScope.getMove();
             stepScope.setStep(step);
             if (logger.isDebugEnabled()) {

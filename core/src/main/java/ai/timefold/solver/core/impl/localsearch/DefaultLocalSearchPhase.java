@@ -99,12 +99,12 @@ public class DefaultLocalSearchPhase<Solution_> extends AbstractPhase<Solution_>
                             logIndentation,
                             stepScope.getStepIndex(),
                             stepScope.getPhaseScope().calculateSolverTimeMillisSpentUpToNow());
-                } else {
-                    throw new IllegalStateException("The step index (" + stepScope.getStepIndex()
-                            + ") has accepted/selected move count (" + stepScope.getAcceptedMoveCount() + "/"
-                            + stepScope.getSelectedMoveCount()
-                            + ") but failed to pick a nextStep (" + stepScope.getStep() + ").");
                 }
+                //At this point, no improvement has been found,
+                // which may be a valid result depending on the acceptor type.
+                // For example,
+                // the VND or Hill climbing methods should stop
+                // when no improvement is detected after analyzing the entire neighborhood of the solution.
                 // Although stepStarted has been called, stepEnded is not called for this step
                 break;
             }
