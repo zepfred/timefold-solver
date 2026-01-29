@@ -14,7 +14,8 @@ import ai.timefold.solver.core.impl.heuristic.selector.entity.EntitySelector;
 import ai.timefold.solver.core.impl.heuristic.selector.value.IterableValueSelector;
 import ai.timefold.solver.core.impl.solver.scope.SolverScope;
 
-public class OriginalSubListSelector<Solution_> extends AbstractSelector<Solution_> implements SubListSelector<Solution_> {
+public class OriginalConsecutiveSubListSelector<Solution_> extends AbstractSelector<Solution_>
+        implements SubListSelector<Solution_> {
 
     private final EntitySelector<Solution_> entitySelector;
     private final IterableValueSelector<Solution_> valueSelector;
@@ -24,7 +25,7 @@ public class OriginalSubListSelector<Solution_> extends AbstractSelector<Solutio
 
     private ListVariableStateSupply<Solution_, Object, Object> listVariableStateSupply;
 
-    public OriginalSubListSelector(
+    public OriginalConsecutiveSubListSelector(
             EntitySelector<Solution_> entitySelector,
             IterableValueSelector<Solution_> valueSelector,
             int minimumSubListSize, int maximumSubListSize) {

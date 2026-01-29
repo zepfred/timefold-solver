@@ -11,7 +11,7 @@ import ai.timefold.solver.core.impl.heuristic.selector.list.SubList;
 import ai.timefold.solver.core.impl.heuristic.selector.list.SubListSelector;
 import ai.timefold.solver.core.preview.api.domain.metamodel.ElementPosition;
 
-class OriginalConsecutiveSubListChangeMoveIterator<Solution_> extends UpcomingSelectionIterator<Move<Solution_>> {
+class OriginalSubListChangeMoveIterator<Solution_> extends UpcomingSelectionIterator<Move<Solution_>> {
 
     private final Iterator<SubList> subListIterator;
     private final DestinationSelector<Solution_> destinationSelector;
@@ -21,7 +21,7 @@ class OriginalConsecutiveSubListChangeMoveIterator<Solution_> extends UpcomingSe
 
     private SubList upcomingSubList;
 
-    OriginalConsecutiveSubListChangeMoveIterator(SubListSelector<Solution_> subListSelector,
+    OriginalSubListChangeMoveIterator(SubListSelector<Solution_> subListSelector,
             DestinationSelector<Solution_> destinationSelector, boolean selectReversingMove) {
         this.subListIterator = subListSelector.iterator();
         this.destinationSelector = destinationSelector;
