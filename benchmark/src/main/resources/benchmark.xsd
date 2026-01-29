@@ -2642,10 +2642,13 @@
         <xs:sequence>
                               
           
-          <xs:element minOccurs="0" name="initialPopulationSize" type="xs:int"/>
+          <xs:element minOccurs="0" name="populationSize" type="xs:int"/>
                               
           
-          <xs:element minOccurs="0" name="newPopulationSize" type="xs:int"/>
+          <xs:element minOccurs="0" name="generationSize" type="xs:int"/>
+                              
+          
+          <xs:element minOccurs="0" name="eliteSolutionSize" type="xs:int"/>
                             
         
         </xs:sequence>
