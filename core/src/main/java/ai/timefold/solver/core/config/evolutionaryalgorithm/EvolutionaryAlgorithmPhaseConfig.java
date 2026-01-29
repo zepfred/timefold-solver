@@ -11,8 +11,9 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 @XmlType(propOrder = {
-        "initialPopulationSize",
-        "newPopulationSize"
+        "populationSize",
+        "generationSize",
+        "eliteSolutionSize",
 })
 @NullMarked
 public class EvolutionaryAlgorithmPhaseConfig extends PhaseConfig<EvolutionaryAlgorithmPhaseConfig> {
@@ -20,52 +21,70 @@ public class EvolutionaryAlgorithmPhaseConfig extends PhaseConfig<EvolutionaryAl
     public static final String XML_ELEMENT_NAME = "evolutionaryAlgorithm";
 
     @Nullable
-    protected Integer initialPopulationSize = null;
+    protected Integer populationSize = null;
 
     @Nullable
-    protected Integer newPopulationSize = null;
+    protected Integer generationSize = null;
+
+    @Nullable
+    protected Integer eliteSolutionSize = null;
 
     // ************************************************************************
     // Constructors and simple getters/setters
     // ************************************************************************
 
-    public @Nullable Integer getInitialPopulationSize() {
-        return initialPopulationSize;
+    public @Nullable Integer getPopulationSize() {
+        return populationSize;
     }
 
-    public void setInitialPopulationSize(@Nullable Integer initialPopulationSize) {
-        this.initialPopulationSize = initialPopulationSize;
+    public void setPopulationSize(@Nullable Integer populationSize) {
+        this.populationSize = populationSize;
     }
 
-    public @Nullable Integer getNewPopulationSize() {
-        return newPopulationSize;
+    public @Nullable Integer getGenerationSize() {
+        return generationSize;
     }
 
-    public void setNewPopulationSize(@Nullable Integer newPopulationSize) {
-        this.newPopulationSize = newPopulationSize;
+    public void setGenerationSize(@Nullable Integer generationSize) {
+        this.generationSize = generationSize;
+    }
+
+    public @Nullable Integer getEliteSolutionSize() {
+        return eliteSolutionSize;
+    }
+
+    public void setEliteSolutionSize(@Nullable Integer eliteSolutionSize) {
+        this.eliteSolutionSize = eliteSolutionSize;
     }
 
     // ************************************************************************
     // With methods
     // ************************************************************************
 
-    public EvolutionaryAlgorithmPhaseConfig withInitialPopulationSize(Integer initialPopulationCount) {
-        this.initialPopulationSize = initialPopulationCount;
+    public EvolutionaryAlgorithmPhaseConfig withPopulationSize(Integer populationSize) {
+        this.populationSize = populationSize;
         return this;
     }
 
-    public EvolutionaryAlgorithmPhaseConfig withNewPopulationSize(Integer newPopulationCount) {
-        this.newPopulationSize = newPopulationCount;
+    public EvolutionaryAlgorithmPhaseConfig withGenerationSize(Integer generationSize) {
+        this.generationSize = generationSize;
+        return this;
+    }
+
+    public EvolutionaryAlgorithmPhaseConfig withEliteSolutionSize(Integer eliteSolutionSize) {
+        this.eliteSolutionSize = eliteSolutionSize;
         return this;
     }
 
     @Override
     public EvolutionaryAlgorithmPhaseConfig inherit(EvolutionaryAlgorithmPhaseConfig inheritedConfig) {
         super.inherit(inheritedConfig);
-        initialPopulationSize =
-                ConfigUtils.inheritOverwritableProperty(initialPopulationSize, inheritedConfig.getInitialPopulationSize());
-        newPopulationSize =
-                ConfigUtils.inheritOverwritableProperty(newPopulationSize, inheritedConfig.getNewPopulationSize());
+        populationSize =
+                ConfigUtils.inheritOverwritableProperty(populationSize, inheritedConfig.getPopulationSize());
+        generationSize =
+                ConfigUtils.inheritOverwritableProperty(generationSize, inheritedConfig.getGenerationSize());
+        eliteSolutionSize =
+                ConfigUtils.inheritOverwritableProperty(eliteSolutionSize, inheritedConfig.getEliteSolutionSize());
         return this;
     }
 
