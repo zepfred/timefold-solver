@@ -20,7 +20,7 @@ import java.util.List;
 
 import ai.timefold.solver.core.api.solver.SolutionManager;
 import ai.timefold.solver.core.impl.heuristic.selector.list.ElementDestinationSelector;
-import ai.timefold.solver.core.impl.heuristic.selector.list.OriginalSubListSelector;
+import ai.timefold.solver.core.impl.heuristic.selector.list.OriginalConsecutiveSubListSelector;
 import ai.timefold.solver.core.impl.heuristic.selector.list.RandomSubListSelector;
 import ai.timefold.solver.core.preview.api.domain.metamodel.ElementPosition;
 import ai.timefold.solver.core.testdomain.list.TestdataListEntity;
@@ -109,7 +109,7 @@ class SubListChangeMoveSelectorTest {
         var minimumSubListSize = 2;
 
         var moveSelector = new SubListChangeMoveSelector<>(
-                new OriginalSubListSelector<>(mockEntitySelector(a, b),
+                new OriginalConsecutiveSubListSelector<>(mockEntitySelector(a, b),
                         TestdataListUtils.mockNeverEndingIterableValueSelector(getListVariableDescriptor(scoreDirector), v1),
                         minimumSubListSize, minimumSubListSize),
                 new ElementDestinationSelector<>(mockEntitySelector(a, b),

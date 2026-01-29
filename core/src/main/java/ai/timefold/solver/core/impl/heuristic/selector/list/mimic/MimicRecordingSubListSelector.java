@@ -61,7 +61,7 @@ public class MimicRecordingSubListSelector<Solution_> extends AbstractSelector<S
 
     @Override
     public ListIterator<SubList> listIterator() {
-        throw new UnsupportedOperationException();
+        return new RecordingSubListListIterator(childSubListSelector.listIterator());
     }
 
     @Override
@@ -94,7 +94,62 @@ public class MimicRecordingSubListSelector<Solution_> extends AbstractSelector<S
             }
             return next;
         }
+    }
 
+    private class RecordingSubListListIterator extends RecordingSubListIterator implements ListIterator<SubList> {
+
+        private final ListIterator<SubList> childSubListIterator;
+
+        public RecordingSubListListIterator(ListIterator<SubList> childSubListIterator) {
+            super(childSubListIterator);
+            this.childSubListIterator = childSubListIterator;
+        }
+
+        @Override
+        public boolean hasPrevious() {
+            boolean hasPrevious = childSubListIterator.hasPrevious();
+            for (MimicReplayingSubListSelector<Solution_> replayingValueSelector : replayingSubListSelectorList) {
+                // The replay only cares that the recording changed, not in which direction
+                replayingValueSelector.recordedHasNext(hasPrevious);
+            }
+            return hasPrevious;
+        }
+
+        @Override
+        public SubList previous() {
+            SubList previous = childSubListIterator.previous();
+            for (MimicReplayingSubListSelector<Solution_> replayingValueSelector : replayingSubListSelectorList) {
+                // The replay only cares that the recording changed, not in which direction
+                replayingValueSelector.recordedNext(previous);
+            }
+            return previous;
+        }
+
+        @Override
+        public int nextIndex() {
+            return childSubListIterator.nextIndex();
+        }
+
+        @Override
+        public int previousIndex() {
+            return childSubListIterator.previousIndex();
+        }
+
+        @Override
+        public void remove() {
+            throw new UnsupportedOperationException("The optional operation remove() is not supported.");
+        }
+
+        @Override
+        public void set(SubList subList) {
+            throw new UnsupportedOperationException("The optional operation set() is not supported.");
+
+        }
+
+        @Override
+        public void add(SubList subList) {
+            throw new UnsupportedOperationException("The optional operation add() is not supported.");
+        }
     }
 
     @Override

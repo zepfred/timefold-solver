@@ -34,7 +34,7 @@ public class SubListChangeMoveSelector<Solution_> extends GenericMoveSelector<So
                     workingRandom,
                     selectReversingMoveToo);
         } else {
-            return new OriginalConsecutiveSubListChangeMoveIterator<>(
+            return new OriginalSubListChangeMoveIterator<>(
                     subListSelector,
                     destinationSelector,
                     selectReversingMoveToo);

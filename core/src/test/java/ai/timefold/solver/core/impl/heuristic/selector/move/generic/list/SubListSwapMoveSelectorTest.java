@@ -17,7 +17,7 @@ import static ai.timefold.solver.core.testutil.PlannerTestUtils.mockScoreDirecto
 import java.util.List;
 
 import ai.timefold.solver.core.api.solver.SolutionManager;
-import ai.timefold.solver.core.impl.heuristic.selector.list.OriginalSubListSelector;
+import ai.timefold.solver.core.impl.heuristic.selector.list.OriginalConsecutiveSubListSelector;
 import ai.timefold.solver.core.impl.heuristic.selector.list.RandomSubListSelector;
 import ai.timefold.solver.core.testdomain.list.TestdataListEntity;
 import ai.timefold.solver.core.testdomain.list.TestdataListSolution;
@@ -141,8 +141,10 @@ class SubListSwapMoveSelectorTest {
         var valueSelector =
                 TestdataListUtils.mockNeverEndingIterableValueSelector(getListVariableDescriptor(scoreDirector), v1);
         var moveSelector = new SubListSwapMoveSelector<>(
-                new OriginalSubListSelector<>(entitySelector, valueSelector, minimumLeftSubListSize, minimumLeftSubListSize),
-                new OriginalSubListSelector<>(entitySelector, valueSelector, minimumRightSubListSize, minimumRightSubListSize),
+                new OriginalConsecutiveSubListSelector<>(entitySelector, valueSelector, minimumLeftSubListSize,
+                        minimumLeftSubListSize),
+                new OriginalConsecutiveSubListSelector<>(entitySelector, valueSelector, minimumRightSubListSize,
+                        minimumRightSubListSize),
                 false, false);
 
         solvingStarted(moveSelector, scoreDirector);
