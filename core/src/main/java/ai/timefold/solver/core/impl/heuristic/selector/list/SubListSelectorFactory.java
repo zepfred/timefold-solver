@@ -49,12 +49,13 @@ public final class SubListSelectorFactory<Solution_> extends AbstractFromConfigF
         var onlyConsecutive = Objects.requireNonNullElse(config.getOnlyConsecutive(), !randomMoveSelection);
         if (!randomMoveSelection && !onlyConsecutive) {
             throw new IllegalArgumentException(
-                    "The subListSelector (%s) has an inherited selection order (%s) that is not supported. SubListSelector only supports the original selection order with consecutive values.."
+                    "The subListSelector (%s) has an inherited selection order (%s) that is not supported. SubListSelector only supports the original selection order with consecutive values."
                             .formatted(config, inheritedSelectionOrder));
         }
         var baseSubListSelector = randomMoveSelection
                 ? new RandomSubListSelector<>(entitySelector, valueSelector, minimumSubListSize, maximumSubListSize)
-                : new OriginalSubListSelector<>(entitySelector, valueSelector, minimumSubListSize, maximumSubListSize);
+                : new OriginalConsecutiveSubListSelector<>(entitySelector, valueSelector, minimumSubListSize,
+                        maximumSubListSize);
 
         var subListSelector =
                 applyNearbySelection(configPolicy, minimumCacheType, inheritedSelectionOrder, baseSubListSelector);

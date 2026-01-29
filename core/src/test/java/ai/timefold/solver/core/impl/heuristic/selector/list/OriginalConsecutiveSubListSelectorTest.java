@@ -42,7 +42,7 @@ class OriginalConsecutiveSubListSelectorTest {
 
         // Size of 2
         var sublistSize = 2;
-        var selector = new OriginalSubListSelector<>(mockEntitySelector(a, b),
+        var selector = new OriginalConsecutiveSubListSelector<>(mockEntitySelector(a, b),
                 TestdataListUtils.mockNeverEndingIterableValueSelector(getListVariableDescriptor(scoreDirector), v1),
                 sublistSize, sublistSize);
         solvingStarted(selector, scoreDirector);
@@ -50,7 +50,7 @@ class OriginalConsecutiveSubListSelectorTest {
 
         // Size of 3
         sublistSize = 3;
-        selector = new OriginalSubListSelector<>(mockEntitySelector(a, b),
+        selector = new OriginalConsecutiveSubListSelector<>(mockEntitySelector(a, b),
                 TestdataListUtils.mockNeverEndingIterableValueSelector(getListVariableDescriptor(scoreDirector), v1),
                 sublistSize, sublistSize);
         solvingStarted(selector, scoreDirector);
@@ -58,7 +58,7 @@ class OriginalConsecutiveSubListSelectorTest {
 
         // Size of 4
         sublistSize = 4;
-        selector = new OriginalSubListSelector<>(mockEntitySelector(a, b),
+        selector = new OriginalConsecutiveSubListSelector<>(mockEntitySelector(a, b),
                 TestdataListUtils.mockNeverEndingIterableValueSelector(getListVariableDescriptor(scoreDirector), v1),
                 sublistSize, sublistSize);
         solvingStarted(selector, scoreDirector);
@@ -66,7 +66,7 @@ class OriginalConsecutiveSubListSelectorTest {
 
         // Size of 5
         sublistSize = 5;
-        selector = new OriginalSubListSelector<>(mockEntitySelector(a, b),
+        selector = new OriginalConsecutiveSubListSelector<>(mockEntitySelector(a, b),
                 TestdataListUtils.mockNeverEndingIterableValueSelector(getListVariableDescriptor(scoreDirector), v1),
                 sublistSize, sublistSize);
         solvingStarted(selector, scoreDirector);
@@ -91,7 +91,7 @@ class OriginalConsecutiveSubListSelectorTest {
 
         // Size of 2
         var sublistSize = 2;
-        var selector = new OriginalSubListSelector<>(
+        var selector = new OriginalConsecutiveSubListSelector<>(
                 mockEntitySelector(a, b),
                 TestdataListUtils.mockNeverEndingIterableValueSelector(getPinnedListVariableDescriptor(scoreDirector), v1, v2),
                 sublistSize, sublistSize);
@@ -101,7 +101,7 @@ class OriginalConsecutiveSubListSelectorTest {
 
         // Size of 3
         sublistSize = 3;
-        selector = new OriginalSubListSelector<>(
+        selector = new OriginalConsecutiveSubListSelector<>(
                 mockEntitySelector(a, b),
                 TestdataListUtils.mockNeverEndingIterableValueSelector(getPinnedListVariableDescriptor(scoreDirector), v1, v2),
                 sublistSize, sublistSize);
@@ -111,7 +111,7 @@ class OriginalConsecutiveSubListSelectorTest {
 
         // Size of 4
         sublistSize = 4;
-        selector = new OriginalSubListSelector<>(
+        selector = new OriginalConsecutiveSubListSelector<>(
                 mockEntitySelector(a, b),
                 TestdataListUtils.mockNeverEndingIterableValueSelector(getPinnedListVariableDescriptor(scoreDirector), v1, v2),
                 sublistSize, sublistSize);
