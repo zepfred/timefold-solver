@@ -9,13 +9,13 @@ env:
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main, '1.x' ]
   # There are two differences to "pull_request" here:
   # - The workflow will receive secrets, even in PRs from forks.
   # - The workflow will be executed automatically, without requiring a manual approval.
   # Therefore the workflow needs to be explicitly secured; see "known_user" and "approval_required" jobs below.
   pull_request_target:
-    branches: [ main ] # Benchmarks aren't branched, so they will only ever work against current main.
+    branches: [ main, '1.x' ] # Benchmarks aren't branched, so they will only ever work against current main.
     types:
       - opened
       - reopened
