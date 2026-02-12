@@ -23,7 +23,7 @@ First check if we already have a ticket for your problem by looking at our exist
 - If the issue does not exist yet, please create a new one using the appropriate template (Bug report, feature request, ...).
 
 ### "I have an idea to improve Timefold"
-
+xxxxx
 We'd love to hear your ideas!
 Talk to us about them [here on GitHub](https://github.com/TimefoldAI/timefold-solver/discussions) or on
 [our Discord server](https://discord.gg/976RcEVVHW)
