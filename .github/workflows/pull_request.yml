@@ -36,6 +36,8 @@ jobs:
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.base_ref }} # The GHA event will pull the target branch by default, and we must specify the PR reference version
 
       - uses: actions/setup-java@v5
         with:
@@ -61,6 +63,8 @@ jobs:
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.base_ref }} # The GHA event will pull the target branch by default, and we must specify the PR reference version
 
       - uses: actions/setup-java@v5
         with:
@@ -87,6 +91,8 @@ jobs:
     timeout-minutes: 120
     steps:
       - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.base_ref }} # The GHA event will pull the target branch by default, and we must specify the PR reference version
 
       - uses: graalvm/setup-graalvm@54b4f5a65c1a84b2fdfdc2078fe43df32819e4b1 # v1
         with:
