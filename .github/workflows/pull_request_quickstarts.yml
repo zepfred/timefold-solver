@@ -7,7 +7,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main, '*.x', '!1.*']
+    branches: [main, '*.x', '!1.*.*']
     types:
       - opened
       - reopened
