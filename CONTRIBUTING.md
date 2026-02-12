@@ -24,7 +24,7 @@ First check if we already have a ticket for your problem by looking at our exist
 
 ### "I have an idea to improve Timefold"
 xxxxx
-We'd love to hear your ideas!
+We'd love to hear your ideas!asadsfadsfasfasf
 Talk to us about them [here on GitHub](https://github.com/TimefoldAI/timefold-solver/discussions) or on
 [our Discord server](https://discord.gg/976RcEVVHW)
 
