@@ -12,7 +12,7 @@ import ai.timefold.solver.core.api.domain.solution.ProblemFactProperty;
  * Determines if and how to automatically presume {@link ConstraintWeightOverrides},
  * {@link ProblemFactCollectionProperty}, {@link ProblemFactProperty}, {@link PlanningEntityCollectionProperty},
  * {@link PlanningEntityProperty} and {@link PlanningScore} annotations on {@link PlanningSolution} members
- * based on the member type.xxxx
+ * based on the member type.xxxx asdf
  */
 public enum AutoDiscoverMemberType {
     /**
