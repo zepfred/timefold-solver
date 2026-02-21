@@ -1,13 +1,17 @@
 package ai.timefold.solver.core.impl.evolutionaryalgorithm.scope;
 
+import ai.timefold.solver.core.api.score.Score;
 import ai.timefold.solver.core.impl.evolutionaryalgorithm.population.Individual;
-import ai.timefold.solver.core.impl.phase.scope.AbstractPhaseScope;
 import ai.timefold.solver.core.impl.phase.scope.AbstractStepScope;
 
 public final class EvolutionaryAlgorithmStepScope<Solution_> extends AbstractStepScope<Solution_> {
 
     private final EvolutionaryAlgorithmPhaseScope<Solution_> phaseScope;
     private Individual<Solution_, ?> bestIndividual;
+
+    public EvolutionaryAlgorithmStepScope(EvolutionaryAlgorithmPhaseScope<Solution_> phaseScope) {
+        this(phaseScope, phaseScope.getNextStepIndex(), null);
+    }
 
     public EvolutionaryAlgorithmStepScope(EvolutionaryAlgorithmPhaseScope<Solution_> phaseScope,
             Individual<Solution_, ?> bestIndividual) {
@@ -21,16 +25,12 @@ public final class EvolutionaryAlgorithmStepScope<Solution_> extends AbstractSte
         this.bestIndividual = bestIndividual;
     }
 
-    public Individual<Solution_, ?> getBestIndividual() {
-        return bestIndividual;
-    }
-
-    public void setBestIndividual(Individual<Solution_, ?> bestIndividual) {
+    public <Score_ extends Score<Score_>> void setBestIndividual(Individual<Solution_, Score_> bestIndividual) {
         this.bestIndividual = bestIndividual;
     }
 
     @Override
-    public AbstractPhaseScope<Solution_> getPhaseScope() {
+    public EvolutionaryAlgorithmPhaseScope<Solution_> getPhaseScope() {
         return phaseScope;
     }
 
