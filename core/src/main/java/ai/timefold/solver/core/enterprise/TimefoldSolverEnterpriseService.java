@@ -6,9 +6,9 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import ai.timefold.solver.core.api.score.Score;
 import ai.timefold.solver.core.api.score.stream.ConstraintProvider;
 import ai.timefold.solver.core.api.solver.SolverFactory;
-import ai.timefold.solver.core.config.evolutionaryalgorithm.EvolutionaryAlgorithmPhaseConfig;
 import ai.timefold.solver.core.config.heuristic.selector.common.SelectionCacheType;
 import ai.timefold.solver.core.config.heuristic.selector.common.SelectionOrder;
 import ai.timefold.solver.core.config.heuristic.selector.common.nearby.NearbySelectionConfig;
@@ -25,7 +25,8 @@ import ai.timefold.solver.core.impl.constructionheuristic.decider.ConstructionHe
 import ai.timefold.solver.core.impl.constructionheuristic.decider.forager.ConstructionHeuristicForager;
 import ai.timefold.solver.core.impl.domain.entity.descriptor.EntityDescriptor;
 import ai.timefold.solver.core.impl.domain.variable.declarative.TopologicalOrderGraph;
-import ai.timefold.solver.core.impl.evolutionaryalgorithm.EvolutionaryAlgorithmPhase;
+import ai.timefold.solver.core.impl.evolutionaryalgorithm.strategy.EvolutionaryStrategy;
+import ai.timefold.solver.core.impl.evolutionaryalgorithm.strategy.HybridSearchConfiguration;
 import ai.timefold.solver.core.impl.heuristic.HeuristicConfigPolicy;
 import ai.timefold.solver.core.impl.heuristic.selector.entity.EntitySelector;
 import ai.timefold.solver.core.impl.heuristic.selector.list.DestinationSelector;
@@ -38,6 +39,7 @@ import ai.timefold.solver.core.impl.localsearch.decider.acceptor.Acceptor;
 import ai.timefold.solver.core.impl.localsearch.decider.forager.LocalSearchForager;
 import ai.timefold.solver.core.impl.neighborhood.MoveRepository;
 import ai.timefold.solver.core.impl.partitionedsearch.PartitionedSearchPhase;
+import ai.timefold.solver.core.impl.phase.Phase;
 import ai.timefold.solver.core.impl.solver.recaller.BestSolutionRecaller;
 import ai.timefold.solver.core.impl.solver.termination.PhaseTermination;
 import ai.timefold.solver.core.impl.solver.termination.SolverTermination;
@@ -130,10 +132,10 @@ public interface TimefoldSolverEnterpriseService {
             SolverTermination<Solution_> solverTermination,
             BiFunction<HeuristicConfigPolicy<Solution_>, SolverTermination<Solution_>, PhaseTermination<Solution_>> phaseTerminationFunction);
 
-    <Solution_> EvolutionaryAlgorithmPhase<Solution_> buildEvolutionaryAlgorithmPhase(int phaseIndex,
-            EvolutionaryAlgorithmPhaseConfig phaseConfig, HeuristicConfigPolicy<Solution_> solverConfigPolicy,
-            BestSolutionRecaller<Solution_> bestSolutionRecaller, SolverTermination<Solution_> solverTermination,
-            PhaseTermination<Solution_> phaseTermination);
+    <Solution_, Score_ extends Score<Score_>> EvolutionaryStrategy<Solution_, Score_> buildEvolutionaryStrategy(
+            HybridSearchConfiguration configuration, Phase<Solution_> constructionHeuristicPhase,
+            Phase<Solution_> localSearchPhase, Phase<Solution_> swapStarPhase,
+            BestSolutionRecaller<Solution_> bestSolutionRecaller);
 
     <Solution_> EntitySelector<Solution_> applyNearbySelection(EntitySelectorConfig entitySelectorConfig,
             HeuristicConfigPolicy<Solution_> configPolicy, NearbySelectionConfig nearbySelectionConfig,
@@ -165,7 +167,6 @@ public interface TimefoldSolverEnterpriseService {
     enum Feature {
         MULTITHREADED_SOLVING("Multi-threaded solving", "remove moveThreadCount from solver configuration"),
         PARTITIONED_SEARCH("Partitioned search", "remove partitioned search phase from solver configuration"),
-        EVOLUTIONARY_ALGORITHM("Evolutionary Algorithm", "remove evolutionary algorithm phase from solver configuration"),
         NEARBY_SELECTION("Nearby selection", "remove nearby selection from solver configuration"),
         AUTOMATIC_NODE_SHARING("Automatic node sharing",
                 "remove automatic node sharing from solver configuration"),
