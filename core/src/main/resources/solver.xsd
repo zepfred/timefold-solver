@@ -53,6 +53,8 @@
                         
             <xs:element name="localSearch" type="tns:localSearchPhaseConfig"/>
                         
+            <xs:element name="evolutionaryAlgorithm" type="tns:evolutionaryAlgorithmPhaseConfig"/>
+                        
             <xs:element name="noChangePhase" type="tns:noChangePhaseConfig"/>
                         
             <xs:element name="partitionedSearch" type="tns:partitionedSearchPhaseConfig"/>
@@ -498,6 +500,8 @@
           <xs:element minOccurs="0" name="minimumSubListSize" type="xs:int"/>
                     
           <xs:element minOccurs="0" name="maximumSubListSize" type="xs:int"/>
+                    
+          <xs:element minOccurs="0" name="onlyConsecutive" type="xs:boolean"/>
                   
         </xs:sequence>
                 
@@ -1555,6 +1559,28 @@
       
   </xs:complexType>
     
+  <xs:complexType name="evolutionaryAlgorithmPhaseConfig">
+        
+    <xs:complexContent>
+            
+      <xs:extension base="tns:phaseConfig">
+                
+        <xs:sequence>
+                    
+          <xs:element minOccurs="0" name="populationSize" type="xs:int"/>
+                    
+          <xs:element minOccurs="0" name="generationSize" type="xs:int"/>
+                    
+          <xs:element minOccurs="0" name="eliteSolutionSize" type="xs:int"/>
+                  
+        </xs:sequence>
+              
+      </xs:extension>
+          
+    </xs:complexContent>
+      
+  </xs:complexType>
+    
   <xs:complexType name="noChangePhaseConfig">
         
     <xs:complexContent>
@@ -1662,6 +1688,8 @@
       <xs:enumeration value="PLANNING_SOLUTION_DIFF"/>
             
       <xs:enumeration value="NEIGHBORHOODS"/>
+            
+      <xs:enumeration value="EVOLUTIONARY_ALGORITHM"/>
           
     </xs:restriction>
       
