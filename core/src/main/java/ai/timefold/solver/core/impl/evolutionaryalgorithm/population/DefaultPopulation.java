@@ -7,33 +7,44 @@ import java.util.List;
 import java.util.Random;
 
 import ai.timefold.solver.core.api.score.Score;
+import ai.timefold.solver.core.impl.evolutionaryalgorithm.context.IndividualGenerator;
 import ai.timefold.solver.core.impl.score.director.InnerScore;
+import ai.timefold.solver.core.impl.score.director.InnerScoreDirector;
 import ai.timefold.solver.core.impl.util.Pair;
 
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 @NullMarked
-public class DefaultPopulation<Solution_, Score_ extends Score<Score_>> implements Population<Solution_, Score_> {
+public final class DefaultPopulation<Solution_, Score_ extends Score<Score_>> implements Population<Solution_, Score_> {
 
     private final Random workingRandom;
     private final int generationSize;
     private final int eliteSolutionSize;
     private final int maxSize;
+    private final IndividualGenerator<Solution_, Score_> individualGenerator;
     private final List<InternalIndividual<Solution_, Score_>> feasiableIndividualList;
     private final List<InternalIndividual<Solution_, Score_>> infeasiableIndividualList;
     private final PopulationDiffMap<Solution_, Score_> diffMap;
     private @Nullable Individual<Solution_, Score_> bestIndividual = null;
 
-    public DefaultPopulation(Random workingRandom, int populationSize, int generationSize, int eliteSolutionSize) {
+    public DefaultPopulation(Random workingRandom, int populationSize, int generationSize, int eliteSolutionSize,
+            IndividualGenerator<Solution_, Score_> individualGenerator) {
         this.workingRandom = workingRandom;
         this.generationSize = generationSize;
         this.eliteSolutionSize = eliteSolutionSize;
+        this.individualGenerator = individualGenerator;
         this.maxSize = populationSize + generationSize;
         this.feasiableIndividualList = new ArrayList<>(maxSize);
         this.infeasiableIndividualList = new ArrayList<>(maxSize);
         // The map can store at most maxSize elements from both lists
         this.diffMap = new PopulationDiffMap<>(maxSize * 2);
+    }
+
+    @Override
+    public Individual<Solution_, Score_> generateIndividual(Solution_ solution, InnerScore<Score_> score,
+            InnerScoreDirector<Solution_, Score_> scoreDirector) {
+        return individualGenerator.generateIndividual(solution, score, scoreDirector);
     }
 
     @Override

@@ -38,9 +38,11 @@ import ai.timefold.solver.core.config.util.ConfigUtils;
 import ai.timefold.solver.core.enterprise.TimefoldSolverEnterpriseService;
 import ai.timefold.solver.core.impl.constructionheuristic.DefaultConstructionHeuristicPhaseFactory;
 import ai.timefold.solver.core.impl.constructionheuristic.placer.QueuedEntityPlacerFactory;
-import ai.timefold.solver.core.impl.evolutionaryalgorithm.strategy.EvolutionaryStrategy;
-import ai.timefold.solver.core.impl.evolutionaryalgorithm.strategy.HybridGeneticSearch;
-import ai.timefold.solver.core.impl.evolutionaryalgorithm.strategy.HybridSearchConfiguration;
+import ai.timefold.solver.core.impl.evolutionaryalgorithm.context.EvolutionContextBuilder;
+import ai.timefold.solver.core.impl.evolutionaryalgorithm.context.EvolutionaryContext;
+import ai.timefold.solver.core.impl.evolutionaryalgorithm.decider.EvolutionaryDecider;
+import ai.timefold.solver.core.impl.evolutionaryalgorithm.decider.HybridGeneticSearchDecider;
+import ai.timefold.solver.core.impl.evolutionaryalgorithm.decider.HybridSearchConfiguration;
 import ai.timefold.solver.core.impl.evolutionaryalgorithm.swapstar.ListSwapStarPhase;
 import ai.timefold.solver.core.impl.heuristic.HeuristicConfigPolicy;
 import ai.timefold.solver.core.impl.heuristic.selector.common.nearby.NearbyDistanceMeter;
@@ -66,13 +68,23 @@ public class DefaultEvolutionaryAlgorithmPhaseFactory<Solution_>
         if (solverConfigPolicy.getSolutionDescriptor().hasBothBasicAndListVariables()) {
             throw new UnsupportedOperationException("The evolutionary algorithm cannot be applied to mixed models.");
         }
+        if (solverConfigPolicy.getSolutionDescriptor().hasBasicVariable()) {
+            throw new UnsupportedOperationException("Basic variables are not supported yet.");
+        }
+        // Same as the original paper
+        var populationSize = Objects.requireNonNullElse(phaseConfig.getPopulationSize(), 25);
+        var generationSize = Objects.requireNonNullElse(phaseConfig.getGenerationSize(), 40);
+        var eliteGroupSize = Objects.requireNonNullElse(phaseConfig.getEliteSolutionSize(), 5);
+        var configuration = new HybridSearchConfiguration(populationSize, generationSize, eliteGroupSize);
         var constructionHeuristicPhase = buildConstructionHeuristicPhase(solverConfigPolicy, solverTermination);
         var hasListVariable = solverConfigPolicy.getSolutionDescriptor().hasListVariable();
         var localSearchPhase =
                 buildLocalSearchPhase(solverConfigPolicy, solverTermination, bestSolutionRecaller, hasListVariable);
         var swapStarPhase = buildSwapStarPhase(solverConfigPolicy, solverTermination);
-        var evolutionaryStrategy = buildEvolutionaryAlgorithmStrategy(phaseConfig, constructionHeuristicPhase, localSearchPhase,
-                swapStarPhase, bestSolutionRecaller);
+        var evolutionaryContext =
+                EvolutionContextBuilder.builderHGS(hasListVariable, constructionHeuristicPhase, localSearchPhase, swapStarPhase)
+                        .build();
+        var evolutionaryStrategy = buildEvolutionaryAlgorithmDecider(configuration, evolutionaryContext, bestSolutionRecaller);
         return new DefaultEvolutionaryAlgorithmPhase.Builder<>(phaseIndex, "",
                 buildPhaseTermination(solverConfigPolicy, solverTermination), evolutionaryStrategy).build();
     }
@@ -285,21 +297,13 @@ public class DefaultEvolutionaryAlgorithmPhaseFactory<Solution_>
      * The method creates the evolutionary strategy used by the algorithm.
      * By default, the Hybrid Genetic Search approach is used.
      */
-    private static <Solution_, Score_ extends Score<Score_>> EvolutionaryStrategy<Solution_, Score_>
-            buildEvolutionaryAlgorithmStrategy(
-                    EvolutionaryAlgorithmPhaseConfig phaseConfig, Phase<Solution_> constructionHeuristicPhase,
-                    Phase<Solution_> localSearchPhase, Phase<Solution_> swapStarPhase,
+    private static <Solution_, Score_ extends Score<Score_>> EvolutionaryDecider<Solution_, Score_>
+            buildEvolutionaryAlgorithmDecider(HybridSearchConfiguration configuration,
+                    EvolutionaryContext<Solution_, Score_> evolutionaryContext,
                     BestSolutionRecaller<Solution_> bestSolutionRecaller) {
-        // Same as the original paper
-        var populationSize = Objects.requireNonNullElse(phaseConfig.getPopulationSize(), 25);
-        var generationSize = Objects.requireNonNullElse(phaseConfig.getGenerationSize(), 40);
-        var eliteGroupSize = Objects.requireNonNullElse(phaseConfig.getEliteSolutionSize(), 5);
-        var configuration = new HybridSearchConfiguration(populationSize, generationSize, eliteGroupSize);
         return TimefoldSolverEnterpriseService.loadOrDefault(
-                service -> service.buildEvolutionaryStrategy(configuration, constructionHeuristicPhase, localSearchPhase,
-                        swapStarPhase, bestSolutionRecaller),
-                () -> new HybridGeneticSearch<>(configuration, constructionHeuristicPhase, localSearchPhase, swapStarPhase,
-                        bestSolutionRecaller));
+                service -> service.buildEvolutionaryStrategy(configuration, evolutionaryContext, bestSolutionRecaller),
+                () -> new HybridGeneticSearchDecider<>(configuration, evolutionaryContext, bestSolutionRecaller));
     }
 
 }

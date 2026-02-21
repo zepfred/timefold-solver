@@ -1,5 +1,6 @@
 package ai.timefold.solver.core.impl.evolutionaryalgorithm.scope;
 
+import ai.timefold.solver.core.api.score.Score;
 import ai.timefold.solver.core.impl.evolutionaryalgorithm.population.Population;
 import ai.timefold.solver.core.impl.phase.scope.AbstractPhaseScope;
 import ai.timefold.solver.core.impl.phase.scope.AbstractStepScope;
@@ -20,8 +21,9 @@ public final class EvolutionaryAlgorithmPhaseScope<Solution_> extends AbstractPh
         return lastCompletedStepScope;
     }
 
-    public Population<Solution_, ?> getPopulation() {
-        return population;
+    @SuppressWarnings("unchecked")
+    public <Score_ extends Score<Score_>> Population<Solution_, Score_> getPopulation() {
+        return (Population<Solution_, Score_>) population;
     }
 
     public void setPopulation(Population<Solution_, ?> population) {

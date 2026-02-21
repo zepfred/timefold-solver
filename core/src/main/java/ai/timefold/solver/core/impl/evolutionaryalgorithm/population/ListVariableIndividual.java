@@ -4,7 +4,6 @@ import java.util.Map;
 
 import ai.timefold.solver.core.api.domain.valuerange.CountableValueRange;
 import ai.timefold.solver.core.api.score.Score;
-import ai.timefold.solver.core.impl.domain.variable.ListVariableStateSupply;
 import ai.timefold.solver.core.impl.domain.variable.descriptor.ListVariableDescriptor;
 import ai.timefold.solver.core.impl.score.director.InnerScore;
 import ai.timefold.solver.core.impl.score.director.InnerScoreDirector;
@@ -21,7 +20,6 @@ public final class ListVariableIndividual<Solution_, Score_ extends Score<Score_
         extends AbstractIndividual<Solution_, Score_> {
 
     private final Rebaser rebaser;
-    private final ListVariableStateSupply<Solution_, Object, Object> listVariableStateSupply;
     private final CountableValueRange<Object> cachedValueRange;
     private final Map<Object, Object[]> predecessorAndSuccessorMap;
 
@@ -30,7 +28,6 @@ public final class ListVariableIndividual<Solution_, Score_ extends Score<Score_
         super(solution, score);
         this.rebaser = scoreDirector.getMoveDirector();
         var listVariableDescriptor = scoreDirector.getSolutionDescriptor().getListVariableDescriptor();
-        this.listVariableStateSupply = scoreDirector.getListVariableStateSupply(listVariableDescriptor);
         this.cachedValueRange =
                 scoreDirector.getValueRangeManager().getFromSolution(listVariableDescriptor.getValueRangeDescriptor());
         // Currently, there is one score director and multiple individuals,

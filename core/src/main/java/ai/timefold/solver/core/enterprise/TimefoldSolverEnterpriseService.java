@@ -25,8 +25,9 @@ import ai.timefold.solver.core.impl.constructionheuristic.decider.ConstructionHe
 import ai.timefold.solver.core.impl.constructionheuristic.decider.forager.ConstructionHeuristicForager;
 import ai.timefold.solver.core.impl.domain.entity.descriptor.EntityDescriptor;
 import ai.timefold.solver.core.impl.domain.variable.declarative.TopologicalOrderGraph;
-import ai.timefold.solver.core.impl.evolutionaryalgorithm.strategy.EvolutionaryStrategy;
-import ai.timefold.solver.core.impl.evolutionaryalgorithm.strategy.HybridSearchConfiguration;
+import ai.timefold.solver.core.impl.evolutionaryalgorithm.context.EvolutionaryContext;
+import ai.timefold.solver.core.impl.evolutionaryalgorithm.decider.EvolutionaryDecider;
+import ai.timefold.solver.core.impl.evolutionaryalgorithm.decider.HybridSearchConfiguration;
 import ai.timefold.solver.core.impl.heuristic.HeuristicConfigPolicy;
 import ai.timefold.solver.core.impl.heuristic.selector.entity.EntitySelector;
 import ai.timefold.solver.core.impl.heuristic.selector.list.DestinationSelector;
@@ -39,7 +40,6 @@ import ai.timefold.solver.core.impl.localsearch.decider.acceptor.Acceptor;
 import ai.timefold.solver.core.impl.localsearch.decider.forager.LocalSearchForager;
 import ai.timefold.solver.core.impl.neighborhood.MoveRepository;
 import ai.timefold.solver.core.impl.partitionedsearch.PartitionedSearchPhase;
-import ai.timefold.solver.core.impl.phase.Phase;
 import ai.timefold.solver.core.impl.solver.recaller.BestSolutionRecaller;
 import ai.timefold.solver.core.impl.solver.termination.PhaseTermination;
 import ai.timefold.solver.core.impl.solver.termination.SolverTermination;
@@ -132,9 +132,8 @@ public interface TimefoldSolverEnterpriseService {
             SolverTermination<Solution_> solverTermination,
             BiFunction<HeuristicConfigPolicy<Solution_>, SolverTermination<Solution_>, PhaseTermination<Solution_>> phaseTerminationFunction);
 
-    <Solution_, Score_ extends Score<Score_>> EvolutionaryStrategy<Solution_, Score_> buildEvolutionaryStrategy(
-            HybridSearchConfiguration configuration, Phase<Solution_> constructionHeuristicPhase,
-            Phase<Solution_> localSearchPhase, Phase<Solution_> swapStarPhase,
+    <Solution_, Score_ extends Score<Score_>> EvolutionaryDecider<Solution_, Score_> buildEvolutionaryStrategy(
+            HybridSearchConfiguration configuration, EvolutionaryContext<Solution_, Score_> evolutionaryContext,
             BestSolutionRecaller<Solution_> bestSolutionRecaller);
 
     <Solution_> EntitySelector<Solution_> applyNearbySelection(EntitySelectorConfig entitySelectorConfig,
