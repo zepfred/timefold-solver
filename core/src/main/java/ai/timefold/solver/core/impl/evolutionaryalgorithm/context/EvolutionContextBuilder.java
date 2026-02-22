@@ -17,7 +17,7 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 @NullMarked
-public sealed abstract class EvolutionContextBuilder<Solution_, Score_ extends Score<Score_>> {
+public abstract sealed class EvolutionContextBuilder<Solution_, Score_ extends Score<Score_>> {
 
     final boolean hasListVariable;
 

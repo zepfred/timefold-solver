@@ -58,7 +58,7 @@ public final class DefaultPopulation<Solution_, Score_ extends Score<Score_>> im
 
     @Override
     public boolean addIndividual(Individual<Solution_, Score_> individual) {
-        var individualList = individual.isFeasiable() ? feasiableIndividualList : infeasiableIndividualList;
+        var individualList = individual.isFeasible() ? feasiableIndividualList : infeasiableIndividualList;
         var pos = 0;
         if (!individualList.isEmpty()) {
             // We use the insertion sort method to implement the proposed survival strategy
@@ -218,13 +218,18 @@ public final class DefaultPopulation<Solution_, Score_ extends Score<Score_>> im
         }
 
         @Override
+        public int size() {
+            return innerIndividual.size();
+        }
+
+        @Override
         public double diff(Individual<Solution_, Score_> otherIndividual) {
             return innerIndividual.diff(otherIndividual);
         }
 
         @Override
-        public boolean isFeasiable() {
-            return innerIndividual.isFeasiable();
+        public boolean isFeasible() {
+            return innerIndividual.isFeasible();
         }
 
         @Override

@@ -14,6 +14,11 @@ public interface Individual<Solution_, Score_ extends Score<Score_>> extends Com
     Solution_ getSolution();
 
     /**
+     * @return the individual size
+     */
+    int size();
+
+    /**
      * Calculates the difference between two individuals according to some strategy.
      *
      * @param otherIndividual the other individual
@@ -26,7 +31,7 @@ public interface Individual<Solution_, Score_ extends Score<Score_>> extends Com
      *
      * @return true if the individual is feasible.
      */
-    boolean isFeasiable();
+    boolean isFeasible();
 
     /**
      * The solution score without any adjustment.
