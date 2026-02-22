@@ -20,7 +20,7 @@ abstract sealed class AbstractIndividual<Solution_, Score_ extends Score<Score_>
     }
 
     @Override
-    public boolean isFeasiable() {
+    public boolean isFeasible() {
         return score.raw().isFeasible();
     }
 
