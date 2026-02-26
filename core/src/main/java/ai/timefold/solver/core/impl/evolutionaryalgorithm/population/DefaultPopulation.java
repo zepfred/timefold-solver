@@ -60,11 +60,17 @@ public final class DefaultPopulation<Solution_, Score_ extends Score<Score_>> im
     public boolean addIndividual(Individual<Solution_, Score_> individual) {
         var individualList = individual.isFeasible() ? feasiableIndividualList : infeasiableIndividualList;
         var pos = 0;
+        var internalIndividual = new InternalIndividual<>(individual);
         if (!individualList.isEmpty()) {
             // We use the insertion sort method to implement the proposed survival strategy
-            pos = Collections.binarySearch(individualList, individual);
+            // Solutions that are of higher quality should be prioritized earlier in the list,
+            // thus we negate the score.
+            pos = Collections.binarySearch(individualList, internalIndividual,
+                    Comparator.comparing(ind -> ind.getScore().raw().negate()));
+            if (pos < 0) {
+                pos = -pos - 1;
+            }
         }
-        var internalIndividual = new InternalIndividual<>(individual);
         individualList.add(pos, internalIndividual);
         // Calculate the difference between the new individual and each individual in the related list
         computeDiff(internalIndividual, individualList);

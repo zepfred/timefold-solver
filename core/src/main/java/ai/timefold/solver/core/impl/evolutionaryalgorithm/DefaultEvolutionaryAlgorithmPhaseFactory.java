@@ -4,8 +4,10 @@ import static ai.timefold.solver.core.impl.AbstractFromConfigFactory.deduceEntit
 
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.function.IntFunction;
 
 import ai.timefold.solver.core.api.score.Score;
+import ai.timefold.solver.core.api.solver.event.EventProducerId;
 import ai.timefold.solver.core.config.constructionheuristic.ConstructionHeuristicPhaseConfig;
 import ai.timefold.solver.core.config.constructionheuristic.ConstructionHeuristicType;
 import ai.timefold.solver.core.config.constructionheuristic.decider.forager.ConstructionHeuristicForagerConfig;
@@ -50,7 +52,11 @@ import ai.timefold.solver.core.impl.heuristic.selector.entity.EntitySelectorFact
 import ai.timefold.solver.core.impl.phase.AbstractPhaseFactory;
 import ai.timefold.solver.core.impl.phase.Phase;
 import ai.timefold.solver.core.impl.phase.PhaseFactory;
+import ai.timefold.solver.core.impl.phase.event.PhaseLifecycleListener;
+import ai.timefold.solver.core.impl.phase.scope.AbstractPhaseScope;
+import ai.timefold.solver.core.impl.phase.scope.AbstractStepScope;
 import ai.timefold.solver.core.impl.solver.recaller.BestSolutionRecaller;
+import ai.timefold.solver.core.impl.solver.scope.SolverScope;
 import ai.timefold.solver.core.impl.solver.termination.PhaseTermination;
 import ai.timefold.solver.core.impl.solver.termination.SolverTermination;
 
@@ -76,13 +82,18 @@ public class DefaultEvolutionaryAlgorithmPhaseFactory<Solution_>
         var generationSize = Objects.requireNonNullElse(phaseConfig.getGenerationSize(), 40);
         var eliteGroupSize = Objects.requireNonNullElse(phaseConfig.getEliteSolutionSize(), 5);
         var configuration = new HybridSearchConfiguration(populationSize, generationSize, eliteGroupSize);
-        var constructionHeuristicPhase = buildConstructionHeuristicPhase(solverConfigPolicy, solverTermination);
+        var constructionHeuristicPhase =
+                disableBestSolutionUpdate(
+                        buildConstructionHeuristicPhase(solverConfigPolicy, solverTermination));
         var hasListVariable = solverConfigPolicy.getSolutionDescriptor().hasListVariable();
         var localSearchPhase =
-                buildLocalSearchPhase(solverConfigPolicy, solverTermination, bestSolutionRecaller, hasListVariable);
-        var swapStarPhase = buildSwapStarPhase(solverConfigPolicy, solverTermination);
+                disableBestSolutionUpdate(
+                        buildLocalSearchPhase(solverConfigPolicy, solverTermination, bestSolutionRecaller, hasListVariable));
+        var swapStarPhase = disableBestSolutionUpdate(buildSwapStarPhase(solverConfigPolicy, solverTermination));
         var evolutionaryContext =
-                EvolutionContextBuilder.builderHGS(hasListVariable, constructionHeuristicPhase, localSearchPhase, swapStarPhase)
+                EvolutionContextBuilder
+                        .builderHybridGeneticSearch(hasListVariable, constructionHeuristicPhase, localSearchPhase,
+                                swapStarPhase)
                         .build();
         var evolutionaryStrategy = buildEvolutionaryAlgorithmDecider(configuration, evolutionaryContext, bestSolutionRecaller);
         return new DefaultEvolutionaryAlgorithmPhase.Builder<>(phaseIndex, "",
@@ -304,6 +315,84 @@ public class DefaultEvolutionaryAlgorithmPhaseFactory<Solution_>
         return TimefoldSolverEnterpriseService.loadOrDefault(
                 service -> service.buildEvolutionaryStrategy(configuration, evolutionaryContext, bestSolutionRecaller),
                 () -> new HybridGeneticSearchDecider<>(configuration, evolutionaryContext, bestSolutionRecaller));
+    }
+
+    /**
+     * Utility method that disables updates to the best solution events during the evolutionary inner phases.
+     * 
+     * @param phase the phase to be configured
+     * @return a phase that disables the best solution updates and run the same logic as the inner phase.
+     */
+    private static <Solution_> Phase<Solution_> disableBestSolutionUpdate(Phase<Solution_> phase) {
+        if (phase == null) {
+            return null;
+        }
+        var updatedPhase = new Phase<Solution_>() {
+
+            private Phase<Solution_> innerPhase;
+            private boolean previousState;
+
+            @Override
+            public void addPhaseLifecycleListener(PhaseLifecycleListener<Solution_> phaseLifecycleListener) {
+                innerPhase.addPhaseLifecycleListener(phaseLifecycleListener);
+            }
+
+            @Override
+            public void removePhaseLifecycleListener(PhaseLifecycleListener<Solution_> phaseLifecycleListener) {
+                innerPhase.removePhaseLifecycleListener(phaseLifecycleListener);
+            }
+
+            @Override
+            public void solve(SolverScope<Solution_> solverScope) {
+                innerPhase.solve(solverScope);
+            }
+
+            @Override
+            public IntFunction<EventProducerId> getEventProducerIdSupplier() {
+                return innerPhase.getEventProducerIdSupplier();
+            }
+
+            @Override
+            public void solvingStarted(SolverScope<Solution_> solverScope) {
+                var solver = solverScope.getSolver();
+                if (solver != null && solver.getBestSolutionRecaller() != null) {
+                    previousState = solver.getBestSolutionRecaller().isEnableUpdateEvents();
+                    solver.getBestSolutionRecaller().setEnableUpdateEvents(false);
+                }
+                innerPhase.solvingStarted(solverScope);
+            }
+
+            @Override
+            public void solvingEnded(SolverScope<Solution_> solverScope) {
+                var solver = solverScope.getSolver();
+                if (solver != null && solver.getBestSolutionRecaller() != null) {
+                    solver.getBestSolutionRecaller().setEnableUpdateEvents(previousState);
+                }
+                innerPhase.solvingEnded(solverScope);
+            }
+
+            @Override
+            public void phaseStarted(AbstractPhaseScope<Solution_> phaseScope) {
+                innerPhase.phaseStarted(phaseScope);
+            }
+
+            @Override
+            public void phaseEnded(AbstractPhaseScope<Solution_> phaseScope) {
+                innerPhase.phaseEnded(phaseScope);
+            }
+
+            @Override
+            public void stepStarted(AbstractStepScope<Solution_> stepScope) {
+                innerPhase.stepStarted(stepScope);
+            }
+
+            @Override
+            public void stepEnded(AbstractStepScope<Solution_> stepScope) {
+                innerPhase.stepEnded(stepScope);
+            }
+        };
+        updatedPhase.innerPhase = phase;
+        return updatedPhase;
     }
 
 }

@@ -28,7 +28,8 @@ public abstract sealed class EvolutionContextBuilder<Solution_, Score_ extends S
     public abstract EvolutionaryContext<Solution_, Score_> build();
 
     public static <Solution_, Score_ extends Score<Score_>> EvolutionContextBuilder<Solution_, Score_>
-            builderHGS(boolean hasListVariable, Phase<Solution_> constructionHeuristicPhase, Phase<Solution_> localSearchPhase,
+            builderHybridGeneticSearch(boolean hasListVariable, Phase<Solution_> constructionHeuristicPhase,
+                    Phase<Solution_> localSearchPhase,
                     @Nullable Phase<Solution_> swapStarPhase) {
         return new HGSEvolutionaryContextBuilder<>(hasListVariable, constructionHeuristicPhase, localSearchPhase,
                 swapStarPhase);
@@ -51,7 +52,7 @@ public abstract sealed class EvolutionContextBuilder<Solution_, Score_ extends S
 
         public EvolutionaryContext<Solution_, Score_> build() {
             if (hasListVariable) {
-                return new HGSEvolutionaryContext<>() {
+                return new HybridGeneticSearchContext<>() {
 
                     private @Nullable CrossoverStrategy<Solution_, Score_> crossoverStrategy;
 
@@ -75,7 +76,7 @@ public abstract sealed class EvolutionContextBuilder<Solution_, Score_ extends S
                         if (crossoverStrategy != null) {
                             return crossoverStrategy;
                         }
-                        crossoverStrategy = new ListOXCrossoverStrategy<>(this);
+                        crossoverStrategy = new ListOXCrossoverStrategy<>();
                         return crossoverStrategy;
                     }
 

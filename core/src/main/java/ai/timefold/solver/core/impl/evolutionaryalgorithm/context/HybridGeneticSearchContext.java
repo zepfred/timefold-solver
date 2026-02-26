@@ -4,7 +4,7 @@ import ai.timefold.solver.core.api.score.Score;
 import ai.timefold.solver.core.impl.evolutionaryalgorithm.crossover.CrossoverStrategy;
 import ai.timefold.solver.core.impl.phase.Phase;
 
-public interface HGSEvolutionaryContext<Solution_, Score_ extends Score<Score_>>
+public interface HybridGeneticSearchContext<Solution_, Score_ extends Score<Score_>>
         extends EvolutionaryContext<Solution_, Score_> {
 
     Phase<Solution_> getConstructionHeuristicPhase();

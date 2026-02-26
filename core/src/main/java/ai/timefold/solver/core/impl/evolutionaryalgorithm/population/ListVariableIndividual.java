@@ -68,6 +68,10 @@ public final class ListVariableIndividual<Solution_, Score_ extends Score<Score_
         for (var valueEntry : predecessorAndSuccessorMap.entrySet()) {
             var valuePosition = valueEntry.getValue();
             var otherValuePosition = otherListIndividual.predecessorAndSuccessorMap.get(valueEntry.getKey());
+            if (otherValuePosition == null) {
+                diff++;
+                continue;
+            }
             // No match like: [0, 1] and [1, 0] 
             if (valuePosition.successor() != otherValuePosition.successor()
                     && valuePosition.successor() != otherValuePosition.predecessor()) {
