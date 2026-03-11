@@ -1,32 +1,29 @@
 package ai.timefold.solver.core.impl.evolutionaryalgorithm.scope;
 
-import ai.timefold.solver.core.api.score.Score;
-import ai.timefold.solver.core.impl.evolutionaryalgorithm.population.Individual;
 import ai.timefold.solver.core.impl.phase.scope.AbstractStepScope;
 
 public final class EvolutionaryAlgorithmStepScope<Solution_> extends AbstractStepScope<Solution_> {
 
     private final EvolutionaryAlgorithmPhaseScope<Solution_> phaseScope;
-    private Individual<Solution_, ?> bestIndividual;
+    private Solution_ bestSolution;
 
     public EvolutionaryAlgorithmStepScope(EvolutionaryAlgorithmPhaseScope<Solution_> phaseScope) {
         this(phaseScope, phaseScope.getNextStepIndex(), null);
     }
 
-    public EvolutionaryAlgorithmStepScope(EvolutionaryAlgorithmPhaseScope<Solution_> phaseScope,
-            Individual<Solution_, ?> bestIndividual) {
-        this(phaseScope, phaseScope.getNextStepIndex(), bestIndividual);
+    public EvolutionaryAlgorithmStepScope(EvolutionaryAlgorithmPhaseScope<Solution_> phaseScope, Solution_ bestSolution) {
+        this(phaseScope, phaseScope.getNextStepIndex(), bestSolution);
     }
 
     public EvolutionaryAlgorithmStepScope(EvolutionaryAlgorithmPhaseScope<Solution_> phaseScope, int stepIndex,
-            Individual<Solution_, ?> bestIndividual) {
+            Solution_ bestSolution) {
         super(stepIndex);
         this.phaseScope = phaseScope;
-        this.bestIndividual = bestIndividual;
+        this.bestSolution = bestSolution;
     }
 
-    public <Score_ extends Score<Score_>> void setBestIndividual(Individual<Solution_, Score_> bestIndividual) {
-        this.bestIndividual = bestIndividual;
+    public void setBestSolution(Solution_ bestSolution) {
+        this.bestSolution = bestSolution;
     }
 
     @Override
@@ -36,6 +33,6 @@ public final class EvolutionaryAlgorithmStepScope<Solution_> extends AbstractSte
 
     @Override
     public Solution_ cloneWorkingSolution() {
-        return getScoreDirector().cloneSolution(bestIndividual.getSolution());
+        return getScoreDirector().cloneSolution(bestSolution);
     }
 }

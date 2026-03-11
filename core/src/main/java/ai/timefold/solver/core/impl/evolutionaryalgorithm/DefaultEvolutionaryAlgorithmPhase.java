@@ -96,8 +96,8 @@ public final class DefaultEvolutionaryAlgorithmPhase<Solution_> extends Abstract
         var solver = stepScope.getPhaseScope().getSolverScope().getSolver();
         solver.getBestSolutionRecaller().processWorkingSolutionDuringStep(stepScope);
         var phaseScope = stepScope.getPhaseScope();
-        if (logger.isDebugEnabled()) {
-            logger.debug("{}    EA step ({}), time spent ({}), score ({}), {} best score ({}).",
+        if (logger.isInfoEnabled()) {
+            logger.info("{}    EA step ({}), time spent ({}), score ({}), {} best score ({}).",
                     logIndentation,
                     stepScope.getStepIndex(),
                     phaseScope.calculateSolverTimeMillisSpentUpToNow(),

@@ -41,4 +41,9 @@ public interface Population<Solution_, Score_ extends Score<Score_>> extends Ind
      */
     @Nullable
     Individual<Solution_, Score_> getBestIndividual();
+
+    /**
+     * @return the size of the population.
+     */
+    int size();
 }

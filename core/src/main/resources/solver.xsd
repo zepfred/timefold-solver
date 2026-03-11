@@ -1572,6 +1572,12 @@
           <xs:element minOccurs="0" name="generationSize" type="xs:int"/>
                     
           <xs:element minOccurs="0" name="eliteSolutionSize" type="xs:int"/>
+                    
+          <xs:element minOccurs="0" name="enableGranularNeighborhood" type="xs:boolean"/>
+                    
+          <xs:element minOccurs="0" name="enableSwapStar" type="xs:boolean"/>
+                    
+          <xs:element minOccurs="0" name="localSearchPhaseConfig" type="tns:localSearchPhaseConfig"/>
                   
         </xs:sequence>
               

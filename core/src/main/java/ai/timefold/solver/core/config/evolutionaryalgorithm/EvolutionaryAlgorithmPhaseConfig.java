@@ -4,6 +4,7 @@ import java.util.function.Consumer;
 
 import jakarta.xml.bind.annotation.XmlType;
 
+import ai.timefold.solver.core.config.localsearch.LocalSearchPhaseConfig;
 import ai.timefold.solver.core.config.phase.PhaseConfig;
 import ai.timefold.solver.core.config.util.ConfigUtils;
 
@@ -14,6 +15,9 @@ import org.jspecify.annotations.Nullable;
         "populationSize",
         "generationSize",
         "eliteSolutionSize",
+        "enableGranularNeighborhood",
+        "enableSwapStar",
+        "localSearchPhaseConfig"
 })
 @NullMarked
 public class EvolutionaryAlgorithmPhaseConfig extends PhaseConfig<EvolutionaryAlgorithmPhaseConfig> {
@@ -21,13 +25,22 @@ public class EvolutionaryAlgorithmPhaseConfig extends PhaseConfig<EvolutionaryAl
     public static final String XML_ELEMENT_NAME = "evolutionaryAlgorithm";
 
     @Nullable
-    protected Integer populationSize = null;
+    private Integer populationSize = null;
 
     @Nullable
-    protected Integer generationSize = null;
+    private Integer generationSize = null;
 
     @Nullable
-    protected Integer eliteSolutionSize = null;
+    private Integer eliteSolutionSize = null;
+
+    @Nullable
+    private Boolean enableGranularNeighborhood = null;
+
+    @Nullable
+    private Boolean enableSwapStar = null;
+
+    @Nullable
+    private LocalSearchPhaseConfig localSearchPhaseConfig = null;
 
     // ************************************************************************
     // Constructors and simple getters/setters
@@ -57,34 +70,74 @@ public class EvolutionaryAlgorithmPhaseConfig extends PhaseConfig<EvolutionaryAl
         this.eliteSolutionSize = eliteSolutionSize;
     }
 
+    public @Nullable Boolean getEnableGranularNeighborhood() {
+        return enableGranularNeighborhood;
+    }
+
+    public void setEnableGranularNeighborhood(@Nullable Boolean enableGranularNeighborhood) {
+        this.enableGranularNeighborhood = enableGranularNeighborhood;
+    }
+
+    public @Nullable Boolean getEnableSwapStar() {
+        return enableSwapStar;
+    }
+
+    public void setEnableSwapStar(@Nullable Boolean enableSwapStar) {
+        this.enableSwapStar = enableSwapStar;
+    }
+
+    public @Nullable LocalSearchPhaseConfig getLocalSearchPhaseConfig() {
+        return localSearchPhaseConfig;
+    }
+
+    public void setLocalSearchPhaseConfig(@Nullable LocalSearchPhaseConfig localSearchPhaseConfig) {
+        this.localSearchPhaseConfig = localSearchPhaseConfig;
+    }
+
     // ************************************************************************
     // With methods
     // ************************************************************************
 
     public EvolutionaryAlgorithmPhaseConfig withPopulationSize(Integer populationSize) {
-        this.populationSize = populationSize;
+        setPopulationSize(populationSize);
         return this;
     }
 
     public EvolutionaryAlgorithmPhaseConfig withGenerationSize(Integer generationSize) {
-        this.generationSize = generationSize;
+        setGenerationSize(generationSize);
         return this;
     }
 
     public EvolutionaryAlgorithmPhaseConfig withEliteSolutionSize(Integer eliteSolutionSize) {
-        this.eliteSolutionSize = eliteSolutionSize;
+        setEliteSolutionSize(eliteSolutionSize);
+        return this;
+    }
+
+    public EvolutionaryAlgorithmPhaseConfig withEnableGranularNeighborhood(Boolean enableGranularNeighborhood) {
+        setEnableGranularNeighborhood(enableGranularNeighborhood);
+        return this;
+    }
+
+    public EvolutionaryAlgorithmPhaseConfig withEnableSwapStar(Boolean enableSwapStar) {
+        setEnableSwapStar(enableSwapStar);
+        return this;
+    }
+
+    public EvolutionaryAlgorithmPhaseConfig withLocalSearchPhaseConfig(LocalSearchPhaseConfig localSearchPhaseConfig) {
+        setLocalSearchPhaseConfig(localSearchPhaseConfig);
         return this;
     }
 
     @Override
     public EvolutionaryAlgorithmPhaseConfig inherit(EvolutionaryAlgorithmPhaseConfig inheritedConfig) {
         super.inherit(inheritedConfig);
-        populationSize =
-                ConfigUtils.inheritOverwritableProperty(populationSize, inheritedConfig.getPopulationSize());
-        generationSize =
-                ConfigUtils.inheritOverwritableProperty(generationSize, inheritedConfig.getGenerationSize());
-        eliteSolutionSize =
-                ConfigUtils.inheritOverwritableProperty(eliteSolutionSize, inheritedConfig.getEliteSolutionSize());
+        populationSize = ConfigUtils.inheritOverwritableProperty(populationSize, inheritedConfig.getPopulationSize());
+        generationSize = ConfigUtils.inheritOverwritableProperty(generationSize, inheritedConfig.getGenerationSize());
+        eliteSolutionSize = ConfigUtils.inheritOverwritableProperty(eliteSolutionSize, inheritedConfig.getEliteSolutionSize());
+        enableGranularNeighborhood = ConfigUtils.inheritOverwritableProperty(enableGranularNeighborhood,
+                inheritedConfig.getEnableGranularNeighborhood());
+        enableSwapStar = ConfigUtils.inheritOverwritableProperty(enableSwapStar, inheritedConfig.getEnableSwapStar());
+        localSearchPhaseConfig = ConfigUtils.inheritConfig(localSearchPhaseConfig, inheritedConfig.getLocalSearchPhaseConfig());
         return this;
     }
 
@@ -95,6 +148,8 @@ public class EvolutionaryAlgorithmPhaseConfig extends PhaseConfig<EvolutionaryAl
 
     @Override
     public void visitReferencedClasses(Consumer<@Nullable Class<?>> classVisitor) {
-        // No references
+        if (localSearchPhaseConfig != null) {
+            localSearchPhaseConfig.visitReferencedClasses(classVisitor);
+        }
     }
 }

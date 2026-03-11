@@ -4,8 +4,10 @@ import static ai.timefold.solver.core.impl.AbstractFromConfigFactory.deduceEntit
 
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.function.IntFunction;
 
 import ai.timefold.solver.core.api.score.Score;
+import ai.timefold.solver.core.api.solver.event.EventProducerId;
 import ai.timefold.solver.core.config.constructionheuristic.ConstructionHeuristicPhaseConfig;
 import ai.timefold.solver.core.config.constructionheuristic.ConstructionHeuristicType;
 import ai.timefold.solver.core.config.constructionheuristic.decider.forager.ConstructionHeuristicForagerConfig;
@@ -22,6 +24,7 @@ import ai.timefold.solver.core.config.heuristic.selector.entity.EntitySelectorCo
 import ai.timefold.solver.core.config.heuristic.selector.list.DestinationSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.list.SubListSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.MoveSelectorConfig;
+import ai.timefold.solver.core.config.heuristic.selector.move.NearbyAutoConfigurationEnabled;
 import ai.timefold.solver.core.config.heuristic.selector.move.composite.CartesianProductMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.composite.UnionMoveSelectorConfig;
 import ai.timefold.solver.core.config.heuristic.selector.move.generic.ChangeMoveSelectorConfig;
@@ -50,7 +53,11 @@ import ai.timefold.solver.core.impl.heuristic.selector.entity.EntitySelectorFact
 import ai.timefold.solver.core.impl.phase.AbstractPhaseFactory;
 import ai.timefold.solver.core.impl.phase.Phase;
 import ai.timefold.solver.core.impl.phase.PhaseFactory;
+import ai.timefold.solver.core.impl.phase.event.PhaseLifecycleListener;
+import ai.timefold.solver.core.impl.phase.scope.AbstractPhaseScope;
+import ai.timefold.solver.core.impl.phase.scope.AbstractStepScope;
 import ai.timefold.solver.core.impl.solver.recaller.BestSolutionRecaller;
+import ai.timefold.solver.core.impl.solver.scope.SolverScope;
 import ai.timefold.solver.core.impl.solver.termination.PhaseTermination;
 import ai.timefold.solver.core.impl.solver.termination.SolverTermination;
 
@@ -75,18 +82,27 @@ public class DefaultEvolutionaryAlgorithmPhaseFactory<Solution_>
         var populationSize = Objects.requireNonNullElse(phaseConfig.getPopulationSize(), 25);
         var generationSize = Objects.requireNonNullElse(phaseConfig.getGenerationSize(), 40);
         var eliteGroupSize = Objects.requireNonNullElse(phaseConfig.getEliteSolutionSize(), 5);
+        var enableGranularNeighborhood = Objects.requireNonNullElse(phaseConfig.getEnableGranularNeighborhood(), false);
+        var enableSwapStar = Objects.requireNonNullElse(phaseConfig.getEnableSwapStar(), false);
         var configuration = new HybridSearchConfiguration(populationSize, generationSize, eliteGroupSize);
-        var constructionHeuristicPhase = buildConstructionHeuristicPhase(solverConfigPolicy, solverTermination);
+        var constructionHeuristicPhase =
+                disableBestSolutionUpdate(
+                        buildConstructionHeuristicPhase(solverConfigPolicy, solverTermination));
         var hasListVariable = solverConfigPolicy.getSolutionDescriptor().hasListVariable();
-        var localSearchPhase =
-                buildLocalSearchPhase(solverConfigPolicy, solverTermination, bestSolutionRecaller, hasListVariable);
-        var swapStarPhase = buildSwapStarPhase(solverConfigPolicy, solverTermination);
+        var localSearchPhase = disableBestSolutionUpdate(buildLocalSearchPhase(solverConfigPolicy,
+                phaseConfig.getLocalSearchPhaseConfig(), solverTermination, bestSolutionRecaller, hasListVariable,
+                enableGranularNeighborhood));
+        var swapStarPhase =
+                disableBestSolutionUpdate(buildSwapStarPhase(solverConfigPolicy, solverTermination, enableSwapStar));
         var evolutionaryContext =
-                EvolutionContextBuilder.builderHGS(hasListVariable, constructionHeuristicPhase, localSearchPhase, swapStarPhase)
+                EvolutionContextBuilder
+                        .builderHybridGeneticSearch(hasListVariable, constructionHeuristicPhase, localSearchPhase,
+                                swapStarPhase)
                         .build();
-        var evolutionaryStrategy = buildEvolutionaryAlgorithmDecider(configuration, evolutionaryContext, bestSolutionRecaller);
-        return new DefaultEvolutionaryAlgorithmPhase.Builder<>(phaseIndex, "",
-                buildPhaseTermination(solverConfigPolicy, solverTermination), evolutionaryStrategy).build();
+        var phaseTermination = buildPhaseTermination(solverConfigPolicy, solverTermination);
+        var evolutionaryStrategy =
+                buildEvolutionaryAlgorithmDecider(configuration, evolutionaryContext, phaseTermination, bestSolutionRecaller);
+        return new DefaultEvolutionaryAlgorithmPhase.Builder<>(phaseIndex, "", phaseTermination, evolutionaryStrategy).build();
     }
 
     /**
@@ -185,12 +201,15 @@ public class DefaultEvolutionaryAlgorithmPhaseFactory<Solution_>
      * The method creates a local search phase based on Variable Neighborhood Descent (VND).
      */
     private static <Solution_> Phase<Solution_> buildLocalSearchPhase(HeuristicConfigPolicy<Solution_> solverConfigPolicy,
-            SolverTermination<Solution_> solverTermination, BestSolutionRecaller<Solution_> bestSolutionRecaller,
-            boolean isListVariable) {
-        var localSearchPhaseConfig = new LocalSearchPhaseConfig();
-        localSearchPhaseConfig.withLocalSearchType(LocalSearchType.VARIABLE_NEIGHBORHOOD_DESCENT);
-        loadMoveSelectorConfig(solverConfigPolicy, localSearchPhaseConfig, isListVariable);
-        return PhaseFactory.<Solution_> create(localSearchPhaseConfig).buildPhase(0, false,
+            LocalSearchPhaseConfig localSearchPhaseConfig, SolverTermination<Solution_> solverTermination,
+            BestSolutionRecaller<Solution_> bestSolutionRecaller, boolean isListVariable, boolean enableGranularNeighborhood) {
+        var updatedLocalSearchPhaseConfig = localSearchPhaseConfig;
+        if (updatedLocalSearchPhaseConfig == null) {
+            updatedLocalSearchPhaseConfig = new LocalSearchPhaseConfig();
+            updatedLocalSearchPhaseConfig.withLocalSearchType(LocalSearchType.VARIABLE_NEIGHBORHOOD_DESCENT);
+        }
+        loadMoveSelectorConfig(solverConfigPolicy, updatedLocalSearchPhaseConfig, isListVariable, enableGranularNeighborhood);
+        return PhaseFactory.<Solution_> create(updatedLocalSearchPhaseConfig).buildPhase(0, false,
                 solverConfigPolicy.copyConfigPolicyWithoutNearbySetting(), bestSolutionRecaller, solverTermination);
     }
 
@@ -208,69 +227,78 @@ public class DefaultEvolutionaryAlgorithmPhaseFactory<Solution_>
      * 2.9 - Inter route 2-opt move: (U, X) (V, Y) -> (U, Y) (V, X)
      */
     private static <Solution_> void loadMoveSelectorConfig(HeuristicConfigPolicy<Solution_> solverConfigPolicy,
-            LocalSearchPhaseConfig localSearchPhaseConfig, boolean isListVariable) {
-        var unionMoveSelectorConfig = new UnionMoveSelectorConfig();
-        var moveList = new ArrayList<MoveSelectorConfig>();
-        if (isListVariable) {
-            // Move 2.1
-            moveList.add(new ListChangeMoveSelectorConfig().withSelectionOrder(SelectionOrder.ORIGINAL));
-            // Move 2.2
-            moveList.add(new ListSwapMoveSelectorConfig().withSelectionOrder(SelectionOrder.ORIGINAL));
-            // Move 2.3
-            moveList.add(new SubListChangeMoveSelectorConfig().withSelectionOrder(SelectionOrder.ORIGINAL)
-                    .withSelectReversingMoveToo(false).withSubListSelectorConfig(
-                            new SubListSelectorConfig().withOnlyConsecutive(true).withMinimumSubListSize(2)
-                                    .withMaximumSubListSize(2)));
-            // Move 2.4
-            moveList.add(new SubListChangeMoveSelectorConfig().withSelectionOrder(SelectionOrder.ORIGINAL)
-                    .withSelectReversingMoveToo(true).withSubListSelectorConfig(
-                            new SubListSelectorConfig().withOnlyConsecutive(true).withMinimumSubListSize(2)
-                                    .withMaximumSubListSize(2)));
-            // Move 2.5
-            moveList.add(new SubListSwapMoveSelectorConfig().withSelectionOrder(SelectionOrder.ORIGINAL)
-                    .withSelectReversingMoveToo(false)
-                    .withSubListSelectorConfig(new SubListSelectorConfig().withOnlyConsecutive(true).withMinimumSubListSize(2)
-                            .withMaximumSubListSize(2))
-                    .withSecondarySubListSelectorConfig(new SubListSelectorConfig().withOnlyConsecutive(true)
-                            .withMinimumSubListSize(1).withMaximumSubListSize(1)));
-            // Move 2.6
-            moveList.add(new SubListSwapMoveSelectorConfig().withSelectionOrder(SelectionOrder.ORIGINAL)
-                    .withSelectReversingMoveToo(true)
-                    .withSubListSelectorConfig(new SubListSelectorConfig().withOnlyConsecutive(true).withMinimumSubListSize(2)
-                            .withMaximumSubListSize(2))
-                    .withSecondarySubListSelectorConfig(new SubListSelectorConfig().withOnlyConsecutive(true)
-                            .withMinimumSubListSize(1).withMaximumSubListSize(1)));
-            // Moves 2.7, 2.8 and 2.9
-            moveList.add(new KOptListMoveSelectorConfig().withSelectionOrder(SelectionOrder.ORIGINAL).withMinimumK(2)
-                    .withMaximumK(2));
-        } else {
-            // Move 2.1
-            moveList.add(new ChangeMoveSelectorConfig().withSelectionOrder(SelectionOrder.ORIGINAL));
-            // Move 2.2
-            moveList.add(new SwapMoveSelectorConfig().withSelectionOrder(SelectionOrder.ORIGINAL));
+            LocalSearchPhaseConfig localSearchPhaseConfig, boolean isListVariable, boolean enableGranularNeighborhood) {
+        if (localSearchPhaseConfig.getMoveSelectorConfig() == null) {
+            var updatedUnionMoveSelectorConfig = new UnionMoveSelectorConfig();
+            var moveList = new ArrayList<MoveSelectorConfig>();
+            if (isListVariable) {
+                // Move 2.1
+                moveList.add(new ListChangeMoveSelectorConfig().withSelectionOrder(SelectionOrder.ORIGINAL));
+                // Move 2.2
+                moveList.add(new ListSwapMoveSelectorConfig().withSelectionOrder(SelectionOrder.ORIGINAL));
+                // Move 2.3
+                moveList.add(new SubListChangeMoveSelectorConfig().withSelectionOrder(SelectionOrder.ORIGINAL)
+                        .withSelectReversingMoveToo(false).withSubListSelectorConfig(
+                                new SubListSelectorConfig().withOnlyConsecutive(true).withMinimumSubListSize(2)
+                                        .withMaximumSubListSize(2)));
+                // Move 2.4
+                moveList.add(new SubListChangeMoveSelectorConfig().withSelectionOrder(SelectionOrder.ORIGINAL)
+                        .withSelectReversingMoveToo(true).withSubListSelectorConfig(
+                                new SubListSelectorConfig().withOnlyConsecutive(true).withMinimumSubListSize(2)
+                                        .withMaximumSubListSize(2)));
+                // Move 2.5
+                moveList.add(new SubListSwapMoveSelectorConfig().withSelectionOrder(SelectionOrder.ORIGINAL)
+                        .withSelectReversingMoveToo(false)
+                        .withSubListSelectorConfig(
+                                new SubListSelectorConfig().withOnlyConsecutive(true).withMinimumSubListSize(2)
+                                        .withMaximumSubListSize(2))
+                        .withSecondarySubListSelectorConfig(new SubListSelectorConfig().withOnlyConsecutive(true)
+                                .withMinimumSubListSize(1).withMaximumSubListSize(1)));
+                // Move 2.6
+                moveList.add(new SubListSwapMoveSelectorConfig().withSelectionOrder(SelectionOrder.ORIGINAL)
+                        .withSelectReversingMoveToo(true)
+                        .withSubListSelectorConfig(
+                                new SubListSelectorConfig().withOnlyConsecutive(true).withMinimumSubListSize(2)
+                                        .withMaximumSubListSize(2))
+                        .withSecondarySubListSelectorConfig(new SubListSelectorConfig().withOnlyConsecutive(true)
+                                .withMinimumSubListSize(1).withMaximumSubListSize(1)));
+                // Moves 2.7, 2.8 and 2.9
+                moveList.add(new KOptListMoveSelectorConfig().withSelectionOrder(SelectionOrder.ORIGINAL).withMinimumK(2)
+                        .withMaximumK(2));
+            } else {
+                // Move 2.1
+                moveList.add(new ChangeMoveSelectorConfig().withSelectionOrder(SelectionOrder.ORIGINAL));
+                // Move 2.2
+                moveList.add(new SwapMoveSelectorConfig().withSelectionOrder(SelectionOrder.ORIGINAL));
+            }
+            updatedUnionMoveSelectorConfig.setMoveSelectorList(moveList);
+            localSearchPhaseConfig.setMoveSelectorConfig(updatedUnionMoveSelectorConfig);
         }
-        unionMoveSelectorConfig.setMoveSelectorList(moveList);
-        // Enable the granular neighborhood
-        if (solverConfigPolicy.getNearbyDistanceMeterClass() != null) {
+        if (solverConfigPolicy.getNearbyDistanceMeterClass() != null && localSearchPhaseConfig
+                .getMoveSelectorConfig() instanceof NearbyAutoConfigurationEnabled<?> nearbyAutoConfiguration) {
             var nearbyDistanceMeterClass =
                     (Class<? extends NearbyDistanceMeter<?, ?>>) solverConfigPolicy.getNearbyDistanceMeterClass();
-            unionMoveSelectorConfig =
-                    unionMoveSelectorConfig.enableNearbySelection(nearbyDistanceMeterClass, solverConfigPolicy.getRandom());
-            var updatedList = unionMoveSelectorConfig.getMoveSelectorList().stream()
-                    .filter(SelectorConfig::hasNearbySelectionConfig).toList();
-            // We only use the moves with Nearby enabled as proposed by FILO
-            // A Fast and Scalable Heuristic for the Solution of Large-Scale Capacitated Vehicle Routing Problems
-            unionMoveSelectorConfig.setMoveSelectorList(updatedList);
+            var updatedUnionMoveSelectorConfig =
+                    nearbyAutoConfiguration.enableNearbySelection(nearbyDistanceMeterClass, solverConfigPolicy.getRandom());
+            // Enable the granular neighborhood
+            if (enableGranularNeighborhood
+                    && updatedUnionMoveSelectorConfig instanceof UnionMoveSelectorConfig unionMoveSelectorConfig) {
+                var updatedList = unionMoveSelectorConfig.getMoveSelectorList().stream()
+                        .filter(SelectorConfig::hasNearbySelectionConfig).toList();
+                // We only use the moves with Nearby enabled as proposed by FILO
+                // A Fast and Scalable Heuristic for the Solution of Large-Scale Capacitated Vehicle Routing Problems
+                unionMoveSelectorConfig.setMoveSelectorList(updatedList);
+                localSearchPhaseConfig.setMoveSelectorConfig(unionMoveSelectorConfig);
+            }
         }
-        localSearchPhaseConfig.setMoveSelectorConfig(unionMoveSelectorConfig);
     }
 
     /**
      * The method creates an optimization phase to implement the SWAP* approach as outlined in the HGS article.
      */
     private <Solution_> Phase<Solution_> buildSwapStarPhase(HeuristicConfigPolicy<Solution_> solverConfigPolicy,
-            SolverTermination<Solution_> solverTermination) {
-        if (solverConfigPolicy.getSolutionDescriptor().hasListVariable()
+            SolverTermination<Solution_> solverTermination, boolean enableSwapStar) {
+        if (enableSwapStar && solverConfigPolicy.getSolutionDescriptor().hasListVariable()
                 && solverConfigPolicy.getNearbyDistanceMeterClass() != null) {
             var entityClass = solverConfigPolicy.getSolutionDescriptor().getListVariableDescriptor().getEntityDescriptor()
                     .getEntityClass();
@@ -300,10 +328,89 @@ public class DefaultEvolutionaryAlgorithmPhaseFactory<Solution_>
     private static <Solution_, Score_ extends Score<Score_>> EvolutionaryDecider<Solution_, Score_>
             buildEvolutionaryAlgorithmDecider(HybridSearchConfiguration configuration,
                     EvolutionaryContext<Solution_, Score_> evolutionaryContext,
+                    PhaseTermination<Solution_> phaseTermination,
                     BestSolutionRecaller<Solution_> bestSolutionRecaller) {
         return TimefoldSolverEnterpriseService.loadOrDefault(
                 service -> service.buildEvolutionaryStrategy(configuration, evolutionaryContext, bestSolutionRecaller),
-                () -> new HybridGeneticSearchDecider<>(configuration, evolutionaryContext, bestSolutionRecaller));
+                () -> new HybridGeneticSearchDecider<>(configuration, evolutionaryContext, phaseTermination,
+                        bestSolutionRecaller));
     }
 
+    /**
+     * Utility method that disables updates to the best solution events during the evolutionary inner phases.
+     * 
+     * @param phase the phase to be configured
+     * @return a phase that disables the best solution updates and run the same logic as the inner phase.
+     */
+    private static <Solution_> Phase<Solution_> disableBestSolutionUpdate(Phase<Solution_> phase) {
+        if (phase == null) {
+            return null;
+        }
+        var updatedPhase = new Phase<Solution_>() {
+
+            private Phase<Solution_> innerPhase;
+            private boolean previousState;
+
+            @Override
+            public void addPhaseLifecycleListener(PhaseLifecycleListener<Solution_> phaseLifecycleListener) {
+                innerPhase.addPhaseLifecycleListener(phaseLifecycleListener);
+            }
+
+            @Override
+            public void removePhaseLifecycleListener(PhaseLifecycleListener<Solution_> phaseLifecycleListener) {
+                innerPhase.removePhaseLifecycleListener(phaseLifecycleListener);
+            }
+
+            @Override
+            public void solve(SolverScope<Solution_> solverScope) {
+                innerPhase.solve(solverScope);
+            }
+
+            @Override
+            public IntFunction<EventProducerId> getEventProducerIdSupplier() {
+                return innerPhase.getEventProducerIdSupplier();
+            }
+
+            @Override
+            public void solvingStarted(SolverScope<Solution_> solverScope) {
+                var solver = solverScope.getSolver();
+                if (solver != null && solver.getBestSolutionRecaller() != null) {
+                    previousState = solver.getBestSolutionRecaller().isEnableUpdateEvents();
+                    solver.getBestSolutionRecaller().setEnableUpdateEvents(false);
+                }
+                innerPhase.solvingStarted(solverScope);
+            }
+
+            @Override
+            public void solvingEnded(SolverScope<Solution_> solverScope) {
+                var solver = solverScope.getSolver();
+                if (solver != null && solver.getBestSolutionRecaller() != null) {
+                    solver.getBestSolutionRecaller().setEnableUpdateEvents(previousState);
+                }
+                innerPhase.solvingEnded(solverScope);
+            }
+
+            @Override
+            public void phaseStarted(AbstractPhaseScope<Solution_> phaseScope) {
+                innerPhase.phaseStarted(phaseScope);
+            }
+
+            @Override
+            public void phaseEnded(AbstractPhaseScope<Solution_> phaseScope) {
+                innerPhase.phaseEnded(phaseScope);
+            }
+
+            @Override
+            public void stepStarted(AbstractStepScope<Solution_> stepScope) {
+                innerPhase.stepStarted(stepScope);
+            }
+
+            @Override
+            public void stepEnded(AbstractStepScope<Solution_> stepScope) {
+                innerPhase.stepEnded(stepScope);
+            }
+        };
+        updatedPhase.innerPhase = phase;
+        return updatedPhase;
+    }
 }
