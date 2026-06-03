@@ -13,7 +13,7 @@
   </description>
 
   <properties>
-    <revision>999-SNAPSHOT</revision>
+    <revision>2.5.0</revision>
     <ai.timefold.solver.enterprise>false</ai.timefold.solver.enterprise>
 
     <!-- ************************************************************************ -->
