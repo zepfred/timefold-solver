@@ -2,12 +2,13 @@ package ai.timefold.solver.core.impl.localsearch.decider.acceptor.lateacceptance
 
 import ai.timefold.solver.core.api.score.Score;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.AbstractAcceptor;
+import ai.timefold.solver.core.impl.localsearch.decider.acceptor.AcceptorRestartable;
 import ai.timefold.solver.core.impl.localsearch.scope.LocalSearchMoveScope;
 import ai.timefold.solver.core.impl.localsearch.scope.LocalSearchPhaseScope;
 import ai.timefold.solver.core.impl.localsearch.scope.LocalSearchStepScope;
 import ai.timefold.solver.core.impl.score.director.InnerScore;
 
-public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution_> {
+public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution_> implements AcceptorRestartable<Solution_> {
 
     protected int lateAcceptanceSize = -1;
     protected boolean hillClimbingEnabled = true;
@@ -81,6 +82,13 @@ public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution
         super.phaseEnded(phaseScope);
         scoreBuffer = null;
         bestScoreState = null;
+    }
+
+    @Override
+    public void restart(LocalSearchPhaseScope<Solution_> phaseScope) {
+        scoreBuffer.restart();
+        logger.info("Acceptor restarted with score ({}), current best score ({})",
+                scoreBuffer.previousResetScore != null ? scoreBuffer.previousResetScore.raw() : "-", phaseScope.getBestScore());
     }
 
     protected <Score_ extends Score<Score_>> InnerScore<Score_> getScore(int i) {

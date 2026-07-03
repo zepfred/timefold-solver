@@ -24,6 +24,7 @@ final class LateAcceptanceScoreBuffer {
     private final long[] slotEpoch;
     private long resetEpoch = 0;
     private InnerScore<?> resetScore = null;
+    InnerScore<?> previousResetScore = null;
     private boolean writtenSinceReset = false;
 
     LateAcceptanceScoreBuffer(int size, InnerScore<?> initialScore) {
@@ -61,6 +62,15 @@ final class LateAcceptanceScoreBuffer {
     }
 
     /**
+     * Reset all slots to revert to the best score achieved previously.
+     */
+    void restart() {
+        if (previousResetScore != null) {
+            applyReset(previousResetScore);
+        }
+    }
+
+    /**
      * Lazily resets all slots to {@code newScore}.
      * Updating the score array is unnecessary since the related counter ensures the new score is returned if no changes have
      * occurred.
@@ -70,9 +80,16 @@ final class LateAcceptanceScoreBuffer {
     void tryReset(InnerScore<?> newScore) {
         // Skips the reset action when no slot has been written since the last reset and the score is unchanged
         if (writtenSinceReset || !Objects.equals(newScore, resetScore)) {
-            resetScore = newScore;
-            resetEpoch++;
-            writtenSinceReset = false;
+            applyReset(newScore);
         }
+    }
+
+    private void applyReset(InnerScore<?> newScore) {
+        if (!Objects.equals(newScore, previousResetScore)) {
+            previousResetScore = resetScore;
+        }
+        resetScore = newScore;
+        resetEpoch++;
+        writtenSinceReset = false;
     }
 }

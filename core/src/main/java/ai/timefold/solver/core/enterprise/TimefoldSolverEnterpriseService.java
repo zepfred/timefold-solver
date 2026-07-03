@@ -191,7 +191,8 @@ public interface TimefoldSolverEnterpriseService {
     <Solution_> ConstructionHeuristicDecider<Solution_> buildConstructionHeuristic(PhaseTermination<Solution_> termination,
             ConstructionHeuristicForager<Solution_> forager, HeuristicConfigPolicy<Solution_> configPolicy);
 
-    <Solution_> LocalSearchDecider<Solution_> buildLocalSearch(int moveThreadCount, PhaseTermination<Solution_> termination,
+    <Solution_> LocalSearchDecider<Solution_> buildLocalSearch(int moveThreadCount,
+            PhaseTermination<Solution_> restartTermination, PhaseTermination<Solution_> termination,
             MoveRepository<Solution_> moveRepository, Acceptor<Solution_> acceptor, LocalSearchForager<Solution_> forager,
             EnvironmentMode environmentMode, HeuristicConfigPolicy<Solution_> configPolicy);
 

@@ -76,7 +76,7 @@ class NeighborhoodsTest {
                 .buildAcceptor(heuristicConfigPolicy);
         var forager = LocalSearchForagerFactory
                 .<TestdataSolution> create(new LocalSearchForagerConfig().withAcceptedCountLimit(1)).buildForager();
-        var localSearchDecider = new LocalSearchDecider<>("", termination, moveRepository, acceptor, forager);
+        var localSearchDecider = new LocalSearchDecider<>("", termination, null, moveRepository, acceptor, forager);
         var localSearchPhase = new DefaultLocalSearchPhase.Builder<>(0, "", termination, localSearchDecider).build();
 
         // Generates a solution whose entities' values are all set to the second value.
