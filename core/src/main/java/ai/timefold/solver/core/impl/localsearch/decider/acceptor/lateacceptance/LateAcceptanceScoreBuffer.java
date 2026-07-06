@@ -6,6 +6,9 @@ import java.util.Objects;
 import ai.timefold.solver.core.api.score.Score;
 import ai.timefold.solver.core.impl.score.director.InnerScore;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 /**
  * Circular buffer implementation for managing late scores,
  * enabling simpler reset logic.
@@ -16,6 +19,7 @@ import ai.timefold.solver.core.impl.score.director.InnerScore;
  */
 final class LateAcceptanceScoreBuffer {
 
+    protected final transient Logger logger = LoggerFactory.getLogger(getClass());
     // Late score fields
     private final InnerScore<?>[] scores;
     private int currentIndex = 0;
@@ -91,5 +95,8 @@ final class LateAcceptanceScoreBuffer {
         resetScore = newScore;
         resetEpoch++;
         writtenSinceReset = false;
+        logger.info("Acceptor reset with score ({}), previousResetScore ({})", resetScore,
+                previousResetScore != null ? previousResetScore.raw() : "-");
+
     }
 }

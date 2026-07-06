@@ -25,10 +25,11 @@ import org.jspecify.annotations.Nullable;
         "fadingMoveTabuSize",
         "simulatedAnnealingStartingTemperature",
         "lateAcceptanceSize",
+        "enableLateAcceptanceReset",
         "greatDelugeWaterLevelIncrementScore",
         "greatDelugeWaterLevelIncrementRatio",
         "stepCountingHillClimbingSize",
-        "stepCountingHillClimbingType"
+        "stepCountingHillClimbingType",
 })
 public final class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchAcceptorConfig> {
 
@@ -47,6 +48,7 @@ public final class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchA
     private String simulatedAnnealingStartingTemperature = null;
 
     private Integer lateAcceptanceSize = null;
+    private Boolean enableLateAcceptanceReset = null;
 
     private String greatDelugeWaterLevelIncrementScore = null;
     private Double greatDelugeWaterLevelIncrementRatio = null;
@@ -142,6 +144,14 @@ public final class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchA
         this.lateAcceptanceSize = lateAcceptanceSize;
     }
 
+    public Boolean getEnableLateAcceptanceReset() {
+        return enableLateAcceptanceReset;
+    }
+
+    public void setEnableLateAcceptanceReset(Boolean enableLateAcceptanceReset) {
+        this.enableLateAcceptanceReset = enableLateAcceptanceReset;
+    }
+
     public @Nullable String getGreatDelugeWaterLevelIncrementScore() {
         return greatDelugeWaterLevelIncrementScore;
     }
@@ -234,6 +244,11 @@ public final class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchA
         return this;
     }
 
+    public @NonNull LocalSearchAcceptorConfig withEnableLateAcceptanceReset(@NonNull Boolean enableLateAcceptanceReset) {
+        this.enableLateAcceptanceReset = enableLateAcceptanceReset;
+        return this;
+    }
+
     public @NonNull LocalSearchAcceptorConfig withStepCountingHillClimbingSize(@NonNull Integer stepCountingHillClimbingSize) {
         this.stepCountingHillClimbingSize = stepCountingHillClimbingSize;
         return this;
@@ -275,6 +290,8 @@ public final class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchA
                 simulatedAnnealingStartingTemperature, inheritedConfig.getSimulatedAnnealingStartingTemperature());
         lateAcceptanceSize = ConfigUtils.inheritOverwritableProperty(lateAcceptanceSize,
                 inheritedConfig.getLateAcceptanceSize());
+        enableLateAcceptanceReset = ConfigUtils.inheritOverwritableProperty(enableLateAcceptanceReset,
+                inheritedConfig.getEnableLateAcceptanceReset());
         greatDelugeWaterLevelIncrementScore = ConfigUtils.inheritOverwritableProperty(greatDelugeWaterLevelIncrementScore,
                 inheritedConfig.getGreatDelugeWaterLevelIncrementScore());
         greatDelugeWaterLevelIncrementRatio = ConfigUtils.inheritOverwritableProperty(greatDelugeWaterLevelIncrementRatio,

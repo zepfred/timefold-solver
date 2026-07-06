@@ -1337,6 +1337,8 @@
                     
           <xs:element minOccurs="0" name="lateAcceptanceSize" type="xs:int"/>
                     
+          <xs:element minOccurs="0" name="enableLateAcceptanceReset" type="xs:boolean"/>
+                    
           <xs:element minOccurs="0" name="greatDelugeWaterLevelIncrementScore" type="xs:string"/>
                     
           <xs:element minOccurs="0" name="greatDelugeWaterLevelIncrementRatio" type="xs:double"/>

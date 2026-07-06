@@ -10,11 +10,20 @@ import ai.timefold.solver.core.impl.score.director.InnerScore;
 
 public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution_> implements AcceptorRestartable<Solution_> {
 
+    private final boolean enableLateAcceptanceReset;
     protected int lateAcceptanceSize = -1;
     protected boolean hillClimbingEnabled = true;
 
     private LateAcceptanceScoreBuffer scoreBuffer;
     private LevelScoreState<Solution_> bestScoreState;
+
+    public LateAcceptanceAcceptor() {
+        this(true);
+    }
+
+    public LateAcceptanceAcceptor(boolean enableLateAcceptanceReset) {
+        this.enableLateAcceptanceReset = enableLateAcceptanceReset;
+    }
 
     public void setLateAcceptanceSize(int lateAcceptanceSize) {
         this.lateAcceptanceSize = lateAcceptanceSize;
@@ -35,7 +44,8 @@ public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution
         var initialScore = phaseScope.getBestScore();
         scoreBuffer = new LateAcceptanceScoreBuffer(lateAcceptanceSize, initialScore);
         var scoreDefinition = phaseScope.getSolverScope().getScoreDefinition();
-        bestScoreState = scoreDefinition.getLevelsSize() > 1 ? new DefaultLevelScoreState<>(initialScore, scoreDefinition)
+        bestScoreState = enableLateAcceptanceReset && scoreDefinition.getLevelsSize() > 1
+                ? new DefaultLevelScoreState<>(initialScore, scoreDefinition)
                 : new NoOpLevelScoreState<>();
     }
 

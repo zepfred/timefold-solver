@@ -201,7 +201,8 @@ public class AcceptorFactory<Solution_> {
         if (acceptorTypeListsContainsAcceptorType(AcceptorType.LATE_ACCEPTANCE)
                 || (!acceptorTypeListsContainsAcceptorType(AcceptorType.DIVERSIFIED_LATE_ACCEPTANCE)
                         && acceptorConfig.getLateAcceptanceSize() != null)) {
-            var acceptor = new LateAcceptanceAcceptor<Solution_>();
+            var enableReset = Objects.requireNonNullElse(acceptorConfig.getEnableLateAcceptanceReset(), true);
+            var acceptor = new LateAcceptanceAcceptor<Solution_>(enableReset);
             acceptor.setLateAcceptanceSize(Objects.requireNonNullElse(acceptorConfig.getLateAcceptanceSize(), 400));
             return Optional.of(acceptor);
         }
