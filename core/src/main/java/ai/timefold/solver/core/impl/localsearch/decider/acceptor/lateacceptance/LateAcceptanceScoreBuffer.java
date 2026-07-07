@@ -57,7 +57,7 @@ final class LateAcceptanceScoreBuffer {
         scores[currentIndex] = score;
         slotEpoch[currentIndex] = resetEpoch;
         writtenSinceReset = true;
-        currentIndex = (currentIndex + 1) % size;
+        increment();
     }
 
     /**
@@ -74,5 +74,9 @@ final class LateAcceptanceScoreBuffer {
             resetEpoch++;
             writtenSinceReset = false;
         }
+    }
+
+    void increment() {
+        currentIndex = (currentIndex + 1) % size;
     }
 }
