@@ -12,6 +12,7 @@ public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution
     protected int lateAcceptanceSize = -1;
     protected boolean hillClimbingEnabled = true;
 
+    private boolean updateLateScore = false;
     private LateAcceptanceScoreBuffer scoreBuffer;
     private LevelScoreState<Solution_> bestScoreState;
 
@@ -50,15 +51,22 @@ public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution
     public boolean isAccepted(LocalSearchMoveScope<Solution_> moveScope) {
         var moveScore = (InnerScore) moveScope.getScore();
         var lateScore = scoreBuffer.getCurrent();
-        if (moveScore.compareTo(lateScore) >= 0) {
+        // Accepts if it is better than the late score
+        if (moveScore.compareTo(lateScore) > 0) {
+            updateLateScore = true;
             return true;
         }
+        var accepted = false;
         if (hillClimbingEnabled) {
             var lastStepScore = moveScope.getStepScope().getPhaseScope()
                     .getLastCompletedStepScope().getScore();
-            return moveScore.compareTo(lastStepScore) >= 0;
+            accepted = moveScore.compareTo(lastStepScore) >= 0;
         }
-        return false;
+        // If the move is not accepted, we increase the current late index
+        if (!accepted) {
+            scoreBuffer.increment();
+        }
+        return accepted;
     }
 
     @Override
@@ -70,7 +78,11 @@ public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution
     @Override
     public void stepEnded(LocalSearchStepScope<Solution_> stepScope) {
         super.stepEnded(stepScope);
-        scoreBuffer.update(stepScope.getScore());
+        // Only replace the late element if the move is better
+        if (updateLateScore) {
+            scoreBuffer.update(stepScope.getScore());
+            updateLateScore = false;
+        }
         if (bestScoreState.isNonDominatedLevelChanged(stepScope)) {
             scoreBuffer.tryReset(stepScope.getPhaseScope().getBestScore());
         }
