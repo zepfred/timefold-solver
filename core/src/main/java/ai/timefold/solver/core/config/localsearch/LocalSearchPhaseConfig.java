@@ -27,6 +27,7 @@ import ai.timefold.solver.core.config.localsearch.decider.acceptor.LocalSearchAc
 import ai.timefold.solver.core.config.localsearch.decider.forager.LocalSearchForagerConfig;
 import ai.timefold.solver.core.config.phase.PhaseConfig;
 import ai.timefold.solver.core.config.solver.PreviewFeature;
+import ai.timefold.solver.core.config.solver.termination.TerminationConfig;
 import ai.timefold.solver.core.config.util.ConfigUtils;
 import ai.timefold.solver.core.preview.api.neighborhood.NeighborhoodProvider;
 
@@ -34,6 +35,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 @XmlType(propOrder = {
+        "restartTermination",
         "localSearchType",
         "moveSelectorConfig",
         "neighborhoodProviderClass",
@@ -46,6 +48,8 @@ public final class LocalSearchPhaseConfig extends PhaseConfig<LocalSearchPhaseCo
 
     // Warning: all fields are null (and not defaulted) because they can be inherited
     // and also because the input config file should match the output config file
+    @XmlElement(name = "restartTermination")
+    private TerminationConfig restartTermination = null;
 
     private LocalSearchType localSearchType = null;
 
@@ -83,6 +87,14 @@ public final class LocalSearchPhaseConfig extends PhaseConfig<LocalSearchPhaseCo
     // ************************************************************************
     // Constructors and simple getters/setters
     // ************************************************************************
+
+    public TerminationConfig getRestartTermination() {
+        return restartTermination;
+    }
+
+    public void setRestartTermination(TerminationConfig restartTermination) {
+        this.restartTermination = restartTermination;
+    }
 
     public @Nullable LocalSearchType getLocalSearchType() {
         return localSearchType;
@@ -141,6 +153,11 @@ public final class LocalSearchPhaseConfig extends PhaseConfig<LocalSearchPhaseCo
     // With methods
     // ************************************************************************
 
+    public @NonNull LocalSearchPhaseConfig withRestartTermination(@NonNull TerminationConfig restartTerminationConfig) {
+        this.restartTermination = restartTerminationConfig;
+        return this;
+    }
+
     public @NonNull LocalSearchPhaseConfig withLocalSearchType(@NonNull LocalSearchType localSearchType) {
         this.localSearchType = localSearchType;
         return this;
@@ -173,6 +190,8 @@ public final class LocalSearchPhaseConfig extends PhaseConfig<LocalSearchPhaseCo
     @Override
     public @NonNull LocalSearchPhaseConfig inherit(@NonNull LocalSearchPhaseConfig inheritedConfig) {
         super.inherit(inheritedConfig);
+        restartTermination =
+                ConfigUtils.inheritConfig(restartTermination, inheritedConfig.getRestartTermination());
         localSearchType = ConfigUtils.inheritOverwritableProperty(localSearchType,
                 inheritedConfig.getLocalSearchType());
         setMoveSelectorConfig(ConfigUtils.inheritOverwritableProperty(
@@ -193,6 +212,9 @@ public final class LocalSearchPhaseConfig extends PhaseConfig<LocalSearchPhaseCo
     public void visitReferencedClasses(@NonNull Consumer<Class<?>> classVisitor) {
         if (terminationConfig != null) {
             terminationConfig.visitReferencedClasses(classVisitor);
+        }
+        if (restartTermination != null) {
+            restartTermination.visitReferencedClasses(classVisitor);
         }
         if (moveSelectorConfig != null) {
             moveSelectorConfig.visitReferencedClasses(classVisitor);

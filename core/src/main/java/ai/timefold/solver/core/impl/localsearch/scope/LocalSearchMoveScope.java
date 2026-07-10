@@ -10,6 +10,7 @@ import ai.timefold.solver.core.preview.api.move.Move;
 public final class LocalSearchMoveScope<Solution_> extends AbstractMoveScope<Solution_> {
 
     private Boolean accepted = null;
+    private boolean requireRestart = false;
 
     public LocalSearchMoveScope(LocalSearchStepScope<Solution_> stepScope, int moveIndex, Move<Solution_> move) {
         super(stepScope, moveIndex, move);
@@ -28,4 +29,11 @@ public final class LocalSearchMoveScope<Solution_> extends AbstractMoveScope<Sol
         this.accepted = accepted;
     }
 
+    public boolean isRequireRestart() {
+        return requireRestart;
+    }
+
+    public void setRequireRestart(boolean requireRestart) {
+        this.requireRestart = requireRestart;
+    }
 }

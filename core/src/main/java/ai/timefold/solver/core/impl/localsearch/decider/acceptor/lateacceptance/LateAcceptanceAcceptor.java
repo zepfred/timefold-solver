@@ -83,6 +83,18 @@ public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution
         bestScoreState = null;
     }
 
+    @Override
+    public boolean isRestartSupported() {
+        return true;
+    }
+
+    @Override
+    public void restart(LocalSearchPhaseScope<Solution_> phaseScope) {
+        scoreBuffer.restart();
+        logger.info("Acceptor restarted with score ({}), best score ({})",
+                scoreBuffer.previousResetScore != null ? scoreBuffer.previousResetScore.raw() : "-", phaseScope.getBestScore());
+    }
+
     protected <Score_ extends Score<Score_>> InnerScore<Score_> getScore(int i) {
         return scoreBuffer.get(i);
     }

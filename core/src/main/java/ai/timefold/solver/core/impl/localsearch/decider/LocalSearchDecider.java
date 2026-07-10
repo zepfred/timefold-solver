@@ -4,6 +4,7 @@ import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
 import ai.timefold.solver.core.api.score.Score;
 import ai.timefold.solver.core.config.solver.EnvironmentMode;
 import ai.timefold.solver.core.impl.heuristic.move.MoveAdapters;
+import ai.timefold.solver.core.impl.heuristic.move.SelectorBasedNoChangeMove;
 import ai.timefold.solver.core.impl.localsearch.decider.acceptor.Acceptor;
 import ai.timefold.solver.core.impl.localsearch.decider.forager.LocalSearchForager;
 import ai.timefold.solver.core.impl.localsearch.scope.LocalSearchMoveScope;
@@ -27,20 +28,26 @@ public class LocalSearchDecider<Solution_> {
 
     protected final String logIndentation;
     protected final PhaseTermination<Solution_> termination;
+    protected final PhaseTermination<Solution_> restartTermination;
     protected final MoveRepository<Solution_> moveRepository;
     protected final Acceptor<Solution_> acceptor;
     protected final LocalSearchForager<Solution_> forager;
+    private final boolean isRestartSupported;
 
     protected boolean assertMoveScoreFromScratch = false;
     protected boolean assertExpectedUndoMoveScore = false;
 
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     public LocalSearchDecider(String logIndentation, PhaseTermination<Solution_> termination,
-            MoveRepository<Solution_> moveRepository, Acceptor<Solution_> acceptor, LocalSearchForager<Solution_> forager) {
+            PhaseTermination<Solution_> restartTermination, MoveRepository<Solution_> moveRepository,
+            Acceptor<Solution_> acceptor, LocalSearchForager<Solution_> forager) {
         this.logIndentation = logIndentation;
         this.termination = termination;
+        this.restartTermination = restartTermination;
         this.moveRepository = moveRepository;
         this.acceptor = acceptor;
         this.forager = forager;
+        this.isRestartSupported = restartTermination != null && acceptor.isRestartSupported();
     }
 
     public Termination<Solution_> getTermination() {
@@ -78,12 +85,18 @@ public class LocalSearchDecider<Solution_> {
         moveRepository.phaseStarted(phaseScope);
         acceptor.phaseStarted(phaseScope);
         forager.phaseStarted(phaseScope);
+        if (isRestartSupported) {
+            restartTermination.phaseStarted(phaseScope);
+        }
     }
 
     public void stepStarted(LocalSearchStepScope<Solution_> stepScope) {
         moveRepository.stepStarted(stepScope);
         acceptor.stepStarted(stepScope);
         forager.stepStarted(stepScope);
+        if (isRestartSupported) {
+            restartTermination.stepStarted(stepScope);
+        }
     }
 
     public void decideNextStep(LocalSearchStepScope<Solution_> stepScope) {
@@ -116,7 +129,12 @@ public class LocalSearchDecider<Solution_> {
         }
         var score = scoreDirector.executeTemporaryMove(moveScope.getMove(), assertMoveScoreFromScratch);
         moveScope.setScore(score);
-        moveScope.setAccepted(acceptor.isAccepted(moveScope));
+        var accepted = acceptor.isAccepted(moveScope);
+        if (!accepted && requiresRestart(moveScope)) {
+            moveScope.setRequireRestart(true);
+            accepted = true;
+        }
+        moveScope.setAccepted(accepted);
         forager.addMove(moveScope);
         if (assertExpectedUndoMoveScore) {
             scoreDirector.assertExpectedUndoMoveScore(moveScope.getMove(),
@@ -128,15 +146,24 @@ public class LocalSearchDecider<Solution_> {
                 moveScope.getMove());
     }
 
+    private boolean requiresRestart(LocalSearchMoveScope<Solution_> moveScope) {
+        return isRestartSupported && restartTermination.isPhaseTerminated(moveScope.getStepScope().getPhaseScope());
+    }
+
     protected void pickMove(LocalSearchStepScope<Solution_> stepScope) {
         var pickedMoveScope = forager.pickMove(stepScope);
         if (pickedMoveScope != null) {
             var step = pickedMoveScope.getMove();
+            var score = pickedMoveScope.getScore();
+            if (pickedMoveScope.isRequireRestart()) {
+                step = SelectorBasedNoChangeMove.getInstance();
+                score = stepScope.getScoreDirector().calculateScore();
+            }
             stepScope.setStep(step);
             if (logger.isDebugEnabled()) {
                 stepScope.setStepString(step.toString());
             }
-            stepScope.setScore(pickedMoveScope.getScore());
+            stepScope.setScore(score);
         }
     }
 
@@ -144,12 +171,24 @@ public class LocalSearchDecider<Solution_> {
         moveRepository.stepEnded(stepScope);
         acceptor.stepEnded(stepScope);
         forager.stepEnded(stepScope);
+        var phaseScope = stepScope.getPhaseScope();
+        if (isRestartSupported) {
+            if (restartTermination.isPhaseTerminated(phaseScope)) {
+                acceptor.restart(phaseScope);
+                restartTermination.phaseStarted(phaseScope);
+            } else {
+                restartTermination.stepEnded(stepScope);
+            }
+        }
     }
 
     public void phaseEnded(LocalSearchPhaseScope<Solution_> phaseScope) {
         moveRepository.phaseEnded(phaseScope);
         acceptor.phaseEnded(phaseScope);
         forager.phaseEnded(phaseScope);
+        if (isRestartSupported) {
+            restartTermination.phaseEnded(phaseScope);
+        }
     }
 
     public void solvingEnded(SolverScope<Solution_> solverScope) {

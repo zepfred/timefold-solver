@@ -1253,6 +1253,8 @@
                 
         <xs:sequence>
                     
+          <xs:element minOccurs="0" name="restartTermination" type="tns:terminationConfig"/>
+                    
           <xs:element minOccurs="0" name="localSearchType" type="tns:localSearchType"/>
                     
           <xs:choice minOccurs="0">

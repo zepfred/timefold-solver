@@ -34,15 +34,21 @@ public abstract class AbstractPhaseFactory<Solution_, PhaseConfig_ extends Phase
         this.phaseConfig = phaseConfig;
     }
 
+    protected PhaseTermination<Solution_>
+            buildPhaseTermination(HeuristicConfigPolicy<Solution_> configPolicy,
+                    SolverTermination<Solution_> solverTermination) {
+        return buildPhaseTermination(configPolicy, phaseConfig, phaseConfig.getTerminationConfig(), solverTermination);
+    }
+
     protected PhaseTermination<Solution_> buildPhaseTermination(HeuristicConfigPolicy<Solution_> configPolicy,
-            SolverTermination<Solution_> solverTermination) {
-        var terminationConfig_ = Objects.requireNonNullElseGet(phaseConfig.getTerminationConfig(), TerminationConfig::new);
+            PhaseConfig_ phaseConfig, TerminationConfig terminationConfig, SolverTermination<Solution_> solverTermination) {
+        var terminationConfig_ = Objects.requireNonNullElseGet(terminationConfig, TerminationConfig::new);
         var phaseTermination = PhaseTermination.bridge(solverTermination);
         var resultingTermination = TerminationFactory.<Solution_> create(terminationConfig_)
                 .buildTermination(configPolicy, phaseTermination);
         var inapplicableTerminationList =
                 resultingTermination instanceof UniversalTermination<Solution_> universalTermination
-                        ? universalTermination.getPhaseTerminationsInapplicableTo(getPhaseScopeClass())
+                        ? universalTermination.getPhaseTerminationsInapplicableTo(getPhaseScopeClass(phaseConfig))
                         : Collections.emptyList();
         var phaseName = this.getClass().getSimpleName()
                 .replace("PhaseFactory", "")
@@ -70,7 +76,8 @@ public abstract class AbstractPhaseFactory<Solution_, PhaseConfig_ extends Phase
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
-    private Class<? extends AbstractPhaseScope> getPhaseScopeClass() {
+    private static <PhaseConfig_ extends PhaseConfig<PhaseConfig_>> Class<? extends AbstractPhaseScope>
+            getPhaseScopeClass(PhaseConfig_ phaseConfig) {
         if (phaseConfig instanceof ConstructionHeuristicPhaseConfig) {
             return ConstructionHeuristicPhaseScope.class;
         } else if (phaseConfig instanceof CustomPhaseConfig) {
