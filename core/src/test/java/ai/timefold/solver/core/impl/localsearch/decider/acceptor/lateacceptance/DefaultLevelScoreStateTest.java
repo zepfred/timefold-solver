@@ -32,39 +32,39 @@ class DefaultLevelScoreStateTest {
     @Test
     void firstStepAlwaysChecksLevel() {
         var initialScore = InnerScore.fullyAssigned(HardSoftScore.of(-1, -1000));
-        var state = new DefaultLevelScoreState<>(initialScore, new HardSoftScoreDefinition());
+        var state = new DefaultLevelScoreState<>(initialScore, new HardSoftScoreDefinition(), 0.0);
         var hardImprovedScore = InnerScore.fullyAssigned(HardSoftScore.of(0, -200));
         // Simulates the transition from the pre-step state (index -1) to the first real step (index 0).
         var firstStep = buildStepScope(initialScore, -1, -1);
         state.update(firstStep);
         var secondStep = buildStepScope(hardImprovedScore, 0, 0);
-        assertThat(state.isNonDominatedLevelChanged(secondStep)).isTrue();
+        assertThat(state.isScoreImproved(secondStep)).isTrue();
     }
 
     @Test
     void hardImprovementTriggersReset() {
         var initialScore = InnerScore.fullyAssigned(HardSoftScore.of(-1, -1000));
-        var state = new DefaultLevelScoreState<>(initialScore, new HardSoftScoreDefinition());
+        var state = new DefaultLevelScoreState<>(initialScore, new HardSoftScoreDefinition(), 0.0);
         var hardImprovedScore = InnerScore.fullyAssigned(HardSoftScore.of(0, -200));
         var stepScope = buildStepScope(hardImprovedScore, 0, 1);
         state.update(stepScope);
-        assertThat(state.isNonDominatedLevelChanged(stepScope)).isTrue();
+        assertThat(state.isScoreImproved(stepScope)).isTrue();
     }
 
     @Test
     void softOnlyImprovementDoesNotTriggerReset() {
         var initialScore = InnerScore.fullyAssigned(HardSoftScore.of(-1, -1000));
-        var state = new DefaultLevelScoreState<>(initialScore, new HardSoftScoreDefinition());
+        var state = new DefaultLevelScoreState<>(initialScore, new HardSoftScoreDefinition(), 0.0);
         var softImprovedScore = InnerScore.fullyAssigned(HardSoftScore.of(-1, -200));
         var stepScope = buildStepScope(softImprovedScore, 0, 1);
         state.update(stepScope);
-        assertThat(state.isNonDominatedLevelChanged(stepScope)).isFalse();
+        assertThat(state.isScoreImproved(stepScope)).isFalse();
     }
 
     @Test
     void skipsCheckWhenStepIndexUnchanged() {
         var initialScore = InnerScore.fullyAssigned(HardSoftScore.of(-1, -1000));
-        var state = new DefaultLevelScoreState<>(initialScore, new HardSoftScoreDefinition());
+        var state = new DefaultLevelScoreState<>(initialScore, new HardSoftScoreDefinition(), 0.0);
         var hardImprovedScore = InnerScore.fullyAssigned(HardSoftScore.of(0, -200));
         var stepScope0 = buildStepScope(hardImprovedScore, 1, 1);
         state.update(stepScope0);
@@ -72,7 +72,7 @@ class DefaultLevelScoreStateTest {
         var softImprovedScore = InnerScore.fullyAssigned(HardSoftScore.of(0, -100));
         var stepScope1 = buildStepScope(softImprovedScore, 1, 1);
         state.update(stepScope1);
-        assertThat(state.isNonDominatedLevelChanged(stepScope1)).isFalse();
+        assertThat(state.isScoreImproved(stepScope1)).isFalse();
     }
 
     @Test
@@ -80,12 +80,12 @@ class DefaultLevelScoreStateTest {
         // Step 0: hard improves. Step 1: only soft improves from the new hard baseline.
         // update() for step 1 must refresh the cache so the soft-only change does not trigger a reset.
         var initialScore = InnerScore.fullyAssigned(HardSoftScore.of(-1, -1000));
-        var state = new DefaultLevelScoreState<>(initialScore, new HardSoftScoreDefinition());
+        var state = new DefaultLevelScoreState<>(initialScore, new HardSoftScoreDefinition(), 0.0);
 
         var hardImprovedScore = InnerScore.fullyAssigned(HardSoftScore.of(0, -200));
         var stepScope0 = buildStepScope(hardImprovedScore, 1, 1);
         state.update(stepScope0); // previousBestScoreIndex changes to 1 and levels move to [0, 200]
-        assertThat(state.isNonDominatedLevelChanged(stepScope0)).isFalse();
+        assertThat(state.isScoreImproved(stepScope0)).isFalse();
 
         // Step 1 scope: start index 1 (best from step 0), end index 2 (new best after step 1)
         var softImprovedScore = InnerScore.fullyAssigned(HardSoftScore.of(0, -100));
@@ -95,46 +95,46 @@ class DefaultLevelScoreStateTest {
         when(phaseScope1.getBestSolutionStepIndex()).thenReturn(1, 2);
         when(phaseScope1.getBestScore()).thenReturn(hardImprovedScore, softImprovedScore);
         state.update(stepScope1);
-        assertThat(state.isNonDominatedLevelChanged(stepScope1)).isFalse(); // [0,-100] vs [0,-200]: hard unchanged
+        assertThat(state.isScoreImproved(stepScope1)).isFalse(); // [0,-100] vs [0,-200]: hard unchanged
     }
 
     @Test
     void mediumImprovementTriggersResetForHardMediumSoftScore() {
         var initialScore = InnerScore.fullyAssigned(HardMediumSoftScore.of(-1, -100, -1000));
-        var state = new DefaultLevelScoreState<>(initialScore, new HardMediumSoftScoreDefinition());
+        var state = new DefaultLevelScoreState<>(initialScore, new HardMediumSoftScoreDefinition(), 0.0);
         var mediumImprovedScore = InnerScore.fullyAssigned(HardMediumSoftScore.of(-1, 0, -1000));
         var stepScope = buildStepScope(mediumImprovedScore, 0, 1);
         state.update(stepScope);
-        assertThat(state.isNonDominatedLevelChanged(stepScope)).isTrue();
+        assertThat(state.isScoreImproved(stepScope)).isTrue();
     }
 
     @Test
     void softOnlyImprovementDoesNotTriggerResetForHardMediumSoftScore() {
         var initialScore = InnerScore.fullyAssigned(HardMediumSoftScore.of(-1, -100, -1000));
-        var state = new DefaultLevelScoreState<>(initialScore, new HardMediumSoftScoreDefinition());
+        var state = new DefaultLevelScoreState<>(initialScore, new HardMediumSoftScoreDefinition(), 0.0);
         var softImprovedScore = InnerScore.fullyAssigned(HardMediumSoftScore.of(-1, -100, -500));
         var stepScope = buildStepScope(softImprovedScore, 0, 1);
         state.update(stepScope);
-        assertThat(state.isNonDominatedLevelChanged(stepScope)).isFalse();
+        assertThat(state.isScoreImproved(stepScope)).isFalse();
     }
 
     @Test
     void hardImprovementTriggersResetForBendableScore() {
         var initialScore = InnerScore.fullyAssigned(BendableScore.of(new long[] { -1 }, new long[] { 0, 0 }));
-        var state = new DefaultLevelScoreState<>(initialScore, new BendableScoreDefinition(1, 2));
+        var state = new DefaultLevelScoreState<>(initialScore, new BendableScoreDefinition(1, 2), 0.0);
         var hardImprovedScore = InnerScore.fullyAssigned(BendableScore.of(new long[] { 0 }, new long[] { -10, -10 }));
         var stepScope = buildStepScope(hardImprovedScore, 0, 1);
         state.update(stepScope);
-        assertThat(state.isNonDominatedLevelChanged(stepScope)).isTrue();
+        assertThat(state.isScoreImproved(stepScope)).isTrue();
     }
 
     @Test
     void softImprovementDoesNotTriggerResetForBendableScore() {
         var initialScore = InnerScore.fullyAssigned(BendableScore.of(new long[] { -1 }, new long[] { 0, 0 }));
-        var state = new DefaultLevelScoreState<>(initialScore, new BendableScoreDefinition(1, 2));
+        var state = new DefaultLevelScoreState<>(initialScore, new BendableScoreDefinition(1, 2), 0.0);
         var softImprovedScore = InnerScore.fullyAssigned(BendableScore.of(new long[] { -1 }, new long[] { 1, 1 }));
         var stepScope = buildStepScope(softImprovedScore, 0, 1);
         state.update(stepScope);
-        assertThat(state.isNonDominatedLevelChanged(stepScope)).isFalse();
+        assertThat(state.isScoreImproved(stepScope)).isFalse();
     }
 }

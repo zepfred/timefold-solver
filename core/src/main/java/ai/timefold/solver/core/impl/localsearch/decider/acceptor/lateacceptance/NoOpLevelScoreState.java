@@ -10,7 +10,7 @@ record NoOpLevelScoreState<Solution_>() implements LevelScoreState<Solution_> {
     }
 
     @Override
-    public boolean isNonDominatedLevelChanged(LocalSearchStepScope<Solution_> stepScope) {
+    public boolean isScoreImproved(LocalSearchStepScope<Solution_> stepScope) {
         return false;
     }
 }

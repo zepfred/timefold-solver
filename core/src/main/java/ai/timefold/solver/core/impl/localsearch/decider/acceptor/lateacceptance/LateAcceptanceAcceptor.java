@@ -12,6 +12,13 @@ public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution
     protected int lateAcceptanceSize = -1;
     protected boolean hillClimbingEnabled = true;
 
+    // Rate for accepting a reset score when the buffer resets
+    // 0.0 indicates that we never accept the reset score if the buffer is reset
+    private double resetAcceptanceRate = 0;
+    // Relative soft-level improvement (0 to 1) that allows to reset the buffer based on soft scores
+    // 0 disables this soft-level check entirely
+    private double softScoreImprovementRate = 0;
+
     private LateAcceptanceScoreBuffer scoreBuffer;
     private LevelScoreState<Solution_> bestScoreState;
 
@@ -23,6 +30,22 @@ public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution
         this.hillClimbingEnabled = hillClimbingEnabled;
     }
 
+    public double getSoftScoreImprovementRate() {
+        return softScoreImprovementRate;
+    }
+
+    public void setSoftScoreImprovementRate(double softScoreImprovementRate) {
+        this.softScoreImprovementRate = softScoreImprovementRate;
+    }
+
+    public double getResetAcceptanceRate() {
+        return resetAcceptanceRate;
+    }
+
+    public void setResetAcceptanceRate(double resetAcceptanceRate) {
+        this.resetAcceptanceRate = resetAcceptanceRate;
+    }
+
     // ************************************************************************
     // Worker methods
     // ************************************************************************
@@ -32,9 +55,11 @@ public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution
         super.phaseStarted(phaseScope);
         validate();
         var initialScore = phaseScope.getBestScore();
-        scoreBuffer = new LateAcceptanceScoreBuffer(lateAcceptanceSize, initialScore);
+        scoreBuffer = new LateAcceptanceScoreBuffer(lateAcceptanceSize, initialScore, resetAcceptanceRate,
+                phaseScope.getWorkingRandom().acceptorUsage());
         var scoreDefinition = phaseScope.getSolverScope().getScoreDefinition();
-        bestScoreState = scoreDefinition.getLevelsSize() > 1 ? new DefaultLevelScoreState<>(initialScore, scoreDefinition)
+        bestScoreState = softScoreImprovementRate > 0
+                ? new DefaultLevelScoreState<>(initialScore, scoreDefinition, softScoreImprovementRate)
                 : new NoOpLevelScoreState<>();
     }
 
@@ -71,7 +96,7 @@ public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution
     public void stepEnded(LocalSearchStepScope<Solution_> stepScope) {
         super.stepEnded(stepScope);
         scoreBuffer.update(stepScope.getScore());
-        if (bestScoreState.isNonDominatedLevelChanged(stepScope)) {
+        if (bestScoreState.isScoreImproved(stepScope)) {
             scoreBuffer.tryReset(stepScope.getPhaseScope().getBestScore());
         }
     }
