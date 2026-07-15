@@ -87,7 +87,7 @@ final class DefaultLevelScoreState<Solution_, Score_ extends Score<Score_>> impl
                 for (var i = nonSoftLevelCount; i < previousBestScoreLevels.length; i++) {
                     var bestScoreLevel = previousBestScoreLevels[i].doubleValue();
                     var diff = newBestScoreLevels[i].doubleValue() - bestScoreLevel;
-                    if (diff / bestScoreLevel >= softScoreImprovementRate) {
+                    if (diff / Math.abs(bestScoreLevel) >= softScoreImprovementRate) {
                         return true;
                     }
                 }

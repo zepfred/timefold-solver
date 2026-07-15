@@ -57,9 +57,14 @@ final class LateAcceptanceScoreBuffer {
         if (resetAcceptanceRate == 0.0) {
             return (InnerScore<Score_>) scores[index];
         }
-        if (slotEpoch[index] < resetEpoch
-                && (resetAcceptanceRate == 1.0 || workingRandom.nextDouble(1.0) <= resetAcceptanceRate)) {
-            return (InnerScore<Score_>) resetScore;
+        if (slotEpoch[index] < resetEpoch) {
+            if (resetAcceptanceRate == 1.0) {
+                return (InnerScore<Score_>) resetScore;
+            }
+            slotEpoch[index] = resetEpoch;
+            if (workingRandom.nextDouble(1.0) <= resetAcceptanceRate) {
+                scores[index] = resetScore;
+            }
         }
         return (InnerScore<Score_>) scores[index];
     }
