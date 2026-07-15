@@ -97,7 +97,7 @@ public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution
         super.stepEnded(stepScope);
         scoreBuffer.update(stepScope.getScore());
         if (bestScoreState.isScoreImproved(stepScope)) {
-            scoreBuffer.tryReset(stepScope.getPhaseScope().getBestScore());
+            scoreBuffer.tryReset(scoreBuffer.getBestLateScore());
         }
     }
 

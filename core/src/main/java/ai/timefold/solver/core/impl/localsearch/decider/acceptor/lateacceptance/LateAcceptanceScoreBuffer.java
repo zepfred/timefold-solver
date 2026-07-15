@@ -33,6 +33,8 @@ final class LateAcceptanceScoreBuffer {
     private boolean writtenSinceReset = false;
     private final RandomGenerator workingRandom;
 
+    private InnerScore bestLateScore;
+
     LateAcceptanceScoreBuffer(int size, InnerScore<?> initialScore, double resetAcceptanceRate, RandomGenerator workingRandom) {
         this.size = size;
         this.scores = new InnerScore[size];
@@ -41,6 +43,7 @@ final class LateAcceptanceScoreBuffer {
         }
         this.resetAcceptanceRate = resetAcceptanceRate;
         Arrays.fill(scores, initialScore);
+        bestLateScore = initialScore;
         // By default,
         // the score is set to zero,
         // and it means all scores will be read initially.
@@ -79,6 +82,13 @@ final class LateAcceptanceScoreBuffer {
         slotEpoch[currentIndex] = resetEpoch;
         writtenSinceReset = true;
         currentIndex = (currentIndex + 1) % size;
+        if (bestLateScore.raw().compareTo(score.raw()) < 0) {
+            bestLateScore = score;
+        }
+    }
+
+    InnerScore<?> getBestLateScore() {
+        return bestLateScore;
     }
 
     /**
