@@ -44,6 +44,17 @@
           "old": "field ai.timefold.solver.core.config.heuristic.selector.move.generic.AbstractPillarMoveSelectorConfig<Config_ extends ai.timefold.solver.core.config.heuristic.selector.move.generic.AbstractPillarMoveSelectorConfig<Config_>>.subPillarSequenceComparatorClass",
           "new": "field ai.timefold.solver.core.config.heuristic.selector.move.generic.AbstractPillarMoveSelectorConfig<Config_ extends ai.timefold.solver.core.config.heuristic.selector.move.generic.AbstractPillarMoveSelectorConfig<Config_>>.subPillarSequenceComparatorClass",
           "justification": "Internal protected fields; safe."
+        },
+        {
+          "ignore": true,
+          "code": "java.annotation.attributeValueChanged",
+          "old": "class ai.timefold.solver.core.config.localsearch.decider.acceptor.LocalSearchAcceptorConfig",
+          "new": "class ai.timefold.solver.core.config.localsearch.decider.acceptor.LocalSearchAcceptorConfig",
+          "annotationType": "jakarta.xml.bind.annotation.XmlType",
+          "attribute": "propOrder",
+          "oldValue": "{\"acceptorTypeList\", \"entityTabuSize\", \"entityTabuRatio\", \"fadingEntityTabuSize\", \"fadingEntityTabuRatio\", \"valueTabuSize\", \"fadingValueTabuSize\", \"moveTabuSize\", \"fadingMoveTabuSize\", \"simulatedAnnealingStartingTemperature\", \"lateAcceptanceSize\", \"greatDelugeWaterLevelIncrementScore\", \"greatDelugeWaterLevelIncrementRatio\", \"stepCountingHillClimbingSize\", \"stepCountingHillClimbingType\"}",
+          "newValue": "{\"acceptorTypeList\", \"entityTabuSize\", \"entityTabuRatio\", \"fadingEntityTabuSize\", \"fadingEntityTabuRatio\", \"valueTabuSize\", \"fadingValueTabuSize\", \"moveTabuSize\", \"fadingMoveTabuSize\", \"simulatedAnnealingStartingTemperature\", \"lateAcceptanceSize\", \"resetScoreAcceptanceRate\", \"softScoreImprovementRate\", \"greatDelugeWaterLevelIncrementScore\", \"greatDelugeWaterLevelIncrementRatio\", \"stepCountingHillClimbingSize\", \"stepCountingHillClimbingType\"}",
+          "justification": "New acceptor fields"
         }
       ]
     }

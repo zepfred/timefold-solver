@@ -25,6 +25,8 @@ import org.jspecify.annotations.Nullable;
         "fadingMoveTabuSize",
         "simulatedAnnealingStartingTemperature",
         "lateAcceptanceSize",
+        "resetScoreAcceptanceRate",
+        "softScoreImprovementRate",
         "greatDelugeWaterLevelIncrementScore",
         "greatDelugeWaterLevelIncrementRatio",
         "stepCountingHillClimbingSize",
@@ -47,6 +49,8 @@ public final class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchA
     private String simulatedAnnealingStartingTemperature = null;
 
     private Integer lateAcceptanceSize = null;
+    private Double resetScoreAcceptanceRate = null;
+    private Double softScoreImprovementRate = null;
 
     private String greatDelugeWaterLevelIncrementScore = null;
     private Double greatDelugeWaterLevelIncrementRatio = null;
@@ -142,6 +146,22 @@ public final class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchA
         this.lateAcceptanceSize = lateAcceptanceSize;
     }
 
+    public Double getResetScoreAcceptanceRate() {
+        return resetScoreAcceptanceRate;
+    }
+
+    public void setResetScoreAcceptanceRate(Double resetScoreAcceptanceRate) {
+        this.resetScoreAcceptanceRate = resetScoreAcceptanceRate;
+    }
+
+    public Double getSoftScoreImprovementRate() {
+        return softScoreImprovementRate;
+    }
+
+    public void setSoftScoreImprovementRate(Double softScoreImprovementRate) {
+        this.softScoreImprovementRate = softScoreImprovementRate;
+    }
+
     public @Nullable String getGreatDelugeWaterLevelIncrementScore() {
         return greatDelugeWaterLevelIncrementScore;
     }
@@ -234,6 +254,16 @@ public final class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchA
         return this;
     }
 
+    public @NonNull LocalSearchAcceptorConfig withResetScoreAcceptanceRate(@NonNull Double resetScoreAcceptanceRate) {
+        this.resetScoreAcceptanceRate = resetScoreAcceptanceRate;
+        return this;
+    }
+
+    public @NonNull LocalSearchAcceptorConfig withSoftScoreImprovementRate(@NonNull Double softScoreImprovementRate) {
+        this.softScoreImprovementRate = softScoreImprovementRate;
+        return this;
+    }
+
     public @NonNull LocalSearchAcceptorConfig withStepCountingHillClimbingSize(@NonNull Integer stepCountingHillClimbingSize) {
         this.stepCountingHillClimbingSize = stepCountingHillClimbingSize;
         return this;
@@ -275,6 +305,10 @@ public final class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchA
                 simulatedAnnealingStartingTemperature, inheritedConfig.getSimulatedAnnealingStartingTemperature());
         lateAcceptanceSize = ConfigUtils.inheritOverwritableProperty(lateAcceptanceSize,
                 inheritedConfig.getLateAcceptanceSize());
+        resetScoreAcceptanceRate = ConfigUtils.inheritOverwritableProperty(resetScoreAcceptanceRate,
+                inheritedConfig.getResetScoreAcceptanceRate());
+        softScoreImprovementRate = ConfigUtils.inheritOverwritableProperty(softScoreImprovementRate,
+                inheritedConfig.getSoftScoreImprovementRate());
         greatDelugeWaterLevelIncrementScore = ConfigUtils.inheritOverwritableProperty(greatDelugeWaterLevelIncrementScore,
                 inheritedConfig.getGreatDelugeWaterLevelIncrementScore());
         greatDelugeWaterLevelIncrementRatio = ConfigUtils.inheritOverwritableProperty(greatDelugeWaterLevelIncrementRatio,

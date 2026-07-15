@@ -2294,6 +2294,12 @@
           <xs:element minOccurs="0" name="lateAcceptanceSize" type="xs:int"/>
                               
           
+          <xs:element minOccurs="0" name="resetScoreAcceptanceRate" type="xs:double"/>
+                              
+          
+          <xs:element minOccurs="0" name="softScoreImprovementRate" type="xs:double"/>
+                              
+          
           <xs:element minOccurs="0" name="greatDelugeWaterLevelIncrementScore" type="xs:string"/>
                               
           
