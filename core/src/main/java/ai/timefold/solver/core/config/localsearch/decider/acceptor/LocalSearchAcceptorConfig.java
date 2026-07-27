@@ -25,7 +25,6 @@ import org.jspecify.annotations.Nullable;
         "fadingMoveTabuSize",
         "simulatedAnnealingStartingTemperature",
         "lateAcceptanceSize",
-        "resetScoreAcceptanceRate",
         "softScoreImprovementRate",
         "greatDelugeWaterLevelIncrementScore",
         "greatDelugeWaterLevelIncrementRatio",
@@ -49,7 +48,6 @@ public final class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchA
     private String simulatedAnnealingStartingTemperature = null;
 
     private Integer lateAcceptanceSize = null;
-    private Double resetScoreAcceptanceRate = null;
     private Double softScoreImprovementRate = null;
 
     private String greatDelugeWaterLevelIncrementScore = null;
@@ -144,14 +142,6 @@ public final class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchA
 
     public void setLateAcceptanceSize(@Nullable Integer lateAcceptanceSize) {
         this.lateAcceptanceSize = lateAcceptanceSize;
-    }
-
-    public Double getResetScoreAcceptanceRate() {
-        return resetScoreAcceptanceRate;
-    }
-
-    public void setResetScoreAcceptanceRate(Double resetScoreAcceptanceRate) {
-        this.resetScoreAcceptanceRate = resetScoreAcceptanceRate;
     }
 
     public Double getSoftScoreImprovementRate() {
@@ -254,11 +244,6 @@ public final class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchA
         return this;
     }
 
-    public @NonNull LocalSearchAcceptorConfig withResetScoreAcceptanceRate(@NonNull Double resetScoreAcceptanceRate) {
-        this.resetScoreAcceptanceRate = resetScoreAcceptanceRate;
-        return this;
-    }
-
     public @NonNull LocalSearchAcceptorConfig withSoftScoreImprovementRate(@NonNull Double softScoreImprovementRate) {
         this.softScoreImprovementRate = softScoreImprovementRate;
         return this;
@@ -305,8 +290,6 @@ public final class LocalSearchAcceptorConfig extends AbstractConfig<LocalSearchA
                 simulatedAnnealingStartingTemperature, inheritedConfig.getSimulatedAnnealingStartingTemperature());
         lateAcceptanceSize = ConfigUtils.inheritOverwritableProperty(lateAcceptanceSize,
                 inheritedConfig.getLateAcceptanceSize());
-        resetScoreAcceptanceRate = ConfigUtils.inheritOverwritableProperty(resetScoreAcceptanceRate,
-                inheritedConfig.getResetScoreAcceptanceRate());
         softScoreImprovementRate = ConfigUtils.inheritOverwritableProperty(softScoreImprovementRate,
                 inheritedConfig.getSoftScoreImprovementRate());
         greatDelugeWaterLevelIncrementScore = ConfigUtils.inheritOverwritableProperty(greatDelugeWaterLevelIncrementScore,

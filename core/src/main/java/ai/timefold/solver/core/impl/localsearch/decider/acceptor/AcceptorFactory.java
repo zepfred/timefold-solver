@@ -203,7 +203,6 @@ public class AcceptorFactory<Solution_> {
                         && acceptorConfig.getLateAcceptanceSize() != null)) {
             var acceptor = new LateAcceptanceAcceptor<Solution_>();
             acceptor.setLateAcceptanceSize(Objects.requireNonNullElse(acceptorConfig.getLateAcceptanceSize(), 400));
-            acceptor.setResetAcceptanceRate(Objects.requireNonNullElse(acceptorConfig.getResetScoreAcceptanceRate(), 0.0));
             acceptor.setSoftScoreImprovementRate(Objects.requireNonNullElse(acceptorConfig.getSoftScoreImprovementRate(), 0.0));
             return Optional.of(acceptor);
         }
