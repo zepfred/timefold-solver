@@ -35,7 +35,7 @@ public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution
         var initialScore = phaseScope.getBestScore();
         scoreBuffer = new LateAcceptanceScoreBuffer(lateAcceptanceSize, initialScore);
         bestScoreState = new NoOpLevelScoreState<>();
-        logger.info("LA 2017 running");
+        logger.info("LA 2017-FIX1 running");
     }
 
     private void validate() {
