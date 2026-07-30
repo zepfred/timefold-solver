@@ -37,7 +37,7 @@ public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution
         var scoreDefinition = phaseScope.getSolverScope().getScoreDefinition();
         bestScoreState = scoreDefinition.getLevelsSize() > 1 ? new DefaultLevelScoreState<>(initialScore, scoreDefinition)
                 : new NoOpLevelScoreState<>();
-        logger.info("LA IMPROVED running");
+        logger.info("LA IMPROVED-FIX1 running");
     }
 
     private void validate() {
@@ -62,10 +62,6 @@ public class LateAcceptanceAcceptor<Solution_> extends AbstractAcceptor<Solution
             var lastStepScore = moveScope.getStepScope().getPhaseScope()
                     .getLastCompletedStepScope().getScore();
             accepted = moveScore.compareTo(lastStepScore) >= 0;
-        }
-        // If the move is not accepted, we increase the current late index
-        if (!accepted) {
-            scoreBuffer.increment();
         }
         return accepted;
     }
