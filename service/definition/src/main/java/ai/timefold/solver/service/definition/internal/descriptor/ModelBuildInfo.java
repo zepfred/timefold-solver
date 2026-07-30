@@ -5,7 +5,7 @@ import io.quarkus.runtime.annotations.RecordableConstructor;
 /**
  * Holds build-time metadata about the Timefold Solver model, including version information and source control details
  * captured at build time.
- * 
+ *
  * @param solverVersion the version of the Timefold Solver used to build the model
  * @param sdkVersion the version of the SDK; deprecated, use {@link #solverVersion()} instead
  * @param version the version of the model

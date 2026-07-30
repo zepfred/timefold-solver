@@ -358,7 +358,7 @@ class TimefoldModelDescriptorProcessor {
                 gitInfo != null ? (String) ((Map<String, Object>) gitInfo.getValue().getOrDefault("commit", Map.of())).get("id")
                         : null;
 
-        ModelBuildInfo modelBuildInfo = new ModelBuildInfo(solverVersion, version, buildTime, branch, commit);
+        ModelBuildInfo modelBuildInfo = new ModelBuildInfo(solverVersion, solverVersion, version, buildTime, branch, commit);
 
         byte[] buildInfoContent = MAPPER.writeValueAsBytes(modelBuildInfo);
         Path buildInfoFile = Paths.get(out.getOutputDirectory().toString(), "timefold", "build-info.json");
