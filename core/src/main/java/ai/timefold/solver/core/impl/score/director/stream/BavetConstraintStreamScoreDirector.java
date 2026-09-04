@@ -69,14 +69,14 @@ public final class BavetConstraintStreamScoreDirector<Solution_, Score_ extends 
         var solutionDescriptor = getSolutionDescriptor();
         var entityList = new ArrayList<>();
         solutionDescriptor.visitAllEntities(solution, entityList::add);
-        shadowVariableSupport.setConsistencyTracker(ConsistencyTracker.frozen(
+        solverVariableSupport.setConsistencyTracker(ConsistencyTracker.frozen(
                 getSolutionDescriptor(),
                 entityList.toArray()));
     }
 
     @Override
     public void setWorkingSolutionWithoutUpdatingShadows(Solution_ workingSolution) {
-        session = scoreDirectorFactory.newSession(workingSolution, shadowVariableSupport.getConsistencyTracker(),
+        session = scoreDirectorFactory.newSession(workingSolution, solverVariableSupport.getConsistencyTracker(),
                 constraintMatchPolicy, derived);
         super.setWorkingSolutionWithoutUpdatingShadows(workingSolution, session::insert);
     }
@@ -90,7 +90,7 @@ public final class BavetConstraintStreamScoreDirector<Solution_, Score_ extends 
 
     @Override
     public InnerScore<Score_> calculateScore() {
-        shadowVariableSupport.assertShadowVariablesAreUpToDate();
+        solverVariableSupport.assertShadowVariablesAreUpToDate();
         var score = session.calculateScore();
         setCalculatedScore(score);
         return new InnerScore<>(score, -getWorkingInitScore());
